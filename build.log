@@ -1,0 +1,32 @@
+﻿▲ Next.js 16.2.10 (Turbopack)
+- Experiments (use with caution):
+  · optimizePackageImports
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 7.6s
+  Running TypeScript ...
+  Finished TypeScript in 9.0s ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/84) ...
+  Generating static pages using 11 workers (21/84) 
+  Generating static pages using 11 workers (42/84) 
+  Generating static pages using 11 workers (63/84) 
+✓ Generating static pages using 11 workers (84/84) in 6.1s
+  Finalizing page optimization ...
+node.exe : 
+At C:\Users\hiak0\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\tools\node\npx.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/npm/bin/npx-cli.js" ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+> Build error occurred
+Error: ENOENT: no such file or directory, scandir 'C:\Users\hiak0\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\wor
+k-mode-projects\6a4d86c19ecd28972b169f1c\toolbox\.next\server\app\robots.txt\route'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: 'C:\\Users\\hiak0\\AppData\\Roaming\\TRAE SOLO CN\\ModularData\\ai-agent\\work-mode-projects\\6a4d86c19ecd28972
+b169f1c\\toolbox\\.next\\server\\app\\robots.txt\\route'
+}

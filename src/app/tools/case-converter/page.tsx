@@ -1,0 +1,226 @@
+"use client";
+
+import { useState } from "react";
+import ToolLayout from "@/components/ToolLayout";
+import { ArrowUpDown, Copy, Check, Trash2, Type, Info, ArrowUp, ArrowDown } from "lucide-react";
+
+type ConvertMode = "upper" | "lower" | "title" | "capitalize" | "invert" | "camel" | "snake" | "kebab";
+
+const modeInfo: Record<ConvertMode, { name: string; description: string }> = {
+  upper: { name: "全部大写", description: "ABC DEF" },
+  lower: { name: "全部小写", description: "abc def" },
+  title: { name: "标题格式", description: "Abc Def" },
+  capitalize: { name: "首字母大写", description: "Abc def" },
+  invert: { name: "反转大小写", description: "aBC dEF" },
+  camel: { name: "驼峰命名", description: "abcDef" },
+  snake: { name: "下划线命名", description: "abc_def" },
+  kebab: { name: "短横线命名", description: "abc-def" },
+};
+
+function convertText(text: string, mode: ConvertMode): string {
+  switch (mode) {
+    case "upper":
+      return text.toUpperCase();
+    case "lower":
+      return text.toLowerCase();
+    case "title":
+      return text.replace(/\w\S*/g, (word) => {
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      });
+    case "capitalize":
+      return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+    case "invert":
+      return text.split("").map((char) => {
+        if (char === char.toUpperCase()) return char.toLowerCase();
+        if (char === char.toLowerCase()) return char.toUpperCase();
+        return char;
+      }).join("");
+    case "camel": {
+      const words = text.toLowerCase().split(/[\s_\-]+/).filter(Boolean);
+      if (words.length === 0) return "";
+      return words[0] + words.slice(1).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join("");
+    }
+    case "snake":
+      return text.toLowerCase().replace(/[\s\-]+/g, "_").replace(/_+/g, "_");
+    case "kebab":
+      return text.toLowerCase().replace(/[\s_]+/g, "-").replace(/-+/g, "-");
+    default:
+      return text;
+  }
+}
+
+export default function CaseConverterPage() {
+  const [input, setInput] = useState("Hello World");
+  const [mode, setMode] = useState<ConvertMode>("upper");
+  const [copied, setCopied] = useState(false);
+
+  const output = convertText(input, mode);
+
+  const handleCopy = async () => {
+    if (!output) return;
+    try {
+      await navigator.clipboard.writeText(output);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleClear = () => {
+    setInput("");
+  };
+
+  const modes: ConvertMode[] = ["upper", "lower", "title", "capitalize", "invert", "camel", "snake", "kebab"];
+
+  return (
+    <ToolLayout
+      title="大小写转换"
+      description="在线文本大小写转换，支持大写、小写、首字母大写、驼峰、下划线等多种格式"
+      toolId="case-converter"
+      icon={ArrowUpDown}
+      category="文本工具"
+      slug="case-converter"
+    >
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* 转换模式选择 */}
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
+            <div className="flex items-center gap-2">
+              <ArrowUpDown className="w-5 h-5 text-fuchsia-500" />
+              <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                转换模式
+              </h2>
+            </div>
+          </div>
+
+          <div className="p-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {modes.map((m) => {
+                const info = modeInfo[m];
+                return (
+                  <button
+                    key={m}
+                    onClick={() => setMode(m)}
+                    className={`p-3 rounded-xl text-left transition-all ${
+                      mode === m
+                        ? "bg-fuchsia-500 text-white shadow-sm"
+                        : "bg-zinc-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700"
+                    }`}
+                  >
+                    <div className="text-sm font-medium mb-1">{info.name}</div>
+                    <div className={`text-xs ${mode === m ? "text-fuchsia-100" : "text-zinc-500 dark:text-zinc-400"}`}>
+                      {info.description}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* 输入输出区域 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* 输入 */}
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+            <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Type className="w-4 h-4 text-fuchsia-500" />
+                  <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    输入文本
+                  </span>
+                </div>
+                <span className="text-xs text-zinc-500 dark:text-zinc-500">
+                  {input.length} 字符
+                </span>
+              </div>
+            </div>
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="在此输入或粘贴文本..."
+              className="w-full h-64 p-4 bg-transparent text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none resize-none"
+            />
+            <div className="p-3 border-t border-zinc-200 dark:border-zinc-800">
+              <button
+                onClick={handleClear}
+                disabled={!input}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-zinc-600 dark:text-zinc-400 hover:text-red-500 dark:hover:text-red-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                清空
+              </button>
+            </div>
+          </div>
+
+          {/* 输出 */}
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+            <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ArrowUp className="w-4 h-4 text-emerald-500" />
+                  <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    转换结果
+                  </span>
+                </div>
+                <span className="text-xs text-zinc-500 dark:text-zinc-500">
+                  {output.length} 字符
+                </span>
+              </div>
+            </div>
+            <textarea
+              value={output}
+              readOnly
+              placeholder="转换结果将显示在这里..."
+              className="w-full h-64 p-4 bg-transparent text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 resize-none"
+            />
+            <div className="p-3 border-t border-zinc-200 dark:border-zinc-800">
+              <button
+                onClick={handleCopy}
+                disabled={!output}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-zinc-600 dark:text-zinc-400 hover:text-emerald-500 dark:hover:text-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {copied ? (
+                  <><Check className="w-4 h-4 text-emerald-500" /> 已复制</>
+                ) : (
+                  <><Copy className="w-4 h-4" /> 复制结果</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* FAQ */}
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <Info className="w-5 h-5 text-indigo-500" />
+            <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+              常见问题
+            </h3>
+          </div>
+          <div className="space-y-3">
+            <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl">
+              <h4 className="font-medium text-zinc-800 dark:text-zinc-200 mb-2 text-sm">
+                标题格式和首字母大写有什么区别？
+              </h4>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                标题格式是每个单词的首字母都大写，首字母大写只有整个文本的第一个字母大写。
+                例如 "hello world" 标题格式为 "Hello World"，首字母大写为 "Hello world"。
+              </p>
+            </div>
+            <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl">
+              <h4 className="font-medium text-zinc-800 dark:text-zinc-200 mb-2 text-sm">
+                驼峰命名是什么？
+              </h4>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                驼峰命名是一种编程命名规范，第一个单词小写，后续每个单词首字母大写，
+                形如骆驼的驼峰。常用于变量名、函数名等。
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ToolLayout>
+  );
+}

@@ -1,0 +1,12 @@
+﻿▲ Next.js 16.2.10
+- Local:         http://localhost:3001
+- Network:       http://192.168.19.42:3001
+✓ Ready in 614ms
+node.exe : ⚠ "next start" does not work with "output: standalone" configuration. Use "node .next/standalone/server.js" 
+instead.
+At C:\Users\hiak0\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\tools\node\npx.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/npm/bin/npx-cli.js" ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (⚠ "next start" ...er.js" instead.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
