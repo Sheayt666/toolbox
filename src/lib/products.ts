@@ -2117,7 +2117,7 @@ export const productCategories = [
 // Contact info for purchase
 export const purchaseContact = {
   wechat: "2629676609", // 微信号（备用）
-  wechatQr: "", // 微信收款码图片URL（上传后填入）
+  wechatQr: "/wechat-pay.jpg", // 微信收款码图片
   qq: "2629676609",
   xianyuUrl: "https://2.taobao.com/",
   email: "2629676609@qq.com",

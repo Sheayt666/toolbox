@@ -418,12 +418,12 @@ export default function HomeContent() {
               {/* 右侧收款码 */}
               <div className="flex-shrink-0">
                 <div className="bg-white rounded-xl p-3 shadow-xl shadow-emerald-500/10">
-                  <div className="w-36 h-36 bg-[#f5f5f5] rounded-lg flex items-center justify-center relative overflow-hidden">
-                    {/* 收款码图片占位 */}
-                    <div className="text-center">
-                      <QrCode className="w-12 h-12 text-slate-400 mx-auto mb-2" />
-                      <p className="text-xs text-slate-500">微信收款码</p>
-                    </div>
+                  <div className="w-36 h-36 bg-[#f5f5f5] rounded-lg overflow-hidden">
+                    <img
+                      src="/wechat-pay.jpg"
+                      alt="微信收款码"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <p className="text-center text-xs text-slate-600 mt-2 font-medium">
                     微信扫码打赏
