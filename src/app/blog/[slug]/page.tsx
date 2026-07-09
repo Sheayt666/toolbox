@@ -14,9 +14,6 @@ interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export const runtime = "edge";
-export const dynamicParams = false;
-
 // 生成静态路径
 export function generateStaticParams() {
   return posts.map((post) => ({
