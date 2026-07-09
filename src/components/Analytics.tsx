@@ -10,7 +10,9 @@ import Script from "next/script";
  */
 export default function Analytics() {
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
-  const baiduId = process.env.NEXT_PUBLIC_BAIDU_TONGJI_ID;
+  const baiduId =
+    process.env.NEXT_PUBLIC_BAIDU_TONGJI_ID ||
+    "21442a1c455bf85b8742f9aac4e3e53e";
 
   return (
     <>
