@@ -13,6 +13,8 @@ import {
   ExternalLink,
   Tag,
   ShieldAlert,
+  Heart,
+  Coffee,
   type LucideIcon,
 } from "lucide-react";
 import { useState } from "react";
@@ -343,6 +345,55 @@ export default function ToolLayout({
                   </div>
                 </div>
               )}
+
+              {/* 打赏支持 */}
+              <div className="bg-gradient-to-br from-emerald-500/10 via-[#18181b] to-emerald-500/5 rounded-2xl border border-emerald-500/20 p-5 overflow-hidden relative">
+                {/* 装饰 */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+
+                <div className="relative flex items-center gap-5">
+                  {/* 左侧文案 */}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Coffee className="w-4 h-4 text-emerald-400" />
+                      <span className="text-sm font-semibold text-white">
+                        觉得好用？请我喝杯咖啡 ☕
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      99在线工具坚持免费无广告，你的打赏是我持续维护更新的动力。
+                      觉得好用欢迎收藏本站，分享给更多朋友~
+                    </p>
+                    <div className="flex items-center gap-3 mt-3 text-xs text-slate-500">
+                      <span className="flex items-center gap-1">
+                        <Bookmark className="w-3.5 h-3.5" />
+                        收藏本站
+                      </span>
+                      <span className="w-px h-3 bg-[#27272a]" />
+                      <span className="flex items-center gap-1">
+                        <Heart className="w-3.5 h-3.5" />
+                        感谢打赏
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 右侧收款码 */}
+                  <div className="flex-shrink-0">
+                    <div className="bg-white rounded-xl p-2 shadow-lg shadow-emerald-500/10">
+                      <div className="w-20 h-20 rounded-lg overflow-hidden">
+                        <img
+                          src="/wechat-pay.jpg"
+                          alt="微信打赏"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <p className="text-center text-[10px] text-slate-600 mt-1.5 font-medium">
+                        微信打赏
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               {/* SEO Content */}
               {seoContent && <ToolSEOContent seoContent={seoContent} />}
