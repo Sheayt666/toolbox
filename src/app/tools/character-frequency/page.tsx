@@ -10,6 +10,8 @@ import {
   Type,
 } from "lucide-react";
 
+const sampleText = "在此输入文本进行字符频率统计...\n\n例如：Hello World, 你好世界";
+
 function getFrequency(text: string): Array<{ char: string; count: number; percent: number }> {
   const map = new Map<string, number>();
   let total = 0;

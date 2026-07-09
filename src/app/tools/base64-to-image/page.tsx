@@ -3,11 +3,10 @@
 import { useState, useCallback, useRef } from "react";
 import ToolLayout from "@/components/ToolLayout";
 import {
-  Image,
+  Image as ImageLucide,
   Upload,
   Download,
   Trash2,
-  Image as ImageIcon,
 } from "lucide-react";
 
 export default function Base64ToImagePage() {
@@ -103,7 +102,7 @@ export default function Base64ToImagePage() {
       title="Base64转图片"
       description="将Base64编码的字符串转换为图片，支持预览和下载，本地处理安全可靠"
       toolId="base64-to-image"
-      icon={Image}
+      icon={ImageLucide}
       category="开发工具"
       slug="base64-to-image"
     >
@@ -114,7 +113,7 @@ export default function Base64ToImagePage() {
               onClick={handleConvert}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-medium rounded-xl transition-all hover:opacity-90 hover:shadow-lg"
             >
-              <Image className="w-4 h-4" />
+              <ImageLucide className="w-4 h-4" />
               转换为图片
             </button>
             <button
@@ -157,7 +156,7 @@ export default function Base64ToImagePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4">
             <div className="border border-[#27272a] rounded-xl overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-3 border-b border-[#27272a] bg-[#09090b]">
-                <ImageIcon className="w-4 h-4 text-sky-400" />
+                <ImageLucide className="w-4 h-4 text-sky-400" />
                 <span className="text-sm font-medium text-zinc-300">Base64编码（输入）</span>
               </div>
               <textarea
@@ -170,7 +169,7 @@ export default function Base64ToImagePage() {
             </div>
             <div className="border border-[#27272a] rounded-xl overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-3 border-b border-[#27272a] bg-[#09090b]">
-                <Image className="w-4 h-4 text-emerald-400" />
+                <ImageLucide className="w-4 h-4 text-emerald-400" />
                 <span className="text-sm font-medium text-zinc-300">图片预览（输出）</span>
               </div>
               <div className="h-72 flex items-center justify-center bg-[#09090b] overflow-auto p-4">

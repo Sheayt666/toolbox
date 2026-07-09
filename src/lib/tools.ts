@@ -147,6 +147,8 @@
   BookOpen,
   Check,
   Copy,
+  Scissors,
+  Play,
   FileSearch,
   GitCompare,
   ListOrdered,

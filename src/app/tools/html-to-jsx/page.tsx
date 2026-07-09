@@ -11,6 +11,11 @@ import {
   FileCode,
 } from "lucide-react";
 
+const sampleInput = `<div class="container" style="color: red; font-size: 14px;">
+  <button onclick="handleClick()">点击我</button>
+  <img src="example.png" alt="example">
+</div>`;
+
 function htmlToJsx(html: string): string {
   let result = html;
   
@@ -27,13 +32,13 @@ function htmlToJsx(html: string): string {
     result = result.replace(re, `on${ev.charAt(0).toUpperCase() + ev.slice(1)}=`);
   }
   // style="color: red" -> style={{ color: "red" }}
-  result = result.replace(/style="([^"]+)"/g, (match, styleStr) => {
+  result = result.replace(/style="([^"]+)"/g, (match: string, styleStr: string) => {
     const styles: string[] = [];
-    const pairs = styleStr.split(";").filter(s => s.trim());
+    const pairs = styleStr.split(";").filter((s: string) => s.trim());
     for (const pair of pairs) {
-      const [prop, val] = pair.split(":").map(s => s.trim());
+      const [prop, val] = pair.split(":").map((s: string) => s.trim());
       // kebab-case to camelCase
-      const camelProp = prop.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+      const camelProp = prop.replace(/-([a-z])/g, (_: string, c: string) => c.toUpperCase());
       styles.push(`${camelProp}: "${val}"`);
     }
     return `style={{ ${styles.join(", ")} }}`;
@@ -64,7 +69,7 @@ export default function HtmlToJsxPage() {
       return;
     }
     try {
-      setOutput(convert(input));
+      setOutput(htmlToJsx(input));
     } catch (e) {
       setError("转换失败: " + (e as Error).message);
     }

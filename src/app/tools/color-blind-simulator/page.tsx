@@ -191,7 +191,7 @@ export default function ColorBlindSimulatorPage() {
             <div className="grid grid-cols-2 gap-0">
               <div className="p-4 border-r border-[#27272a]">
                 <div className="text-xs text-slate-500 mb-2 text-center">原始图像</div>
-                <img src={imageUrl} alt="original" className="w-full rounded-lg" />
+                <img src={imageUrl ?? undefined} alt="original" className="w-full rounded-lg" />
               </div>
               <div className="p-4">
                 <div className="text-xs text-slate-500 mb-2 text-center">{blindTypes.find(b => b.id === blindType)?.name}</div>

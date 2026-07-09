@@ -10,6 +10,8 @@ import {
   Type,
 } from "lucide-react";
 
+const sampleText = "在此输入文本进行词频统计...\n\n例如：The quick brown fox jumps over the lazy dog. 你好世界，你好中国。";
+
 function getFrequency(text: string): Array<{ word: string; count: number; percent: number }> {
   const map = new Map<string, number>();
   const words = text.toLowerCase().match(/[\u4e00-\u9fa5a-zA-Z]+/g) || [];

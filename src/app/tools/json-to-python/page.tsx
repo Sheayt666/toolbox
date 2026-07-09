@@ -41,7 +41,7 @@ function jsonToPython(obj: any, className: string = "Root"): string {
     generated[name] = true;
     
     let lines = `@dataclass\nclass ${name}:`;
-    const fields: string[] = [];
+    const fields: Array<{ name: string; type: string; original: string }> = [];
     
     for (const [key, val] of Object.entries(obj)) {
       const t = pyType(val, key);

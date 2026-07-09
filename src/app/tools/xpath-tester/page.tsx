@@ -63,9 +63,9 @@ export default function XpathTesterPage() {
         while (node) {
           count++;
           if (node.nodeType === Node.ELEMENT_NODE) {
-            outputText += node.outerHTML + "\n";
+            outputText += (node as Element).outerHTML + "\n";
           } else if (node.nodeType === Node.ATTRIBUTE_NODE) {
-            outputText += node.name + '="' + node.value + '"\n';
+            outputText += (node as Attr).name + '="' + (node as Attr).value + '"\n';
           } else {
             outputText += node.textContent + "\n";
           }

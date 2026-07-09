@@ -41,7 +41,7 @@ function jsonToJava(obj: any, className: string = "Root"): string {
     generated[name] = true;
     
     let lines = `public class ${name} {`;
-    const fields: string[] = [];
+    const fields: Array<{ name: string; type: string }> = [];
     
     for (const [key, val] of Object.entries(obj)) {
       const t = javaType(val, key);

@@ -4,7 +4,7 @@ import { useState } from "react";
 import ToolLayout from "@/components/ToolLayout";
 import { Globe, Search, Copy, Check, BookOpen } from "lucide-react";
 
-const cheatsheetData = [
+const cheatsheetData: Array<{ category: string; items: Array<{ code: string; title: string; desc: string; example?: string }> }> = [
   {
     category: "1xx - 信息响应",
     items: [

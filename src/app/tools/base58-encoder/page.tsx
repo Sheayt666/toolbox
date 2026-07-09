@@ -46,12 +46,12 @@ export default function Base58EncoderPage() {
     let result = "";
     let num = BigInt(0);
     for (let i = 0; i < bytes.length; i++) {
-      num = num * 256n + BigInt(bytes[i]);
+      num = num * BigInt(256) + BigInt(bytes[i]);
     }
-    while (num > 0n) {
-      const remainder = Number(num % 58n);
+    while (num > BigInt(0)) {
+      const remainder = Number(num % BigInt(58));
       result = alphabet[remainder] + result;
-      num = num / 58n;
+      num = num / BigInt(58);
     }
     // 添加前导1
     for (let i = 0; i < zeros; i++) {
@@ -71,13 +71,13 @@ export default function Base58EncoderPage() {
     for (let i = 0; i < str.length; i++) {
       const idx = alphabet.indexOf(str[i]);
       if (idx === -1) throw new Error("无效的Base58字符");
-      num = num * 58n + BigInt(idx);
+      num = num * BigInt(58) + BigInt(idx);
     }
     // 转换为字节
     const bytes: number[] = [];
-    while (num > 0n) {
-      bytes.unshift(Number(num % 256n));
-      num = num / 256n;
+    while (num > BigInt(0)) {
+      bytes.unshift(Number(num % BigInt(256)));
+      num = num / BigInt(256);
     }
     // 添加前导零
     for (let i = 0; i < ones; i++) {
