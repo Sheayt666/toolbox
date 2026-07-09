@@ -196,7 +196,7 @@ export default function PurchaseModal({
                   </p>
                   <p className="flex items-start gap-2">
                     <Check className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
-                    <span>验证后立即发货，支持7天无理由退款</span>
+                    <span>验证后立即发货，文件有问题可补发</span>
                   </p>
                 </div>
               </div>

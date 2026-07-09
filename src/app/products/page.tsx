@@ -6,7 +6,7 @@ import {
   ShoppingCart,
   Zap,
   Shield,
-  RefreshCcw,
+  Clock,
   Users,
   Star,
   TrendingUp,
@@ -235,14 +235,14 @@ export default function ProductsPage() {
               },
               {
                 icon: Shield,
-                title: "7天无理由退款",
-                desc: "购买后7天内不满意，随时申请全额退款",
+                title: "文件问题补发",
+                desc: "文件有问题或无法使用，联系客服免费补发",
                 color: "from-emerald-500 to-teal-500",
               },
               {
-                icon: RefreshCcw,
-                title: "终身免费更新",
-                desc: "产品持续更新优化，购买后享受终身免费更新",
+                icon: Clock,
+                title: "24小时响应",
+                desc: "QQ/邮箱多渠道客服，24小时内回复",
                 color: "from-blue-500 to-cyan-500",
               },
               {

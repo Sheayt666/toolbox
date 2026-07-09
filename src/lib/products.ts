@@ -1,4 +1,4 @@
-import {
+﻿import {
   Sparkles,
   Code2,
   LayoutDashboard,
@@ -7,7 +7,7 @@ import {
   FileText,
   Zap,
   Shield,
-  RefreshCcw,
+  Mail,
   Award,
   Clock,
   Star,
@@ -112,8 +112,8 @@ export const products: Product[] = [
       },
       {
         icon: RefreshCcw,
-        title: "持续更新",
-        description: "每月新增提示词，紧跟AI技术发展，终身免费更新",
+        title: "品质保证",
+        description: "精心打磨，每一条都经过实测验证",
       },
     ],
     contents: [
@@ -233,9 +233,9 @@ export const products: Product[] = [
           "大部分提示词适用于ChatGPT、Claude、文心一言、通义千问等主流大语言模型。Midjourney提示词专用于AI绘画。我们会标注每个提示词的适用场景。",
       },
       {
-        question: "会持续更新吗？",
+        question: "购买后怎么获取？",
         answer:
-          "是的，我们每月都会更新新增的提示词，购买后即可享受终身免费更新。更新内容会通过邮件和在线文档同步。",
+          "付款后通过百度网盘发货，链接永久有效，随时下载。",
       },
       {
         question: "可以退款吗？",
@@ -272,7 +272,7 @@ export const products: Product[] = [
     features: [
       "50+精选开发工具",
       "分类整理清晰",
-      "持续更新维护",
+      "品质保证",
       "附赠配置文件合集",
     ],
     highlights: [
@@ -577,7 +577,7 @@ export const products: Product[] = [
       "从0到1的SEO优化完整清单，涵盖技术SEO、内容SEO、外链建设等全流程",
     longDescription:
       "这份SEO优化清单是我们多年网站运营经验的总结。从技术SEO到内容SEO，从关键词研究到外链建设，100+个检查项帮你系统地优化网站，快速提升搜索引擎排名。每个检查项都配有操作说明和工具推荐，新手也能照着做。",
-    features: ["100+检查项", "实操指南", "案例分享", "持续更新"],
+    features: ["100+检查项", "实操指南", "案例分享", "即买即用"],
     highlights: [
       {
         icon: BarChart3,
@@ -712,9 +712,9 @@ export const products: Product[] = [
           "SEO是长期工作，一般优化后1-3个月能看到明显效果。技术SEO部分优化后，网站收录和抓取速度通常会在1-2周内改善。",
       },
       {
-        question: "会持续更新吗？",
+        question: "购买后怎么获取？",
         answer:
-          "是的，搜索引擎算法不断变化，我们也会持续更新清单内容，确保方法有效。购买后享受终身免费更新。",
+          "付款后通过百度网盘发货，链接永久有效，随时下载。",
       },
     ],
     badge: "",
@@ -738,7 +738,7 @@ export const products: Product[] = [
       "500+套精选配色方案，按风格分类，一键复制色值，设计师必备素材",
     longDescription:
       "这套配色方案合集收录了500+套经过精心挑选的配色方案，涵盖各种设计风格和应用场景。每套配色都经过色彩理论验证，确保视觉和谐。支持一键复制HEX/RGB色值，让你的设计工作事半功倍。",
-    features: ["500+配色方案", "多种风格", "一键复制", "持续更新"],
+    features: ["500+配色方案", "多种风格", "一键复制", "即买即用"],
     highlights: [
       {
         icon: Palette,
@@ -757,7 +757,7 @@ export const products: Product[] = [
       },
       {
         icon: RefreshCcw,
-        title: "持续更新",
+        title: "品质保证",
         description: "每月新增配色方案，紧跟设计潮流趋势",
       },
     ],
@@ -869,9 +869,9 @@ export const products: Product[] = [
           "当然可以！配色方案本身不受版权保护，您购买后可以自由用于任何个人和商业项目。",
       },
       {
-        question: "会持续更新吗？",
+        question: "购买后怎么获取？",
         answer:
-          "是的，我们每月会新增20-30套新的配色方案，紧跟设计潮流。购买后享受终身免费更新。",
+          "付款后通过百度网盘发货，链接永久有效，随时下载。",
       },
       {
         question: "适合新手设计师吗？",
@@ -1043,9 +1043,9 @@ export const products: Product[] = [
           "完全适合！我们附赠了详细的简历撰写指南，教你每一项该怎么写，如何突出自己的优势。还有很多真实案例参考。",
       },
       {
-        question: "会持续更新吗？",
+        question: "购买后怎么获取？",
         answer:
-          "我们会不定期新增不同行业和岗位的模板。购买后享受终身免费更新，有新模板上线会通过邮件通知。",
+          "付款后通过百度网盘发货，链接永久有效，随时下载。",
       },
     ],
     badge: "限时优惠",
@@ -1096,7 +1096,7 @@ export const products: Product[] = [
       },
       {
         icon: RefreshCcw,
-        title: "持续更新",
+        title: "品质保证",
         description: "每季度更新工具库，永久免费获取新版本",
       },
     ],
@@ -1194,7 +1194,7 @@ export const products: Product[] = [
           "大部分工具都同时支持Windows和Mac，部分工具还有Linux版本。每个工具都会标注支持的系统。",
       },
       {
-        question: "会持续更新吗？",
+        question: "购买后怎么获取？",
         answer:
           "会的。我们每季度更新一次工具库，淘汰不好用的，加入新发现的好工具。购买后终身免费获取更新版本。",
       },
@@ -1251,7 +1251,7 @@ export const products: Product[] = [
       },
       {
         icon: TrendingUp,
-        title: "持续更新",
+        title: "品质保证",
         description: "紧跟平台趋势，每两月更新一次内容库",
       },
     ],
@@ -1355,7 +1355,7 @@ export const products: Product[] = [
           "完全可以！运营手册从0开始教，包括怎么注册、怎么定位、怎么发布第一篇内容。标题模板直接套用就行。",
       },
       {
-        question: "内容会持续更新吗？",
+        question: "购买后怎么获取？",
         answer:
           "会的。平台规则和用户喜好一直在变，我们每两个月更新一次内容库，确保素材和方法不过时。",
       },
@@ -1528,7 +1528,7 @@ export const products: Product[] = [
           "适合想做独立产品、副业赚钱的开发者、设计师、产品经理，以及任何想在网上创造收入的人。有一定编程基础最佳，但即使零基础也能从中学到产品思路和方法论。",
       },
       {
-        question: "内容会持续更新吗？",
+        question: "购买后怎么获取？",
         answer:
           "会的。技术栈和市场一直在变化，我们每季度更新一次内容，确保信息不过时。购买后终身免费获取所有更新版本。",
       },
@@ -1712,7 +1712,7 @@ export const products: Product[] = [
       {
         question: "内容会更新吗？",
         answer:
-          "会持续更新。AI绘画技术发展很快，我们每两个月更新一次提示词库和教程，确保内容紧跟最新技术。购买后终身免费更新。",
+          "付款后通过百度网盘发货，链接永久有效，随时下载使用。",
       },
       {
         question: "可以退款吗？",
@@ -1747,7 +1747,7 @@ export const products: Product[] = [
       "各岗位面试话术",
       "薪资谈判技巧",
       "笔试真题合集",
-      "终身免费更新",
+      "即买即用",
     ],
     highlights: [
       {
@@ -1895,7 +1895,7 @@ export const products: Product[] = [
       {
         question: "内容会更新吗？",
         answer:
-          "会持续更新。我们每季度更新一次面试题库和简历模板，确保内容跟上最新的面试趋势。购买后终身免费获取所有更新。",
+          "付款后通过百度网盘发货，链接永久有效，随时下载使用。",
       },
       {
         question: "可以退款吗？",
@@ -1930,7 +1930,7 @@ export const products: Product[] = [
       "30+可直接套用的模板",
       "20个真实案例复盘",
       "避坑指南大全",
-      "终身免费更新",
+      "即买即用",
     ],
     highlights: [
       {
@@ -2089,7 +2089,7 @@ export const products: Product[] = [
       {
         question: "内容会更新吗？",
         answer:
-          "会持续更新。副业市场变化很快，我们每季度更新一次内容，新增靠谱的副业方向，淘汰过时的玩法。购买后终身免费更新。",
+          "付款后通过百度网盘发货，链接永久有效，随时下载使用。",
       },
     ],
     badge: "爆款热销",
@@ -2121,7 +2121,7 @@ export const purchaseContact = {
   qq: "2629676609",
   xianyuUrl: "https://2.taobao.com/",
   email: "2629676609@qq.com",
-  responseTime: "工作日 9:00-21:00，1小时内回复",
+  responseTime: "24小时内回复",
 };
 
 export function getProductById(id: string): Product | undefined {
@@ -2169,9 +2169,10 @@ export function getFeaturedProducts(count: number = 3): Product[] {
 
 // Trust badges data
 export const trustBadges = [
-  { icon: Shield, text: "7天无理由退款", color: "text-emerald-500" },
+  { icon: Shield, text: "文件问题补发", color: "text-emerald-500" },
   { icon: Zap, text: "付款后立即交付", color: "text-amber-500" },
-  { icon: RefreshCcw, text: "终身免费更新", color: "text-blue-500" },
-  { icon: Users, text: "上万用户信赖", color: "text-purple-500" },
+  { icon: Mail, text: "24小时内响应", color: "text-blue-500" },
+  { icon: Users, text: "用户信赖之选", color: "text-purple-500" },
 ];
+
 
