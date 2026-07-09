@@ -150,7 +150,7 @@ export default function ToolLayout({
 
       <div className="min-h-screen bg-[#09090b] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {/* Breadcrumb - Toolboo minimal */}
+          {/* Breadcrumb - 99工具 minimal */}
           <nav className="mb-6" aria-label="Breadcrumb">
             <ol className="flex items-center flex-wrap gap-1.5 text-xs">
               <li>
@@ -194,7 +194,7 @@ export default function ToolLayout({
             </ol>
           </nav>
 
-          {/* Tool Header - Toolboo style */}
+          {/* Tool Header - 99工具 style */}
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5">
               <div className="flex items-start gap-5">
@@ -229,7 +229,7 @@ export default function ToolLayout({
                 </div>
               </div>
 
-              {/* Action buttons - Toolboo style */}
+              {/* Action buttons - 99工具 style */}
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setSaved(!saved)}

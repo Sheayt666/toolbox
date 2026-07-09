@@ -59,7 +59,7 @@ export default function HomeContent() {
 
   return (
     <>
-      {/* Hero Section - Toolboo style minimal */}
+      {/* Hero Section - 99工具 style minimal */}
       <section className="relative overflow-hidden pt-14 pb-10">
         {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0d0d0f] to-[#09090b]" />
@@ -72,7 +72,7 @@ export default function HomeContent() {
 
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            {/* Title - Toolboo style large */}
+            {/* Title - 99工具 style large */}
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-3 tracking-tight leading-[1.2] animate-fade-in-up">
               发现最好用的
               <span className="bg-gradient-to-r from-primary-400 via-accent-400 to-pink-400 bg-clip-text text-transparent">
@@ -84,7 +84,7 @@ export default function HomeContent() {
               精选 {allTools.length}+ 款实用在线工具，涵盖开发、设计、效率、生活等领域
             </p>
 
-            {/* Search Bar - Toolboo style */}
+            {/* Search Bar - 99工具 style */}
             <div className="max-w-xl mx-auto mb-8 animate-fade-in-up stagger-2">
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary-500/20 to-accent-500/20 rounded-xl blur-md opacity-50" />
@@ -104,7 +104,7 @@ export default function HomeContent() {
               </div>
             </div>
 
-            {/* Quick category tags - Toolboo #tag style */}
+            {/* Quick category tags - 99工具 #tag style */}
             <div className="flex flex-wrap items-center justify-center gap-1.5 animate-fade-in-up stagger-3">
               <span className="text-xs text-slate-500 mr-1">热门:</span>
               {categories
@@ -135,7 +135,7 @@ export default function HomeContent() {
       {/* Main Content Area */}
       <section className="pb-16 lg:pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Header - Toolboo style */}
+          {/* Section Header - 99工具 style */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
             <div>
               {(searchQuery || activeCategory) && (
@@ -160,7 +160,7 @@ export default function HomeContent() {
               </h2>
             </div>
 
-            {/* Sort tabs - Toolboo style */}
+            {/* Sort tabs - 99工具 style */}
             <div className="flex items-center gap-1 bg-[#18181b] rounded-lg p-1 border border-[#27272a]">
               {[
                 { key: "trending", label: "热门", icon: TrendingUp },
@@ -183,7 +183,7 @@ export default function HomeContent() {
             </div>
           </div>
 
-          {/* Tools Grid - Toolboo 4 column layout */}
+          {/* Tools Grid - 99工具 4 column layout */}
           {displayTools.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {displayTools.map((tool, i) => (
@@ -230,7 +230,7 @@ export default function HomeContent() {
         </div>
       </section>
 
-      {/* Featured Categories - Toolboo style category cards */}
+      {/* Featured Categories - 99工具 style category cards */}
       <section className="pb-16 lg:pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-6">

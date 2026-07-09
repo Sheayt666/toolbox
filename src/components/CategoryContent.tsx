@@ -31,7 +31,7 @@ export default function CategoryContent() {
 
   return (
     <div className="min-h-screen bg-[#09090b] text-white">
-      {/* Hero Section - Toolboo style */}
+      {/* Hero Section - 99工具 style */}
       <section className="relative overflow-hidden pt-10 pb-10">
         <div className="absolute inset-0 bg-gradient-to-b from-[#0d0d0f] to-[#09090b]" />
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[250px] bg-primary-500/[0.1] rounded-full blur-[80px] pointer-events-none" />
@@ -88,7 +88,7 @@ export default function CategoryContent() {
         </div>
       </section>
 
-      {/* Category Navigation - Toolboo tag style */}
+      {/* Category Navigation - 99工具 tag style */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
         <div className="flex flex-wrap gap-1.5 justify-center">
           {categories
