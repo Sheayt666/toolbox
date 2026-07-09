@@ -181,6 +181,7 @@ export interface Tool {
   icon: LucideIcon;
   category: string;
   color: string;
+  tags?: string[];
 }
 
 export const tools: Tool[] = [
@@ -2956,4 +2957,87 @@ export function getPopularTools(): Tool[] {
 // Get tool by slug/id
 export function getToolBySlug(slug: string): Tool | undefined {
   return tools.find((t) => t.id === slug);
+}
+
+// 热门标签列表 - SEO内链核心
+export const popularTags = [
+  { name: "JSON", slug: "json", count: 12 },
+  { name: "图片压缩", slug: "image-compress", count: 8 },
+  { name: "PDF转换", slug: "pdf-convert", count: 15 },
+  { name: "在线计算", slug: "calculator", count: 20 },
+  { name: "文本处理", slug: "text-processing", count: 18 },
+  { name: "编码解码", slug: "encode-decode", count: 10 },
+  { name: "二维码", slug: "qrcode", count: 5 },
+  { name: "密码生成", slug: "password", count: 3 },
+  { name: "正则表达式", slug: "regex", count: 4 },
+  { name: "单位换算", slug: "unit-converter", count: 6 },
+  { name: "图片编辑", slug: "image-editor", count: 15 },
+  { name: "视频处理", slug: "video", count: 8 },
+  { name: "音频处理", slug: "audio", count: 8 },
+  { name: "颜色工具", slug: "color", count: 10 },
+  { name: "CSS工具", slug: "css", count: 8 },
+  { name: "房贷计算", slug: "mortgage", count: 2 },
+  { name: "个税计算", slug: "tax", count: 2 },
+  { name: "日期计算", slug: "date", count: 5 },
+  { name: "随机生成", slug: "random", count: 6 },
+  { name: "格式化", slug: "formatter", count: 8 },
+];
+
+// 根据工具自动提取标签
+export function getToolTags(tool: Tool): string[] {
+  if (tool.tags && tool.tags.length > 0) return tool.tags;
+
+  const tags: string[] = [];
+  const name = tool.name.toLowerCase();
+  const desc = tool.description.toLowerCase();
+
+  // 关键词匹配生成标签
+  const tagRules: Record<string, string[]> = {
+    json: ["json"],
+    "image-compress": ["压缩", "图片压缩"],
+    "pdf-convert": ["pdf"],
+    calculator: ["计算", "计算器"],
+    "text-processing": ["文本", "文字"],
+    "encode-decode": ["编码", "解码", "base64", "base", "进制"],
+    qrcode: ["二维码", "qr"],
+    password: ["密码"],
+    regex: ["正则"],
+    "unit-converter": ["换算", "转换"],
+    "image-editor": ["图片", "图像"],
+    video: ["视频"],
+    audio: ["音频", "音乐", "声音"],
+    color: ["颜色", "色彩"],
+    css: ["css"],
+    mortgage: ["房贷"],
+    tax: ["个税", "税"],
+    date: ["日期", "时间"],
+    random: ["随机"],
+    formatter: ["格式化", "美化"],
+  };
+
+  for (const [tag, keywords] of Object.entries(tagRules)) {
+    if (keywords.some((kw) => name.includes(kw) || desc.includes(kw))) {
+      tags.push(tag);
+    }
+  }
+
+  // 至少返回1个标签，最多4个
+  if (tags.length === 0) tags.push("online-tools");
+  return tags.slice(0, 4);
+}
+
+// 根据标签获取工具
+export function getToolsByTag(tagSlug: string): Tool[] {
+  return tools.filter((tool) => {
+    const toolTags = getToolTags(tool);
+    return toolTags.includes(tagSlug);
+  });
+}
+
+// 获取标签名称
+export function getTagName(slug: string): string {
+  const tag = popularTags.find((t) => t.slug === slug);
+  if (tag) return tag.name;
+  // fallback: 从slug生成名称
+  return slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }

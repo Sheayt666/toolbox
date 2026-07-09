@@ -1,5 +1,5 @@
 import { MetadataRoute } from "next";
-import { tools, categories } from "@/lib/tools";
+import { tools, categories, popularTags } from "@/lib/tools";
 import { posts } from "@/lib/posts";
 import { getToolSeoContent } from "@/data/toolSeoContent";
 
@@ -26,6 +26,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly" as const,
       priority: 0.9,
     }));
+
+  // 标签页面
+  const tagUrls = popularTags.map((tag) => ({
+    url: `${baseUrl}/tag/${tag.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
+  }));
 
   // 博客列表页
   const blogPage = {
@@ -65,6 +73,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     homePage,
     ...categoryUrls,
+    ...tagUrls,
     blogPage,
     productsPage,
     ...toolUrls,

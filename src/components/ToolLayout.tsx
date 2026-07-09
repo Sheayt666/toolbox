@@ -11,10 +11,11 @@ import {
   CheckCircle,
   Bookmark,
   ExternalLink,
+  Tag,
   type LucideIcon,
 } from "lucide-react";
 import { useState } from "react";
-import { getCategorySlugByName, getPopularTools, getToolsByCategory } from "@/lib/tools";
+import { getCategorySlugByName, getPopularTools, getToolsByCategory, getAllTools, getToolTags, getToolBySlug, popularTags } from "@/lib/tools";
 import ToolCard from "./ToolCard";
 import ToolSEOContent from "./ToolSEOContent";
 import { getToolSeoContent } from "@/data/toolSeoContent";
@@ -71,6 +72,16 @@ export default function ToolLayout({
     : [];
 
   const popularTools = getPopularTools().slice(0, 5);
+
+  // 上一篇/下一篇导航
+  const allTools = getAllTools();
+  const currentIndex = allTools.findIndex((t) => t.id === slug);
+  const prevTool = currentIndex > 0 ? allTools[currentIndex - 1] : null;
+  const nextTool = currentIndex < allTools.length - 1 ? allTools[currentIndex + 1] : null;
+
+  // 当前工具的标签
+  const currentTool = slug ? getToolBySlug(slug) : undefined;
+  const toolTags = currentTool ? getToolTags(currentTool) : [];
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -271,8 +282,87 @@ export default function ToolLayout({
                 {children}
               </div>
 
+              {/* 标签云 - SEO内链 */}
+              {(toolTags.length > 0 || popularTags.length > 0) && (
+                <div className="bg-[#18181b] rounded-2xl border border-[#27272a] p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Tag className="w-4 h-4 text-primary-400" />
+                    <h3 className="text-sm font-semibold text-white">相关标签</h3>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {toolTags.length > 0 &&
+                      popularTags
+                        .filter((t) => toolTags.includes(t.slug))
+                        .map((tag) => (
+                          <Link
+                            key={tag.slug}
+                            href={`/tag/${tag.slug}`}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-primary-400 bg-primary-500/10 rounded-md hover:bg-primary-500/20 transition-colors"
+                          >
+                            #{tag.name}
+                          </Link>
+                        ))}
+                    {/* 热门标签补充 */}
+                    {popularTags
+                      .filter((t) => !toolTags.includes(t.slug))
+                      .slice(0, 8)
+                      .map((tag) => (
+                        <Link
+                          key={tag.slug}
+                          href={`/tag/${tag.slug}`}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-slate-400 bg-[#27272a] rounded-md hover:text-white hover:bg-[#3f3f46] transition-colors"
+                        >
+                          #{tag.name}
+                        </Link>
+                      ))}
+                  </div>
+                </div>
+              )}
+
               {/* SEO Content */}
               {seoContent && <ToolSEOContent seoContent={seoContent} />}
+
+              {/* Prev/Next Navigation - 内链SEO */}
+              {(prevTool || nextTool) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {prevTool ? (
+                    <Link
+                      href={`/tools/${prevTool.id}`}
+                      className="group flex items-center gap-3 p-4 bg-[#18181b] rounded-xl border border-[#27272a] hover:border-primary-500/30 hover:bg-[#1c1c1f] transition-all"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-[#27272a] flex items-center justify-center flex-shrink-0 group-hover:bg-primary-500/20 transition-colors">
+                        <ChevronRight className="w-5 h-5 text-slate-400 rotate-180 group-hover:text-primary-400 transition-colors" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-slate-500 mb-0.5">上一个工具</div>
+                        <div className="text-sm font-medium text-white truncate group-hover:text-primary-400 transition-colors">
+                          {prevTool.name}
+                        </div>
+                      </div>
+                    </Link>
+                  ) : (
+                    <div />
+                  )}
+                  {nextTool ? (
+                    <Link
+                      href={`/tools/${nextTool.id}`}
+                      className="group flex items-center justify-end gap-3 p-4 bg-[#18181b] rounded-xl border border-[#27272a] hover:border-primary-500/30 hover:bg-[#1c1c1f] transition-all sm:text-right"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-slate-500 mb-0.5">下一个工具</div>
+                        <div className="text-sm font-medium text-white truncate group-hover:text-primary-400 transition-colors">
+                          {nextTool.name}
+                        </div>
+                      </div>
+                      <div className="w-10 h-10 rounded-lg bg-[#27272a] flex items-center justify-center flex-shrink-0 group-hover:bg-primary-500/20 transition-colors">
+                        <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-primary-400 transition-colors" />
+                      </div>
+                    </Link>
+                  ) : (
+                    <div />
+                  )}
+                </div>
+              )}
 
               {/* Related Tools - Mobile */}
               {relatedTools.length > 0 && (

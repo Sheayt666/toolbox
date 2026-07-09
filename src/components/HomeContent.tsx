@@ -306,6 +306,76 @@ export default function HomeContent() {
           </div>
         </div>
       </section>
+
+      {/* All Tools Sitemap - SEO内链矩阵 */}
+      <section className="pb-16 lg:pb-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Hash className="w-4 h-4 text-primary-400" />
+              <span className="text-sm font-medium text-primary-400">全站工具导航</span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              按分类浏览全部工具
+            </h2>
+            <p className="text-slate-500 text-sm mt-2">
+              共 {allTools.length} 个精选在线工具，覆盖{categories.filter(c => c.id !== "all").length}大分类
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {categories
+              .filter((c) => c.id !== "all")
+              .map((cat) => {
+                const CatIcon = cat.icon;
+                const catTools = allTools.filter((t) => t.category === cat.name).slice(0, 8);
+                return (
+                  <div
+                    key={cat.id}
+                    className="bg-[#18181b] rounded-xl border border-[#27272a] p-5 hover:border-[#3f3f46] transition-colors"
+                  >
+                    <Link
+                      href={`/category/${cat.slug}`}
+                      className="flex items-center gap-2.5 mb-4 group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500/20 to-accent-500/20 flex items-center justify-center">
+                        <CatIcon className="w-4 h-4 text-primary-400" />
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-semibold text-white group-hover:text-primary-400 transition-colors">
+                          {cat.name}
+                        </span>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-primary-400 group-hover:translate-x-0.5 transition-all" />
+                      </div>
+                    </Link>
+                    <ul className="space-y-1.5">
+                      {catTools.map((tool) => (
+                        <li key={tool.id}>
+                          <Link
+                            href={tool.path}
+                            className="flex items-center gap-2 text-xs text-slate-400 hover:text-white transition-colors truncate"
+                          >
+                            <span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-primary-500 flex-shrink-0" />
+                            <span className="truncate">{tool.name}</span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                    {catTools.length >= 8 && (
+                      <Link
+                        href={`/category/${cat.slug}`}
+                        className="inline-flex items-center gap-1 mt-3 text-xs text-primary-400 hover:text-primary-300 transition-colors"
+                      >
+                        查看全部
+                        <ChevronRight className="w-3 h-3" />
+                      </Link>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      </section>
     </>
   );
 }
