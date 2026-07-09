@@ -2116,11 +2116,11 @@ export const productCategories = [
 
 // Contact info for purchase
 export const purchaseContact = {
-  wechat: "toolbox_shop",
-  wechatQr: "", // 二维码图片URL（可选）
-  qq: "123456789",
+  wechat: "2629676609", // 微信号（备用）
+  wechatQr: "", // 微信收款码图片URL（上传后填入）
+  qq: "2629676609",
   xianyuUrl: "https://2.taobao.com/",
-  email: "shop@toolbox.com",
+  email: "2629676609@qq.com",
   responseTime: "工作日 9:00-21:00，1小时内回复",
 };
 

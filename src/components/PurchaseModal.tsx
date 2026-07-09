@@ -5,7 +5,6 @@ import {
   X,
   Copy,
   Check,
-  MessageCircle,
   QrCode,
   ExternalLink,
   Clock,
@@ -75,7 +74,7 @@ export default function PurchaseModal({
   if (!isOpen) return null;
 
   const tabs: { id: TabType; label: string; icon: LucideIcon; color: string }[] = [
-    { id: "wechat", label: "微信购买", icon: MessageCircle, color: "from-green-500 to-emerald-500" },
+    { id: "wechat", label: "微信收款", icon: QrCode, color: "from-green-500 to-emerald-500" },
     { id: "qq", label: "QQ购买", icon: QrCode, color: "from-blue-500 to-sky-500" },
     { id: "xianyu", label: "闲鱼店铺", icon: ShoppingBag, color: "from-orange-500 to-amber-500" },
   ];
@@ -148,51 +147,56 @@ export default function PurchaseModal({
               <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-2xl p-5 border border-green-200/50 dark:border-green-800/30">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
-                    <MessageCircle className="w-5 h-5 text-white" />
+                    <QrCode className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-slate-900 dark:text-white">添加微信客服</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">复制微信号添加好友</p>
+                    <h4 className="font-semibold text-slate-900 dark:text-white">微信扫码付款</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      付款后联系QQ/邮箱发货
+                    </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-xl p-3 border border-green-200/50 dark:border-green-800/30">
-                  <div className="flex-1">
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">微信号</p>
-                    <p className="font-mono font-bold text-slate-900 dark:text-white text-lg">
-                      {purchaseContact.wechat}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => copyToClipboard(purchaseContact.wechat, "wechat")}
-                    className={`px-4 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5 ${
-                      copiedField === "wechat"
-                        ? "bg-emerald-500 text-white"
-                        : "bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:shadow-lg hover:shadow-green-500/25"
-                    }`}
-                  >
-                    {copiedField === "wechat" ? (
-                      <>
-                        <Check className="w-4 h-4" />
-                        已复制
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4" />
-                        复制
-                      </>
-                    )}
-                  </button>
+                {/* 收款码展示区 */}
+                <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-green-200/50 dark:border-green-800/30">
+                  {purchaseContact.wechatQr ? (
+                    <div className="flex flex-col items-center">
+                      <img
+                        src={purchaseContact.wechatQr}
+                        alt="微信收款码"
+                        className="w-48 h-48 object-contain rounded-lg"
+                      />
+                      <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
+                        微信扫一扫，向我付款
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center py-6">
+                      <div className="w-48 h-48 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600">
+                        <div className="text-center">
+                          <QrCode className="w-12 h-12 text-slate-400 mx-auto mb-2" />
+                          <p className="text-xs text-slate-500">收款码待上传</p>
+                        </div>
+                      </div>
+                      <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 text-center">
+                        管理员正在上传收款码
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-4 space-y-2 text-sm text-slate-600 dark:text-slate-400">
                   <p className="flex items-start gap-2">
                     <Check className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
-                    <span>添加时请备注「{productName || "购买产品"}」，方便快速处理</span>
+                    <span>付款金额：¥{productPrice || "--"}（{productName || "产品"}）</span>
                   </p>
                   <p className="flex items-start gap-2">
                     <Check className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
-                    <span>支持微信转账，付款后立即发货</span>
+                    <span>付款后加QQ：{purchaseContact.qq}，备注「{productName || "购买产品"}+转账截图」</span>
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                    <span>验证后立即发货，支持7天无理由退款</span>
                   </p>
                 </div>
               </div>
