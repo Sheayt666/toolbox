@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -61,11 +61,11 @@ export default function Header() {
                 <Wrench className="w-4 h-4 text-white" />
               </div>
               <span className="text-[17px] font-semibold text-white tracking-tight">
-                Toolify
+                Toolboo
               </span>
             </Link>
 
-            {/* Stats - Toolify style */}
+            {/* Stats - Toolboo style */}
             <div className="hidden md:flex items-center gap-1 text-[13px] text-slate-400">
               <span className="font-medium text-slate-300">{allTools.length}</span>
               <span>个工具</span>
@@ -75,7 +75,7 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Center: Search - Toolify style big search */}
+          {/* Center: Search - Toolboo style big search */}
           <div className="hidden lg:flex flex-1 max-w-md mx-8">
             <form onSubmit={handleSearch} className="w-full relative">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
@@ -161,7 +161,7 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Category tags bar - Toolify style #tags */}
+        {/* Category tags bar - Toolboo style #tags */}
         <div className="hidden lg:flex items-center gap-1.5 py-2 overflow-x-auto scrollbar-hide">
           <span className="text-xs text-slate-500 mr-1 flex-shrink-0">热门分类:</span>
           {categories

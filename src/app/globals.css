@@ -1,7 +1,7 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 @theme {
-  /* Primary colors - Toolify purple/violet */
+  /* Primary colors - Toolboo purple/violet */
   --color-primary-50: #faf5ff;
   --color-primary-100: #f3e8ff;
   --color-primary-200: #e9d5ff;
@@ -36,7 +36,7 @@
   /* Error */
   --color-error-500: #ef4444;
 
-  /* Neutral - Toolify dark theme */
+  /* Neutral - Toolboo dark theme */
   --color-slate-50: #fafafa;
   --color-slate-100: #f4f4f5;
   --color-slate-200: #e4e4e7;
@@ -53,7 +53,7 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  /* Border radius - Toolify style */
+  /* Border radius - Toolboo style */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
@@ -62,7 +62,7 @@
   --radius-3xl: 1.5rem;
   --radius-full: 9999px;
 
-  /* Shadows - Toolify subtle */
+  /* Shadows - Toolboo subtle */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.03);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
@@ -110,7 +110,7 @@ a {
   text-decoration: none;
 }
 
-/* Custom scrollbar - Toolify dark style */
+/* Custom scrollbar - Toolboo dark style */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -138,7 +138,7 @@ a {
 }
 
 /* ============================================
-   Animations - Toolify smooth
+   Animations - Toolboo smooth
    ============================================ */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
@@ -243,7 +243,7 @@ a {
 }
 
 /* ============================================
-   Tool Card Styles - Toolify minimal
+   Tool Card Styles - Toolboo minimal
    ============================================ */
 .tool-card {
   transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
@@ -295,7 +295,7 @@ a {
 }
 
 /* ============================================
-   Glass morphism - Toolify style
+   Glass morphism - Toolboo style
    ============================================ */
 .glass {
   background: rgba(24, 24, 27, 0.8);
@@ -387,7 +387,7 @@ html {
 }
 
 /* ============================================
-   Tag / Hashtag style - Toolify
+   Tag / Hashtag style - Toolboo
    ============================================ */
 .tag {
   display: inline-flex;
@@ -416,7 +416,7 @@ html {
 }
 
 /* ============================================
-   Card - Toolify style
+   Card - Toolboo style
    ============================================ */
 .card {
   background: #18181b;
@@ -431,21 +431,21 @@ html {
 }
 
 /* ============================================
-   Input style - Toolify
+   Input style - Toolboo
    ============================================ */
-.input-toolify {
+.input-Toolboo {
   background: #18181b;
   border: 1px solid #27272a;
   color: #fafafa;
   transition: all 0.2s ease;
 }
 
-.input-toolify:focus {
+.input-Toolboo:focus {
   outline: none;
   border-color: rgba(168, 85, 247, 0.5);
   box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.1);
 }
 
-.input-toolify::placeholder {
+.input-Toolboo::placeholder {
   color: #71717a;
 }

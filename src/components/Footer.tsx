@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { Wrench, Heart, Mail, Code2, MessageCircle } from "lucide-react";
 import { categories, getAllTools, getToolsByCategory } from "@/lib/tools";
 
@@ -25,7 +25,7 @@ export default function Footer() {
                 <Wrench className="w-[18px] h-[18px] text-white" />
               </div>
               <span className="text-lg font-semibold text-white tracking-tight">
-                Toolify
+                Toolboo
               </span>
             </Link>
             <p className="text-sm text-slate-500 max-w-xs mb-5 leading-relaxed">
@@ -67,7 +67,7 @@ export default function Footer() {
                 <MessageCircle className="w-4 h-4" />
               </a>
               <a
-                href="mailto:hello@toolify.com"
+                href="mailto:hello@Toolboo.com"
                 className="p-2 rounded-lg bg-[#18181b] hover:bg-[#27272a] text-slate-400 hover:text-white transition-colors"
                 aria-label="Email"
               >
@@ -179,7 +179,7 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-xs text-slate-600">
-              © 2026 Toolify. All rights reserved.
+              © 2026 Toolboo. All rights reserved.
             </p>
             <div className="flex items-center gap-4 text-xs text-slate-600">
               <span className="flex items-center gap-1.5">
