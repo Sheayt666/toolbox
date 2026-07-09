@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "PDF转Excel - 在线PDF转Excel工具 | 工具箱",
+  title: "PDF转Excel - 在线PDF转Excel工具 | 99在线工具",
   description:
     "在线从PDF中提取表格数据并转换为Excel格式，支持复制和下载",
   keywords: [
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "免费PDF转Excel",
   ],
   openGraph: {
-    title: "PDF转Excel - 在线PDF转Excel工具 | 工具箱",
+    title: "PDF转Excel - 在线PDF转Excel工具 | 99在线工具",
     description:
       "在线从PDF中提取表格数据并转换为Excel格式，支持复制和下载",
     type: "website",

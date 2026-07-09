@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "视频提取音频 - 在线视频提取音频工具 | 工具箱",
+  title: "视频提取音频 - 在线视频提取音频工具 | 99在线工具",
   description:
     "在线从视频中提取音频轨道，支持MP3/WAV/WebM等多种音频格式",
   keywords: [
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "免费视频提取音频",
   ],
   openGraph: {
-    title: "视频提取音频 - 在线视频提取音频工具 | 工具箱",
+    title: "视频提取音频 - 在线视频提取音频工具 | 99在线工具",
     description:
       "在线从视频中提取音频轨道，支持MP3/WAV/WebM等多种音频格式",
     type: "website",

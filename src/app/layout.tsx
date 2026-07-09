@@ -14,7 +14,7 @@ const inter = Inter({
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://99gongju.online";
-const siteName = process.env.NEXT_PUBLIC_SITE_NAME || "99工具";
+const siteName = process.env.NEXT_PUBLIC_SITE_NAME || "99在线工具";
 const siteDescription =
   process.env.NEXT_PUBLIC_SITE_DESCRIPTION ||
   "免费在线工具箱，提供JSON格式化、Base64编解码、正则表达式测试、二维码生成、密码生成器等实用工具，无需注册即可使用。";

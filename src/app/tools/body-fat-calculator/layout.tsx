@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "体脂率计算器 - 在线体脂率估算 | 工具箱",
+  title: "体脂率计算器 - 在线体脂率估算 | 99在线工具",
   description:
     "免费在线体脂率计算器，使用美国海军体脂公式，通过围度数据估算体脂率，了解身体脂肪含量。",
   keywords: [
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "体脂百分比",
   ],
   openGraph: {
-    title: "体脂率计算器 - 在线体脂率估算 | 工具箱",
+    title: "体脂率计算器 - 在线体脂率估算 | 99在线工具",
     description:
       "免费在线体脂率计算器，使用美国海军体脂公式估算体脂率。",
     type: "website",

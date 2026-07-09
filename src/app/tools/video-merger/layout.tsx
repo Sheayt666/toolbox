@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "视频合并 - 在线视频合并工具 | 工具箱",
+  title: "视频合并 - 在线视频合并工具 | 99在线工具",
   description:
     "在线合并多个视频文件，支持不同格式，拖拽排序，一键合并",
   keywords: [
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "免费视频合并",
   ],
   openGraph: {
-    title: "视频合并 - 在线视频合并工具 | 工具箱",
+    title: "视频合并 - 在线视频合并工具 | 99在线工具",
     description:
       "在线合并多个视频文件，支持不同格式，拖拽排序，一键合并",
     type: "website",

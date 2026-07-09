@@ -25,7 +25,7 @@ export default function Footer() {
                 <Wrench className="w-[18px] h-[18px] text-white" />
               </div>
               <span className="text-lg font-semibold text-white tracking-tight">
-                99工具
+                99在线工具
               </span>
             </Link>
             <p className="text-sm text-slate-500 max-w-xs mb-5 leading-relaxed">
@@ -179,7 +179,7 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-xs text-slate-600">
-              © 2026 99工具. All rights reserved.
+              © 2026 99在线工具. All rights reserved.
             </p>
             <div className="flex items-center gap-4 text-xs text-slate-600">
               <span className="flex items-center gap-1.5">

@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "图片分割九宫格 - 在线图片分割九宫格工具 | 工具箱",
+  title: "图片分割九宫格 - 在线图片分割九宫格工具 | 99在线工具",
   description:
     "在线图片九宫格分割，将一张图切成多块，社交媒体发图必备",
   keywords: [
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "九宫格",
   ],
   openGraph: {
-    title: "图片分割九宫格 - 在线图片分割九宫格工具 | 工具箱",
+    title: "图片分割九宫格 - 在线图片分割九宫格工具 | 99在线工具",
     description:
       "在线图片九宫格分割，将一张图切成多块，社交媒体发图必备",
     type: "website",

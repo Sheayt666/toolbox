@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "MP4转MP3 - 在线MP4转MP3工具 | 工具箱",
+  title: "MP4转MP3 - 在线MP4转MP3工具 | 99在线工具",
   description:
     "在线从MP4视频中提取音频并转换为MP3格式，一键转换下载",
   keywords: [
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "免费MP4转MP3",
   ],
   openGraph: {
-    title: "MP4转MP3 - 在线MP4转MP3工具 | 工具箱",
+    title: "MP4转MP3 - 在线MP4转MP3工具 | 99在线工具",
     description:
       "在线从MP4视频中提取音频并转换为MP3格式，一键转换下载",
     type: "website",

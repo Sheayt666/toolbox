@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "图片模糊像素化 - 在线高斯模糊马赛克 | 工具箱",
+  title: "图片模糊像素化 - 在线高斯模糊马赛克 | 99在线工具",
   description:
     "免费在线图片模糊和像素化工具，支持高斯模糊（强度可调）、马赛克像素化（像素大小可调）、局部模糊，实时预览效果，本地处理安全可靠。",
   keywords: [
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     "图片马赛克",
   ],
   openGraph: {
-    title: "图片模糊像素化 - 在线高斯模糊马赛克 | 工具箱",
+    title: "图片模糊像素化 - 在线高斯模糊马赛克 | 99在线工具",
     description:
       "免费在线图片模糊和像素化工具，支持高斯模糊、马赛克像素化、局部模糊，实时预览效果。",
     type: "website",

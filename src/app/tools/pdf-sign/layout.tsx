@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "PDF电子签名 - 在线PDF电子签名工具 | 工具箱",
+  title: "PDF电子签名 - 在线PDF电子签名工具 | 99在线工具",
   description:
     "在线为PDF添加电子签名，支持手写签名和文字签名，一键添加",
   keywords: [
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "免费PDF电子签名",
   ],
   openGraph: {
-    title: "PDF电子签名 - 在线PDF电子签名工具 | 工具箱",
+    title: "PDF电子签名 - 在线PDF电子签名工具 | 99在线工具",
     description:
       "在线为PDF添加电子签名，支持手写签名和文字签名，一键添加",
     type: "website",

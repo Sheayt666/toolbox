@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "PDF页面旋转 - 在线PDF页面旋转工具 | 工具箱",
+  title: "PDF页面旋转 - 在线PDF页面旋转工具 | 99在线工具",
   description:
     "在线旋转PDF页面，支持90度/180度/270度旋转，可选择指定页面",
   keywords: [
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "免费PDF页面旋转",
   ],
   openGraph: {
-    title: "PDF页面旋转 - 在线PDF页面旋转工具 | 工具箱",
+    title: "PDF页面旋转 - 在线PDF页面旋转工具 | 99在线工具",
     description:
       "在线旋转PDF页面，支持90度/180度/270度旋转，可选择指定页面",
     type: "website",

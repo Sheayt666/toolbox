@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "JSON格式化工具 - 在线美化压缩校验 | 工具箱",
+  title: "JSON格式化工具 - 在线美化压缩校验 | 99在线工具",
   description:
     "免费在线JSON格式化工具，支持JSON美化、压缩、校验、树状视图展示，快速格式化JSON数据，无需注册即可使用。",
   keywords: [
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "在线JSON工具",
   ],
   openGraph: {
-    title: "JSON格式化工具 - 在线美化压缩校验 | 工具箱",
+    title: "JSON格式化工具 - 在线美化压缩校验 | 99在线工具",
     description:
       "免费在线JSON格式化工具，支持JSON美化、压缩、校验、树状视图展示，快速格式化JSON数据，无需注册即可使用。",
     type: "website",

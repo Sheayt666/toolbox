@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "百分比变化计算器 - 增减幅度在线计算 | 工具箱",
+  title: "百分比变化计算器 - 增减幅度在线计算 | 99在线工具",
   description:
     "免费在线百分比变化计算器，计算两个数值之间的百分比增减变化，快速了解数据变动幅度。",
   keywords: [
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "变化率计算",
   ],
   openGraph: {
-    title: "百分比变化计算器 - 增减幅度在线计算 | 工具箱",
+    title: "百分比变化计算器 - 增减幅度在线计算 | 99在线工具",
     description:
       "免费在线百分比变化计算器，计算数值增减变化幅度。",
     type: "website",

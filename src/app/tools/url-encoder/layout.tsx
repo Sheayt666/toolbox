@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "URL编码解码工具 - 在线转义 | 工具箱",
+  title: "URL编码解码工具 - 在线转义 | 99在线工具",
   description:
     "免费在线URL编码解码工具，快速处理URL特殊字符转义，支持encodeURIComponent和decodeURIComponent。",
   keywords: [
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "encodeURIComponent",
   ],
   openGraph: {
-    title: "URL编码解码工具 - 在线转义 | 工具箱",
+    title: "URL编码解码工具 - 在线转义 | 99在线工具",
     description:
       "免费在线URL编码解码工具，快速处理URL特殊字符转义，支持encodeURIComponent和decodeURIComponent。",
     type: "website",

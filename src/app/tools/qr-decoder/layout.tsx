@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "二维码解码器 - 在线解析二维码图片 | 工具箱",
+  title: "二维码解码器 - 在线解析二维码图片 | 99在线工具",
   description:
     "免费在线二维码解码器，上传二维码图片即可解析内容，支持拖拽上传和粘贴图片，本地处理安全可靠。",
   keywords: [
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "在线二维码工具",
   ],
   openGraph: {
-    title: "二维码解码器 - 在线解析二维码图片 | 工具箱",
+    title: "二维码解码器 - 在线解析二维码图片 | 99在线工具",
     description:
       "免费在线二维码解码器，上传二维码图片即可解析内容，支持拖拽上传和粘贴图片，本地处理安全可靠。",
     type: "website",

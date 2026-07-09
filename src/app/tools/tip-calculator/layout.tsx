@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "小费计算器 - 人均分摊在线计算 | 工具箱",
+  title: "小费计算器 - 人均分摊在线计算 | 99在线工具",
   description:
     "免费在线小费计算器，快速计算小费金额和人均分摊，支持自定义比例，聚餐买单好帮手。",
   keywords: [
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "聚餐买单",
   ],
   openGraph: {
-    title: "小费计算器 - 人均分摊在线计算 | 工具箱",
+    title: "小费计算器 - 人均分摊在线计算 | 99在线工具",
     description:
       "免费在线小费计算器，快速计算小费和人均分摊。",
     type: "website",

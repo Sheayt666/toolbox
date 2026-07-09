@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "PPT转PDF - 在线PPT转PDF工具 | 工具箱",
+  title: "PPT转PDF - 在线PPT转PDF工具 | 99在线工具",
   description:
     "在线将PPT演示文稿转换为PDF文件，支持pptx格式，保持排版效果",
   keywords: [
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "免费PPT转PDF",
   ],
   openGraph: {
-    title: "PPT转PDF - 在线PPT转PDF工具 | 工具箱",
+    title: "PPT转PDF - 在线PPT转PDF工具 | 99在线工具",
     description:
       "在线将PPT演示文稿转换为PDF文件，支持pptx格式，保持排版效果",
     type: "website",

@@ -215,8 +215,8 @@ export function ArticleSchema({
   image,
   datePublished,
   dateModified,
-  authorName = "工具箱",
-  publisher = { name: "工具箱" },
+  authorName = "99在线工具",
+  publisher = { name: "99在线工具" },
   keywords,
 }: ArticleSchemaProps) {
   const data = {

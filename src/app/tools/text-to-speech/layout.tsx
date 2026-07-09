@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "文字转语音 - 在线文本朗读工具 | 工具箱",
+  title: "文字转语音 - 在线文本朗读工具 | 99在线工具",
   description:
     "免费在线文字转语音工具，支持多种音色和语速调节，使用浏览器原生语音合成技术，实时朗读文本内容。",
   keywords: [
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     "在线文字转语音",
   ],
   openGraph: {
-    title: "文字转语音 - 在线文本朗读工具 | 工具箱",
+    title: "文字转语音 - 在线文本朗读工具 | 99在线工具",
     description:
       "免费在线文字转语音工具，支持多种音色和语速调节，使用浏览器原生语音合成技术。",
     type: "website",

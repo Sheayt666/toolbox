@@ -23,15 +23,15 @@ export async function generateMetadata({
 
   if (!category) {
     return {
-      title: "分类未找到 - 99工具",
+      title: "分类未找到 - 99在线工具",
       description: "抱歉，您访问的分类不存在。",
     };
   }
 
   return {
-    title: `${category.name} - 99工具`,
+    title: `${category.name} - 99在线工具`,
     description: `浏览${category.name}分类下的所有在线工具，精选优质工具，助力高效工作`,
-    keywords: [category.name, "在线工具", "工具箱", "99工具"],
+    keywords: [category.name, "在线工具", "工具箱", "99在线工具"],
   };
 }
 

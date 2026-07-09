@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "UUID生成器 - 在线批量生成 | 工具箱",
+  title: "UUID生成器 - 在线批量生成 | 99在线工具",
   description:
     "免费在线UUID生成器，支持UUID v1和v4版本，可批量生成1-100个UUID，一键复制，无需注册。",
   keywords: [
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "在线UUID生成器",
   ],
   openGraph: {
-    title: "UUID生成器 - 在线批量生成 | 工具箱",
+    title: "UUID生成器 - 在线批量生成 | 99在线工具",
     description:
       "免费在线UUID生成器，支持UUID v1和v4版本，可批量生成1-100个UUID，一键复制，无需注册。",
     type: "website",

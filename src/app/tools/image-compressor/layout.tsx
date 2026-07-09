@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "图片压缩工具 - 在线JPG/PNG/WebP压缩 | 工具箱",
+  title: "图片压缩工具 - 在线JPG/PNG/WebP压缩 | 99在线工具",
   description:
     "免费在线图片压缩工具，支持JPG、PNG、WebP格式，调整压缩质量，实时预览压缩效果，本地处理安全可靠，一键下载压缩后的图片。",
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     "在线压缩图片",
   ],
   openGraph: {
-    title: "图片压缩工具 - 在线JPG/PNG/WebP压缩 | 工具箱",
+    title: "图片压缩工具 - 在线JPG/PNG/WebP压缩 | 99在线工具",
     description:
       "免费在线图片压缩工具，支持JPG、PNG、WebP格式，调整压缩质量，实时预览压缩效果。",
     type: "website",

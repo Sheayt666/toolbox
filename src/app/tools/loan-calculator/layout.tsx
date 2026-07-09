@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "贷款计算器 - 等额本息月供计算 | 工具箱",
+  title: "贷款计算器 - 等额本息月供计算 | 99在线工具",
   description:
     "免费在线贷款计算器，等额本息还款方式，快速计算月供、总利息和还款总额，支持查看还款明细。",
   keywords: [
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "车贷计算器",
   ],
   openGraph: {
-    title: "贷款计算器 - 等额本息月供计算 | 工具箱",
+    title: "贷款计算器 - 等额本息月供计算 | 99在线工具",
     description:
       "免费在线贷款计算器，等额本息还款方式，快速计算月供和总利息。",
     type: "website",

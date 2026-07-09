@@ -15,17 +15,17 @@ export async function generateMetadata({
 
   if (!product) {
     return {
-      title: "产品未找到 - 工具箱",
+      title: "产品未找到 - 99在线工具",
       description: "抱歉，您访问的产品不存在",
     };
   }
 
   return {
-    title: `${product.name} - 工具箱数字产品`,
+    title: `${product.name} - 99在线工具数字产品`,
     description: product.description,
     keywords: [product.name, product.category, "数字产品", "效率工具"],
     openGraph: {
-      title: `${product.name} - 工具箱数字产品`,
+      title: `${product.name} - 99在线工具数字产品`,
       description: product.description,
       type: "website",
       locale: "zh_CN",

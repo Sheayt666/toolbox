@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "SVG转PNG - 在线SVG转PNG工具 | 工具箱",
+  title: "SVG转PNG - 在线SVG转PNG工具 | 99在线工具",
   description:
     "在线将SVG矢量图转换为PNG位图，支持自定义尺寸和背景色，高清输出",
   keywords: [
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "高清输出",
   ],
   openGraph: {
-    title: "SVG转PNG - 在线SVG转PNG工具 | 工具箱",
+    title: "SVG转PNG - 在线SVG转PNG工具 | 99在线工具",
     description:
       "在线将SVG矢量图转换为PNG位图，支持自定义尺寸和背景色，高清输出",
     type: "website",

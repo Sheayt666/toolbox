@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "视频转WebM - 在线视频转WebM工具 | 工具箱",
+  title: "视频转WebM - 在线视频转WebM工具 | 99在线工具",
   description:
     "在线将视频转换为WebM格式，高压缩率高质量，大幅减小体积",
   keywords: [
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "免费视频转WebM",
   ],
   openGraph: {
-    title: "视频转WebM - 在线视频转WebM工具 | 工具箱",
+    title: "视频转WebM - 在线视频转WebM工具 | 99在线工具",
     description:
       "在线将视频转换为WebM格式，高压缩率高质量，大幅减小体积",
     type: "website",

@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "图片格式转换 - 在线JPG/PNG/WebP互转 | 工具箱",
+  title: "图片格式转换 - 在线JPG/PNG/WebP互转 | 99在线工具",
   description:
     "免费在线图片格式转换工具，支持JPG、PNG、WebP、BMP、GIF等多种格式互转，批量转换，质量可调，本地处理安全可靠。",
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     "批量图片转换",
   ],
   openGraph: {
-    title: "图片格式转换 - 在线JPG/PNG/WebP互转 | 工具箱",
+    title: "图片格式转换 - 在线JPG/PNG/WebP互转 | 99在线工具",
     description:
       "免费在线图片格式转换工具，支持JPG、PNG、WebP、BMP、GIF等多种格式互转。",
     type: "website",

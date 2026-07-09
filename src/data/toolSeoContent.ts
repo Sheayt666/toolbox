@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 工具SEO内容数据
  *
  * 为每个工具页面提供丰富的SEO内容，包括：
@@ -47,7 +47,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 现有工具：JSON格式化 ==========
   {
     toolId: "json-formatter",
-    pageTitle: "JSON格式化工具 - 在线美化压缩校验 | 工具箱",
+    pageTitle: "JSON格式化工具 - 在线美化压缩校验 | 99在线工具",
     metaDescription:
       "免费在线JSON格式化工具，支持JSON美化、压缩、校验、树状视图展示，快速格式化JSON数据，实时语法校验，数据本地处理安全可靠。",
     detailedDescription:
@@ -138,7 +138,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 现有工具：Base64编解码 ==========
   {
     toolId: "base64",
-    pageTitle: "Base64编码解码工具 - 在线文本转换 | 工具箱",
+    pageTitle: "Base64编码解码工具 - 在线文本转换 | 99在线工具",
     metaDescription:
       "免费在线Base64编码解码工具，支持文本字符串的快速Base64转换，完美支持中文，数据本地处理安全可靠，无需注册即可使用。",
     detailedDescription:
@@ -230,7 +230,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 现有工具：URL编解码 ==========
   {
     toolId: "url-encoder",
-    pageTitle: "URL编码解码工具 - 在线URL转义 | 工具箱",
+    pageTitle: "URL编码解码工具 - 在线URL转义 | 99在线工具",
     metaDescription:
       "免费在线URL编码解码工具，快速处理URL特殊字符转义，支持中文和特殊字符，数据本地处理，安全可靠，开发者必备工具。",
     detailedDescription:
@@ -322,7 +322,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 现有工具：正则表达式测试 ==========
   {
     toolId: "regex-tester",
-    pageTitle: "正则表达式测试工具 - 在线调试验证 | 工具箱",
+    pageTitle: "正则表达式测试工具 - 在线调试验证 | 99在线工具",
     metaDescription:
       "免费在线正则表达式测试工具，实时匹配高亮显示，支持多种正则模式，快速调试验证正则表达式，开发者必备在线工具。",
     detailedDescription:
@@ -414,7 +414,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 现有工具：UUID生成器 ==========
   {
     toolId: "uuid-generator",
-    pageTitle: "UUID生成器 - 在线批量生成UUID v1/v4 | 工具箱",
+    pageTitle: "UUID生成器 - 在线批量生成UUID v1/v4 | 99在线工具",
     metaDescription:
       "免费在线UUID生成器，支持UUID v1和v4版本，批量生成UUID，一键复制，完全本地运行安全可靠，开发者必备工具。",
     detailedDescription:
@@ -506,7 +506,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 现有工具：时间戳转换 ==========
   {
     toolId: "timestamp",
-    pageTitle: "时间戳转换工具 - Unix时间戳在线转换 | 工具箱",
+    pageTitle: "时间戳转换工具 - Unix时间戳在线转换 | 99在线工具",
     metaDescription:
       "免费在线时间戳转换工具，Unix时间戳与日期时间格式互转，支持秒级和毫秒级时间戳，多时区显示，开发者必备工具。",
     detailedDescription:
@@ -598,7 +598,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 现有工具：颜色转换器 ==========
   {
     toolId: "color-picker",
-    pageTitle: "颜色转换器 - HEX/RGB/HSL在线转换 | 工具箱",
+    pageTitle: "颜色转换器 - HEX/RGB/HSL在线转换 | 99在线工具",
     metaDescription:
       "免费在线颜色转换器，支持HEX、RGB、HSL颜色格式互转，调色板工具，实时预览颜色效果，设计师和开发者必备工具。",
     detailedDescription:
@@ -690,7 +690,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 现有工具：Markdown编辑器 ==========
   {
     toolId: "markdown",
-    pageTitle: "Markdown编辑器 - 在线实时预览导出HTML | 工具箱",
+    pageTitle: "Markdown编辑器 - 在线实时预览导出HTML | 99在线工具",
     metaDescription:
       "免费在线Markdown编辑器，实时预览渲染效果，支持导出HTML，简洁高效的写作体验，完全本地运行安全可靠。",
     detailedDescription:
@@ -782,7 +782,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 现有工具：二维码生成器 ==========
   {
     toolId: "qrcode",
-    pageTitle: "二维码生成器 - 在线自定义二维码 | 工具箱",
+    pageTitle: "二维码生成器 - 在线自定义二维码 | 99在线工具",
     metaDescription:
       "免费在线二维码生成器，支持自定义颜色和尺寸，生成高质量二维码，支持文本、URL等多种内容，即开即用。",
     detailedDescription:
@@ -874,7 +874,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 现有工具：密码生成器 ==========
   {
     toolId: "password-generator",
-    pageTitle: "密码生成器 - 在线生成安全随机密码 | 工具箱",
+    pageTitle: "密码生成器 - 在线生成安全随机密码 | 99在线工具",
     metaDescription:
       "免费在线密码生成器，生成高强度随机密码，可自定义长度和字符类型，安全可靠，保护你的账号安全。",
     detailedDescription:
@@ -966,7 +966,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 现有工具：哈希生成器 ==========
   {
     toolId: "hash-generator",
-    pageTitle: "哈希生成器 - MD5/SHA-1/SHA-256在线计算 | 工具箱",
+    pageTitle: "哈希生成器 - MD5/SHA-1/SHA-256在线计算 | 99在线工具",
     metaDescription:
       "免费在线哈希生成器，支持MD5、SHA-1、SHA-256、SHA-512等多种哈希算法，快速计算文件和文本的哈希值，数据本地处理安全可靠。",
     detailedDescription:
@@ -1058,7 +1058,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 现有工具：科学计算器 ==========
   {
     toolId: "calculator",
-    pageTitle: "科学计算器 - 在线多功能计算器 | 工具箱",
+    pageTitle: "科学计算器 - 在线多功能计算器 | 99在线工具",
     metaDescription:
       "免费在线科学计算器，支持基础运算、三角函数、对数、指数、阶乘等复杂数学运算，界面直观，计算精确，学生和工程师必备工具。",
     detailedDescription:
@@ -1150,7 +1150,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 新增工具：房贷计算器 ==========
   {
     toolId: "mortgage-calculator",
-    pageTitle: "房贷计算器 - 2026年最新房贷月供计算 | 工具箱",
+    pageTitle: "房贷计算器 - 2026年最新房贷月供计算 | 99在线工具",
     metaDescription:
       "免费在线房贷计算器，支持等额本息、等额本金两种还款方式，计算月供、总利息、还款总额，支持公积金和商业贷款，买房必备工具。",
     detailedDescription:
@@ -1242,7 +1242,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 新增工具：个税计算器 ==========
   {
     toolId: "tax-calculator",
-    pageTitle: "个税计算器 - 2026年最新个人所得税计算 | 工具箱",
+    pageTitle: "个税计算器 - 2026年最新个人所得税计算 | 99在线工具",
     metaDescription:
       "免费在线个税计算器，2026年最新税率表，支持专项附加扣除、年终奖个税计算，工资个税一键计算，了解你的税后收入。",
     detailedDescription:
@@ -1334,7 +1334,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 新增工具：BMI计算器 ==========
   {
     toolId: "bmi-calculator",
-    pageTitle: "BMI计算器 - 身体质量指数在线计算 | 工具箱",
+    pageTitle: "BMI计算器 - 身体质量指数在线计算 | 99在线工具",
     metaDescription:
       "免费在线BMI计算器，计算身体质量指数，评估体重健康状况，根据身高体重给出健康建议，适用于成人和儿童。",
     detailedDescription:
@@ -1426,7 +1426,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 新增工具：年龄计算器 ==========
   {
     toolId: "age-calculator",
-    pageTitle: "年龄计算器 - 在线计算周岁虚岁天数 | 工具箱",
+    pageTitle: "年龄计算器 - 在线计算周岁虚岁天数 | 99在线工具",
     metaDescription:
       "免费在线年龄计算器，根据出生日期计算周岁、虚岁、天数、周数、月数，计算两个日期之间的年龄差，简单准确。",
     detailedDescription:
@@ -1518,7 +1518,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 新增工具：单位换算器 ==========
   {
     toolId: "unit-converter",
-    pageTitle: "单位换算器 - 长度重量面积体积温度在线转换 | 工具箱",
+    pageTitle: "单位换算器 - 长度重量面积体积温度在线转换 | 99在线工具",
     metaDescription:
       "免费在线单位换算器，支持长度、重量、面积、体积、温度、速度、时间等多种单位换算，简单准确，生活学习必备工具。",
     detailedDescription:
@@ -1610,7 +1610,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 新增工具：进制转换 ==========
   {
     toolId: "base-converter",
-    pageTitle: "进制转换器 - 二进制八进制十进制十六进制在线转换 | 工具箱",
+    pageTitle: "进制转换器 - 二进制八进制十进制十六进制在线转换 | 99在线工具",
     metaDescription:
       "免费在线进制转换器，支持二进制、八进制、十进制、十六进制互相转换，支持任意进制转换，开发者和学生必备工具。",
     detailedDescription:
@@ -1702,7 +1702,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 新增工具：字数统计 ==========
   {
     toolId: "word-counter",
-    pageTitle: "字数统计工具 - 在线字符数字数行数统计 | 工具箱",
+    pageTitle: "字数统计工具 - 在线字符数字数行数统计 | 99在线工具",
     metaDescription:
       "免费在线字数统计工具，统计字符数、字数、行数、段落数，中英文分开统计，支持复制粘贴，实时统计，写作者必备工具。",
     detailedDescription:
@@ -1794,7 +1794,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 新增工具：大小写转换 ==========
   {
     toolId: "case-converter",
-    pageTitle: "大小写转换 - 英文大小写在线转换工具 | 工具箱",
+    pageTitle: "大小写转换 - 英文大小写在线转换工具 | 99在线工具",
     metaDescription:
       "免费在线英文大小写转换工具，支持大写、小写、首字母大写、反转大小写、驼峰命名、下划线命名等多种格式转换，快速高效。",
     detailedDescription:
@@ -1886,7 +1886,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 新增工具：文字去重 ==========
   {
     toolId: "text-dedup",
-    pageTitle: "文字去重工具 - 在线去除重复行和空白行 | 工具箱",
+    pageTitle: "文字去重工具 - 在线去除重复行和空白行 | 99在线工具",
     metaDescription:
       "免费在线文字去重工具，去除重复行、空白行、多余空格，支持保留首次出现或最后出现，快速清理文本数据，效率办公必备。",
     detailedDescription:
@@ -1978,7 +1978,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 新增工具：随机数生成器 ==========
   {
     toolId: "random-number",
-    pageTitle: "随机数生成器 - 在线生成指定范围随机数 | 工具箱",
+    pageTitle: "随机数生成器 - 在线生成指定范围随机数 | 99在线工具",
     metaDescription:
       "免费在线随机数生成器，支持自定义范围和数量，批量生成随机数，支持去重选项，使用安全随机算法，公平可靠。",
     detailedDescription:
@@ -2070,7 +2070,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 新增工具：幸运数字生成 ==========
   {
     toolId: "lucky-number",
-    pageTitle: "幸运数字生成器 - 彩票号码/抽奖号码在线生成 | 工具箱",
+    pageTitle: "幸运数字生成器 - 彩票号码/抽奖号码在线生成 | 99在线工具",
     metaDescription:
       "免费在线幸运数字生成器，支持双色球、大乐透等彩票号码生成，自定义范围和数量，随机抽奖号码生成，娱乐必备。",
     detailedDescription:
@@ -2162,7 +2162,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 新增工具：图片转Base64 ==========
   {
     toolId: "image-to-base64",
-    pageTitle: "图片转Base64 - 在线图片Base64编码转换 | 工具箱",
+    pageTitle: "图片转Base64 - 在线图片Base64编码转换 | 99在线工具",
     metaDescription:
       "免费在线图片转Base64工具，上传图片一键转换为Base64编码，支持PNG/JPG/GIF等多种格式，数据本地处理安全可靠。",
     detailedDescription:
@@ -2254,7 +2254,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 新增工具：倒计时/计时器 ==========
   {
     toolId: "countdown-timer",
-    pageTitle: "倒计时/计时器 - 在线秒表和倒计时工具 | 工具箱",
+    pageTitle: "倒计时/计时器 - 在线秒表和倒计时工具 | 99在线工具",
     metaDescription:
       "免费在线倒计时和秒表计时器，支持自定义倒计时时间，多组倒计时同时运行，精确到秒，学习工作效率管理必备工具。",
     detailedDescription:
@@ -2346,7 +2346,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 新增工具：日期计算器 ==========
   {
     toolId: "date-calculator",
-    pageTitle: "日期计算器 - 在线计算日期差和日期加减 | 工具箱",
+    pageTitle: "日期计算器 - 在线计算日期差和日期加减 | 99在线工具",
     metaDescription:
       "免费在线日期计算器，计算两个日期之间相差多少天，日期加减天数计算，支持工作日计算，项目管理和生活规划必备工具。",
     detailedDescription:
@@ -2437,7 +2437,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 新增工具：金额大写转换 ==========
   {
     toolId: "amount-to-chinese",
-    pageTitle: "金额大写转换 - 数字转人民币大写在线工具 | 工具箱",
+    pageTitle: "金额大写转换 - 数字转人民币大写在线工具 | 99在线工具",
     metaDescription:
       "免费在线金额大写转换工具，将数字金额转换为人民币中文大写（壹贰叁肆伍陆柒捌玖拾佰仟万亿元角分），支持整数和小数，实时转换，最大支持万亿级别。",
     detailedDescription:
@@ -2520,7 +2520,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 新增工具：文本对比 ==========
   {
     toolId: "text-diff",
-    pageTitle: "文本对比工具 - 在线代码文章差异对比 | 工具箱",
+    pageTitle: "文本对比工具 - 在线代码文章差异对比 | 99在线工具",
     metaDescription:
       "免费在线文本对比工具，支持逐字符对比和逐行对比，差异高亮显示（新增绿色、删除红色），左右两栏布局，实时对比两段文本的差异。",
     detailedDescription:
@@ -2603,7 +2603,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 新增工具：JSON CSV 转换 ==========
   {
     toolId: "json-csv-converter",
-    pageTitle: "JSON转CSV - CSV转JSON在线转换工具 | 工具箱",
+    pageTitle: "JSON转CSV - CSV转JSON在线转换工具 | 99在线工具",
     metaDescription:
       "免费在线JSON和CSV互转工具，支持JSON转CSV、CSV转JSON，自定义分隔符，格式化输出，一键下载转换后的文件，数据本地处理安全可靠。",
     detailedDescription:
@@ -2686,7 +2686,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 新增工具：繁简转换 ==========
   {
     toolId: "traditional-simplified",
-    pageTitle: "繁简转换 - 简体繁体中文在线转换工具 | 工具箱",
+    pageTitle: "繁简转换 - 简体繁体中文在线转换工具 | 99在线工具",
     metaDescription:
       "免费在线繁简转换工具，简体中文转繁体中文、繁体中文转简体中文，实时转换，常用字全覆盖，支持一键复制和字数统计。",
     detailedDescription:
@@ -2769,7 +2769,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 新增工具：九宫格切图 ==========
   {
     toolId: "image-grid",
-    pageTitle: "九宫格切图 - 在线图片切割工具 | 工具箱",
+    pageTitle: "九宫格切图 - 在线图片切割工具 | 99在线工具",
     metaDescription:
       "免费在线九宫格切图工具，将图片切成九宫格，支持自定义行列数（2x2、3x3、4x4等），拖拽上传，实时预览，一键打包下载切好的图片。",
     detailedDescription:
@@ -2853,7 +2853,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 图片工具：图片压缩 ==========
   {
     toolId: "image-compressor",
-    pageTitle: "图片压缩工具 - 在线JPG/PNG/WebP压缩 | 工具箱",
+    pageTitle: "图片压缩工具 - 在线JPG/PNG/WebP压缩 | 99在线工具",
     metaDescription:
       "免费在线图片压缩工具，支持JPG、PNG、WebP格式，调整压缩质量，实时预览压缩效果，本地处理安全可靠，一键下载压缩后的图片。",
     detailedDescription:
@@ -2939,7 +2939,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 图片工具：图片格式转换 ==========
   {
     toolId: "image-converter",
-    pageTitle: "图片格式转换 - 在线JPG/PNG/WebP互转 | 工具箱",
+    pageTitle: "图片格式转换 - 在线JPG/PNG/WebP互转 | 99在线工具",
     metaDescription:
       "免费在线图片格式转换工具，支持JPG、PNG、WebP、BMP、GIF等多种格式互转，批量转换，质量可调，本地处理安全可靠。",
     detailedDescription:
@@ -3025,7 +3025,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 图片工具：图片转PDF ==========
   {
     toolId: "image-to-pdf",
-    pageTitle: "图片转PDF - 在线图片合并PDF | 工具箱",
+    pageTitle: "图片转PDF - 在线图片合并PDF | 99在线工具",
     metaDescription:
       "免费在线图片转PDF工具，支持单图和多图合并PDF，可调整页面大小（A4/Letter/原图），本地处理安全可靠，一键生成PDF文件。",
     detailedDescription:
@@ -3111,7 +3111,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 图片工具：头像生成器 ==========
   {
     toolId: "avatar-generator",
-    pageTitle: "头像生成器 - 在线文字头像制作 | 工具箱",
+    pageTitle: "头像生成器 - 在线文字头像制作 | 99在线工具",
     metaDescription:
       "免费在线头像生成器，生成个性化文字头像，支持渐变背景、随机颜色、自定义尺寸、圆形方形，多种预设配色方案，一键下载。",
     detailedDescription:
@@ -3197,7 +3197,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 图片工具：图片加水印 ==========
   {
     toolId: "image-watermark",
-    pageTitle: "图片加水印 - 在线文字/图片水印工具 | 工具箱",
+    pageTitle: "图片加水印 - 在线文字/图片水印工具 | 99在线工具",
     metaDescription:
       "免费在线图片加水印工具，支持文字水印和图片水印，可调节字体、大小、颜色、透明度、位置和旋转角度，本地处理安全可靠。",
     detailedDescription:
@@ -3283,7 +3283,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 图片工具：图片裁剪 ==========
   {
     toolId: "image-crop",
-    pageTitle: "图片裁剪工具 - 在线自由裁剪固定比例 | 工具箱",
+    pageTitle: "图片裁剪工具 - 在线自由裁剪固定比例 | 99在线工具",
     metaDescription:
       "免费在线图片裁剪工具，支持自由裁剪和固定比例裁剪（1:1、4:3、16:9等），拖拽调整裁剪框，键盘微调，实时预览，一键下载裁剪结果。",
     detailedDescription:
@@ -3374,7 +3374,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 图片工具：图片旋转翻转 ==========
   {
     toolId: "image-rotate",
-    pageTitle: "图片旋转翻转 - 在线任意角度旋转 | 工具箱",
+    pageTitle: "图片旋转翻转 - 在线任意角度旋转 | 99在线工具",
     metaDescription:
       "免费在线图片旋转翻转工具，支持顺时针逆时针90度旋转、任意角度旋转、水平翻转、垂直翻转，实时预览效果，一键下载。",
     detailedDescription:
@@ -3465,7 +3465,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 图片工具：图片调整大小 ==========
   {
     toolId: "image-resize",
-    pageTitle: "图片调整大小 - 在线像素百分比缩放 | 工具箱",
+    pageTitle: "图片调整大小 - 在线像素百分比缩放 | 99在线工具",
     metaDescription:
       "免费在线图片调整大小工具，支持按像素调整宽度高度、按百分比缩放，锁定宽高比，自定义输出质量，多格式输出，本地处理安全可靠。",
     detailedDescription:
@@ -3556,7 +3556,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 图片工具：文字转图片 ==========
   {
     toolId: "text-to-image",
-    pageTitle: "文字转图片 - 在线文字生成图片 | 工具箱",
+    pageTitle: "文字转图片 - 在线文字生成图片 | 99在线工具",
     metaDescription:
       "免费在线文字转图片工具，自定义文字内容、字体大小颜色、背景渐变、内边距圆角阴影，多种预设样式，一键生成社交媒体配图。",
     detailedDescription:
@@ -3647,7 +3647,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 图片工具：图片模糊像素化 ==========
   {
     toolId: "image-blur",
-    pageTitle: "图片模糊像素化 - 在线高斯模糊马赛克 | 工具箱",
+    pageTitle: "图片模糊像素化 - 在线高斯模糊马赛克 | 99在线工具",
     metaDescription:
       "免费在线图片模糊和像素化工具，支持高斯模糊（强度可调）、马赛克像素化（像素大小可调）、局部模糊，实时预览效果，本地处理安全可靠。",
     detailedDescription:
@@ -3738,7 +3738,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== CSS格式化/压缩 ==========
   {
     toolId: "css-formatter",
-    pageTitle: "CSS格式化/压缩工具 - 在线美化压缩CSS代码 | 工具箱",
+    pageTitle: "CSS格式化/压缩工具 - 在线美化压缩CSS代码 | 99在线工具",
     metaDescription:
       "免费在线CSS格式化工具，支持CSS美化、压缩、自定义缩进，快速格式化CSS代码，实时转换，数据本地处理安全可靠。",
     detailedDescription:
@@ -3824,7 +3824,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== HTML格式化/压缩 ==========
   {
     toolId: "html-formatter",
-    pageTitle: "HTML格式化/压缩工具 - 在线美化压缩HTML代码 | 工具箱",
+    pageTitle: "HTML格式化/压缩工具 - 在线美化压缩HTML代码 | 99在线工具",
     metaDescription:
       "免费在线HTML格式化工具，支持HTML美化、压缩、自定义缩进，快速格式化HTML代码，实时转换，数据本地处理安全可靠。",
     detailedDescription:
@@ -3910,7 +3910,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 二维码解码器 ==========
   {
     toolId: "qr-decoder",
-    pageTitle: "二维码解码器 - 在线解析二维码图片 | 工具箱",
+    pageTitle: "二维码解码器 - 在线解析二维码图片 | 99在线工具",
     metaDescription:
       "免费在线二维码解码器，上传二维码图片即可解析内容，支持拖拽上传和粘贴图片，本地处理安全可靠。",
     detailedDescription:
@@ -3996,7 +3996,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 文字转拼音 ==========
   {
     toolId: "text-to-pinyin",
-    pageTitle: "文字转拼音 - 在线汉字拼音转换工具 | 工具箱",
+    pageTitle: "文字转拼音 - 在线汉字拼音转换工具 | 99在线工具",
     metaDescription:
       "免费在线文字转拼音工具，支持带声调/不带声调、首字母模式、多种分隔符选择，实时转换，数据本地处理安全可靠。",
     detailedDescription:
@@ -4082,7 +4082,7 @@ export const toolSeoContents: ToolSEOContent[] = [
   // ========== 名片生成器 ==========
   {
     toolId: "business-card",
-    pageTitle: "名片生成器 - 在线制作电子名片图片 | 工具箱",
+    pageTitle: "名片生成器 - 在线制作电子名片图片 | 99在线工具",
     metaDescription:
       "免费在线名片生成器，多种模板风格，自定义配色，实时预览，一键下载电子名片图片，本地处理安全可靠。",
     detailedDescription:

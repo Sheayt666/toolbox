@@ -437,7 +437,7 @@ export default function ToolLayout({
                     觉得好用？
                   </h3>
                   <p className="text-xs text-slate-400 mb-4">
-                    收藏工具箱，下次使用更方便
+                    收藏99在线工具，下次使用更方便
                   </p>
                   <button
                     onClick={handleShare}

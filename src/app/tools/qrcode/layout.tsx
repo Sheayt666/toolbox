@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "二维码生成器 - 在线自定义制作 | 工具箱",
+  title: "二维码生成器 - 在线自定义制作 | 99在线工具",
   description:
     "免费在线二维码生成器，支持自定义颜色和尺寸，可下载PNG图片，文本URL一键生成二维码。",
   keywords: [
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "QR Code生成器",
   ],
   openGraph: {
-    title: "二维码生成器 - 在线自定义制作 | 工具箱",
+    title: "二维码生成器 - 在线自定义制作 | 99在线工具",
     description:
       "免费在线二维码生成器，支持自定义颜色和尺寸，可下载PNG图片，文本URL一键生成二维码。",
     type: "website",

@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "图片对比度调整 - 在线图片对比度调整工具 | 工具箱",
+  title: "图片对比度调整 - 在线图片对比度调整工具 | 99在线工具",
   description:
     "在线调整图片对比度，增强或降低对比，让图片更有层次感",
   keywords: [
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "对比调节",
   ],
   openGraph: {
-    title: "图片对比度调整 - 在线图片对比度调整工具 | 工具箱",
+    title: "图片对比度调整 - 在线图片对比度调整工具 | 99在线工具",
     description:
       "在线调整图片对比度，增强或降低对比，让图片更有层次感",
     type: "website",

@@ -283,7 +283,7 @@ export default function PurchaseModal({
                 <div className="mt-4 space-y-2 text-sm text-slate-600 dark:text-slate-400">
                   <p className="flex items-start gap-2">
                     <Check className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
-                    <span>搜索店铺「工具箱数字商店」找到对应产品</span>
+                    <span>搜索店铺「99在线工具数字商店」找到对应产品</span>
                   </p>
                   <p className="flex items-start gap-2">
                     <Check className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />

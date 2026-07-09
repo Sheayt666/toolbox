@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "音频合并 - 在线音频合并工具 | 工具箱",
+  title: "音频合并 - 在线音频合并工具 | 99在线工具",
   description:
     "在线合并多个音频文件，支持不同格式，可调整顺序和添加间隔",
   keywords: [
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "免费音频合并",
   ],
   openGraph: {
-    title: "音频合并 - 在线音频合并工具 | 工具箱",
+    title: "音频合并 - 在线音频合并工具 | 99在线工具",
     description:
       "在线合并多个音频文件，支持不同格式，可调整顺序和添加间隔",
     type: "website",

@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "PDF压缩工具 - 在线压缩PDF文件大小 | 工具箱",
+  title: "PDF压缩工具 - 在线压缩PDF文件大小 | 99在线工具",
   description:
     "免费在线PDF压缩工具，支持压缩质量调节，减小PDF文件体积，本地处理安全可靠，一键下载压缩后的PDF文件。",
   keywords: [
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     "PDF瘦身",
   ],
   openGraph: {
-    title: "PDF压缩工具 - 在线压缩PDF文件大小 | 工具箱",
+    title: "PDF压缩工具 - 在线压缩PDF文件大小 | 99在线工具",
     description:
       "免费在线PDF压缩工具，支持压缩质量调节，减小PDF文件体积，本地处理安全可靠。",
     type: "website",

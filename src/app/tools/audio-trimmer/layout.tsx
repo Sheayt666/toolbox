@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "音频裁剪 - 在线音频裁剪工具 | 工具箱",
+  title: "音频裁剪 - 在线音频裁剪工具 | 99在线工具",
   description:
     "在线裁剪音频片段，精确控制起止时间，支持淡入淡出效果",
   keywords: [
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "免费音频裁剪",
   ],
   openGraph: {
-    title: "音频裁剪 - 在线音频裁剪工具 | 工具箱",
+    title: "音频裁剪 - 在线音频裁剪工具 | 99在线工具",
     description:
       "在线裁剪音频片段，精确控制起止时间，支持淡入淡出效果",
     type: "website",

@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "PNG转JPG - 在线PNG转JPG工具 | 工具箱",
+  title: "PNG转JPG - 在线PNG转JPG工具 | 99在线工具",
   description:
     "在线将PNG图片转换为JPG格式，支持自定义质量，本地处理安全可靠",
   keywords: [
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "在线转换",
   ],
   openGraph: {
-    title: "PNG转JPG - 在线PNG转JPG工具 | 工具箱",
+    title: "PNG转JPG - 在线PNG转JPG工具 | 99在线工具",
     description:
       "在线将PNG图片转换为JPG格式，支持自定义质量，本地处理安全可靠",
     type: "website",

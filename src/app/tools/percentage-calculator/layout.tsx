@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "百分比计算器 - 在线百分比计算工具 | 工具箱",
+  title: "百分比计算器 - 在线百分比计算工具 | 99在线工具",
   description:
     "免费在线百分比计算器，支持求百分比值、求百分比、求总数三种模式，快速准确计算百分比。",
   keywords: [
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "百分数",
   ],
   openGraph: {
-    title: "百分比计算器 - 在线百分比计算工具 | 工具箱",
+    title: "百分比计算器 - 在线百分比计算工具 | 99在线工具",
     description:
       "免费在线百分比计算器，支持多种计算模式，快速准确。",
     type: "website",

@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "WebP转PNG - 在线WebP转PNG工具 | 工具箱",
+  title: "WebP转PNG - 在线WebP转PNG工具 | 99在线工具",
   description:
     "在线将WebP图片转换为PNG格式，支持透明通道，高质量转换",
   keywords: [
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "透明图片",
   ],
   openGraph: {
-    title: "WebP转PNG - 在线WebP转PNG工具 | 工具箱",
+    title: "WebP转PNG - 在线WebP转PNG工具 | 99在线工具",
     description:
       "在线将WebP图片转换为PNG格式，支持透明通道，高质量转换",
     type: "website",

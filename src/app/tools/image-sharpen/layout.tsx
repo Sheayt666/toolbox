@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "图片锐化 - 在线图片锐化工具 | 工具箱",
+  title: "图片锐化 - 在线图片锐化工具 | 99在线工具",
   description:
     "在线图片锐化处理，增强图片清晰度和边缘细节，让模糊图片变清晰",
   keywords: [
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "边缘增强",
   ],
   openGraph: {
-    title: "图片锐化 - 在线图片锐化工具 | 工具箱",
+    title: "图片锐化 - 在线图片锐化工具 | 99在线工具",
     description:
       "在线图片锐化处理，增强图片清晰度和边缘细节，让模糊图片变清晰",
     type: "website",

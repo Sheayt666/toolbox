@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "图片加水印 - 在线文字/图片水印工具 | 工具箱",
+  title: "图片加水印 - 在线文字/图片水印工具 | 99在线工具",
   description:
     "免费在线图片加水印工具，支持文字水印和图片水印，可调节字体、大小、颜色、透明度、位置和旋转角度，本地处理安全可靠。",
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     "Logo水印",
   ],
   openGraph: {
-    title: "图片加水印 - 在线文字/图片水印工具 | 工具箱",
+    title: "图片加水印 - 在线文字/图片水印工具 | 99在线工具",
     description:
       "免费在线图片加水印工具，支持文字水印和图片水印，可调节字体、大小、颜色、透明度。",
     type: "website",

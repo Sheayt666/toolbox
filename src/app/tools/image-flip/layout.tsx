@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "图片翻转工具 - 在线图片翻转工具工具 | 工具箱",
+  title: "图片翻转工具 - 在线图片翻转工具工具 | 99在线工具",
   description:
     "在线翻转图片，支持水平翻转和垂直翻转，实时预览效果，一键下载",
   keywords: [
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "镜像翻转",
   ],
   openGraph: {
-    title: "图片翻转工具 - 在线图片翻转工具工具 | 工具箱",
+    title: "图片翻转工具 - 在线图片翻转工具工具 | 99在线工具",
     description:
       "在线翻转图片，支持水平翻转和垂直翻转，实时预览效果，一键下载",
     type: "website",

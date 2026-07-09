@@ -30,16 +30,16 @@ export async function generateMetadata({
 
   if (!post) {
     return {
-      title: "文章未找到 - 工具箱博客",
+      title: "文章未找到 - 99在线工具博客",
       description: "抱歉，您访问的文章不存在。",
     };
   }
 
   return {
-    title: `${post.title} - 工具箱博客`,
+    title: `${post.title} - 99在线工具博客`,
     description: post.excerpt,
-    keywords: [post.category, post.title, "工具箱", "在线工具"],
-    authors: [{ name: "工具箱" }],
+    keywords: [post.category, post.title, "99在线工具", "在线工具"],
+    authors: [{ name: "99在线工具" }],
     openGraph: {
       title: post.title,
       description: post.excerpt,
@@ -119,7 +119,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </span>
             <span className="flex items-center gap-2">
               <BookOpen className="w-4 h-4" />
-              工具箱博客
+              99在线工具博客
             </span>
           </div>
         </div>
