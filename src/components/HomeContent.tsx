@@ -12,6 +12,9 @@ import {
   Hash,
   ChevronRight,
   Zap,
+  Heart,
+  Bookmark,
+  QrCode,
 } from "lucide-react";
 import ToolCard from "@/components/ToolCard";
 import { categories, getPopularTools, getAllTools } from "@/lib/tools";
@@ -373,6 +376,61 @@ export default function HomeContent() {
                   </div>
                 );
               })}
+          </div>
+        </div>
+      </section>
+
+      {/* Donate Section - 打赏支持 */}
+      <section className="pb-16 lg:pb-20">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500/10 via-[#18181b] to-emerald-500/5 border border-emerald-500/20 p-8 sm:p-10">
+            {/* Decorative */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary-500/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+
+            <div className="relative flex flex-col sm:flex-row items-center gap-8">
+              {/* 左侧文案 */}
+              <div className="flex-1 text-center sm:text-left">
+                <div className="inline-flex items-center gap-2 px-3 py-1 mb-4 text-xs font-medium text-emerald-400 bg-emerald-500/10 rounded-full border border-emerald-500/20">
+                  <Heart className="w-3.5 h-3.5" />
+                  支持我们
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-3 tracking-tight">
+                  喜欢本站？请我喝杯咖啡 ☕
+                </h2>
+                <p className="text-slate-400 text-sm mb-4 leading-relaxed">
+                  99在线工具坚持免费、无广告，为大家提供实用的在线工具。
+                  如果觉得好用，欢迎打赏支持，你的鼓励是我持续维护更新的动力！
+                </p>
+                <div className="flex items-center justify-center sm:justify-start gap-4 text-xs text-slate-500">
+                  <span className="flex items-center gap-1.5">
+                    <Bookmark className="w-3.5 h-3.5" />
+                    收藏本站
+                  </span>
+                  <span className="w-px h-3 bg-[#27272a]" />
+                  <span className="flex items-center gap-1.5">
+                    <Star className="w-3.5 h-3.5" />
+                    分享给朋友
+                  </span>
+                </div>
+              </div>
+
+              {/* 右侧收款码 */}
+              <div className="flex-shrink-0">
+                <div className="bg-white rounded-xl p-3 shadow-xl shadow-emerald-500/10">
+                  <div className="w-36 h-36 bg-[#f5f5f5] rounded-lg flex items-center justify-center relative overflow-hidden">
+                    {/* 收款码图片占位 */}
+                    <div className="text-center">
+                      <QrCode className="w-12 h-12 text-slate-400 mx-auto mb-2" />
+                      <p className="text-xs text-slate-500">微信收款码</p>
+                    </div>
+                  </div>
+                  <p className="text-center text-xs text-slate-600 mt-2 font-medium">
+                    微信扫码打赏
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
