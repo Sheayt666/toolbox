@@ -10,4 +10,8 @@ User-agent: Bingbot
 Allow: /
 Disallow: /api/
 
-Sitemap: https://toolbox-drab.vercel.app/sitemap.xml
+User-agent: Baiduspider
+Allow: /
+Disallow: /api/
+
+Sitemap: https://99gongju.online/sitemap.xml

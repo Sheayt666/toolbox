@@ -69,6 +69,11 @@ export const metadata: Metadata = {
     },
   },
   manifest: "/manifest.json",
+  // 百度搜索资源平台验证 - 拿到验证代码后替换下面的值
+  // 格式: baidu-site-verification: "你的验证代码"
+  other: {
+    // "baidu-site-verification": "替换为你的百度验证代码",
+  },
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },

@@ -1,5 +1,5 @@
 import { MetadataRoute } from "next";
-import { tools } from "@/lib/tools";
+import { tools, categories } from "@/lib/tools";
 import { posts } from "@/lib/posts";
 import { getToolSeoContent } from "@/data/toolSeoContent";
 
@@ -17,12 +17,30 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 1,
   };
 
+  // 分类页面（排除"全部"）
+  const categoryUrls = categories
+    .filter((c) => c.slug !== "all")
+    .map((category) => ({
+      url: `${baseUrl}/category/${category.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.9,
+    }));
+
   // 博客列表页
   const blogPage = {
     url: `${baseUrl}/blog`,
     lastModified: new Date(),
     changeFrequency: "weekly" as const,
     priority: 0.9,
+  };
+
+  // 产品列表页
+  const productsPage = {
+    url: `${baseUrl}/products`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
   };
 
   // 工具页面 - 使用SEO内容中的优先级
@@ -46,7 +64,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     homePage,
+    ...categoryUrls,
     blogPage,
+    productsPage,
     ...toolUrls,
     ...blogUrls,
   ];
