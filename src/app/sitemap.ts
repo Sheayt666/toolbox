@@ -3,8 +3,10 @@ import { tools } from "@/lib/tools";
 import { posts } from "@/lib/posts";
 import { getToolSeoContent } from "@/data/toolSeoContent";
 
+export const dynamic = "force-static";
+
 const baseUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://toolbox.example.com";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://99gongju.online";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   // 首页
