@@ -467,6 +467,12 @@ export default function HomeContent() {
                   </p>
                   <p className="pt-1 text-slate-600">
                     继续使用本站即表示您已阅读并同意以上免责声明。
+                    <Link
+                      href="/disclaimer"
+                      className="text-amber-400/80 hover:text-amber-400 transition-colors ml-1"
+                    >
+                      查看完整法律条款 →
+                    </Link>
                   </p>
                 </div>
               </div>

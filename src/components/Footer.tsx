@@ -153,11 +153,11 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/disclaimer"
                   className="text-sm text-slate-500 hover:text-white transition-colors flex items-center gap-1.5 group"
                 >
                   <span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-primary-500 transition-colors" />
-                  隐私政策
+                  免责声明
                 </Link>
               </li>
               <li>
@@ -166,7 +166,7 @@ export default function Footer() {
                   className="text-sm text-slate-500 hover:text-white transition-colors flex items-center gap-1.5 group"
                 >
                   <span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-primary-500 transition-colors" />
-                  使用条款
+                  隐私政策
                 </Link>
               </li>
             </ul>

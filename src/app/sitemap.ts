@@ -51,6 +51,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   };
 
+  // 免责声明页
+  const disclaimerPage = {
+    url: `${baseUrl}/disclaimer`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.3,
+  };
+
   // 工具页面 - 使用SEO内容中的优先级
   const toolUrls = tools.map((tool) => {
     const seoContent = getToolSeoContent(tool.id);
@@ -76,6 +84,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...tagUrls,
     blogPage,
     productsPage,
+    disclaimerPage,
     ...toolUrls,
     ...blogUrls,
   ];

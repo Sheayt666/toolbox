@@ -285,12 +285,19 @@ export default function ToolLayout({
                     <ShieldAlert className="w-4 h-4 text-amber-500" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs text-amber-400/90 font-medium mb-1">
-                      💡 使用前请备份文件
+                    <p className="text-xs text-amber-400/90 font-medium mb-1.5">
+                      💡 使用前请务必备份文件
                     </p>
-                    <p className="text-xs text-slate-500 leading-relaxed">
-                      使用工具前请务必备份好原始文件，修改后的文件可能无法恢复。因使用工具导致的任何问题请自行承担，确认无误后再使用。
+                    <p className="text-xs text-slate-500 leading-relaxed mb-2">
+                      本工具输出由计算机算法自动生成，因网络故障、算法差异等原因，不保证结果完全符合预期。使用前请备份原始文件，修改后的文件可能无法恢复。因使用本工具导致的任何问题请自行承担，确认无误后再使用，且不得用于任何非法用途。
                     </p>
+                    <Link
+                      href="/disclaimer"
+                      className="inline-flex items-center gap-1 text-xs text-amber-400/80 hover:text-amber-400 transition-colors"
+                    >
+                      查看完整法律免责声明
+                      <ChevronRight className="w-3 h-3" />
+                    </Link>
                   </div>
                 </div>
               </div>
