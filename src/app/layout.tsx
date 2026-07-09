@@ -93,8 +93,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className={`${inter.variable} h-full`}>
-      <body className="min-h-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+    <html lang="zh-CN" className={`${inter.variable} h-full dark`}>
+      <body className="min-h-full flex flex-col bg-[#09090b] text-white">
         <WebSiteSchema
           name={siteName}
           url={siteUrl}

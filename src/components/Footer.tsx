@@ -1,122 +1,102 @@
 import Link from "next/link";
-import {
-  Wrench,
-  Heart,
-  Mail,
-  Code2,
-  Bird,
-  Palette,
-  FileText,
-  Sparkles,
-  BookOpen,
-  Shield,
-} from "lucide-react";
-import { tools, categories } from "@/lib/tools";
+import { Wrench, Heart, Mail, Code2, MessageCircle } from "lucide-react";
+import { categories, getAllTools, getToolsByCategory } from "@/lib/tools";
 
 export default function Footer() {
-  // Group tools by category
-  const toolsByCategory = categories
+  const allTools = getAllTools();
+
+  const mainCategories = categories
     .filter((c) => c.id !== "all")
+    .slice(0, 4)
     .map((cat) => ({
       ...cat,
-      tools: tools.filter((t) => t.category === cat.id).slice(0, 4),
+      tools: getToolsByCategory(cat.name).slice(0, 4),
     }));
 
-  const categoryIcons: Record<string, React.ElementType> = {
-    "开发工具": Code2,
-    "设计工具": Palette,
-    "文本工具": FileText,
-    "实用工具": Sparkles,
-  };
-
   return (
-    <footer className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
-      {/* Main Footer Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 lg:gap-10">
-          {/* Brand Column */}
-          <div className="col-span-2 md:col-span-4 lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2.5 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center">
-                <Wrench className="w-5 h-5 text-white" />
+    <footer className="bg-[#0d0d0f] border-t border-[#27272a]">
+      {/* Main Footer */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-14">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 lg:gap-10">
+          {/* Brand */}
+          <div className="col-span-2 md:col-span-3 lg:col-span-2">
+            <Link href="/" className="flex items-center gap-2 mb-4">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center">
+                <Wrench className="w-[18px] h-[18px] text-white" />
               </div>
-              <span className="text-xl font-bold text-slate-900 dark:text-white">
-                工具<span className="gradient-text">箱</span>
+              <span className="text-lg font-semibold text-white tracking-tight">
+                Toolify
               </span>
             </Link>
-            <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm mb-6 leading-relaxed">
-              免费、简洁、高效的在线工具箱。为开发者、设计师和日常用户提供实用的在线工具，所有工具完全免费，无需注册即可使用。
+            <p className="text-sm text-slate-500 max-w-xs mb-5 leading-relaxed">
+              发现最好用的在线工具，精选全球优质工具资源，让工作和生活更高效。
             </p>
 
             {/* Stats */}
-            <div className="flex items-center gap-6 mb-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold gradient-text">{tools.length}+</div>
-                <div className="text-xs text-slate-500 dark:text-slate-400">免费工具</div>
+            <div className="flex items-center gap-5 mb-5">
+              <div>
+                <div className="text-lg font-bold text-white">{allTools.length}+</div>
+                <div className="text-xs text-slate-500 mt-0.5">免费工具</div>
               </div>
-              <div className="w-px h-10 bg-slate-200 dark:bg-slate-700" />
-              <div className="text-center">
-                <div className="text-2xl font-bold gradient-text">100%</div>
-                <div className="text-xs text-slate-500 dark:text-slate-400">免费使用</div>
+              <div className="w-px h-8 bg-[#27272a]" />
+              <div>
+                <div className="text-lg font-bold text-white">{categories.length - 1}</div>
+                <div className="text-xs text-slate-500 mt-0.5">工具分类</div>
               </div>
-              <div className="w-px h-10 bg-slate-200 dark:bg-slate-700" />
-              <div className="text-center">
-                <div className="text-2xl font-bold gradient-text">0</div>
-                <div className="text-xs text-slate-500 dark:text-slate-400">注册要求</div>
+              <div className="w-px h-8 bg-[#27272a]" />
+              <div>
+                <div className="text-lg font-bold text-white">100%</div>
+                <div className="text-xs text-slate-500 mt-0.5">免费使用</div>
               </div>
             </div>
 
-            {/* Social Links */}
+            {/* Social */}
             <div className="flex items-center gap-2">
               <a
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all"
+                href="#"
+                className="p-2 rounded-lg bg-[#18181b] hover:bg-[#27272a] text-slate-400 hover:text-white transition-colors"
                 aria-label="GitHub"
               >
-                <Code2 className="w-4.5 h-4.5" />
+                <Code2 className="w-4 h-4" />
               </a>
               <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-sky-100 dark:hover:bg-sky-900/30 text-slate-600 dark:text-slate-400 hover:text-sky-500 transition-all"
+                href="#"
+                className="p-2 rounded-lg bg-[#18181b] hover:bg-[#27272a] text-slate-400 hover:text-white transition-colors"
                 aria-label="Twitter"
               >
-                <Bird className="w-4.5 h-4.5" />
+                <MessageCircle className="w-4 h-4" />
               </a>
               <a
-                href="mailto:hello@toolbox.com"
-                className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-primary-50 dark:hover:bg-primary-900/20 text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-all"
+                href="mailto:hello@toolify.com"
+                className="p-2 rounded-lg bg-[#18181b] hover:bg-[#27272a] text-slate-400 hover:text-white transition-colors"
                 aria-label="Email"
               >
-                <Mail className="w-4.5 h-4.5" />
+                <Mail className="w-4 h-4" />
               </a>
             </div>
           </div>
 
-          {/* Tool Categories */}
-          {toolsByCategory.map((cat) => {
-            const CatIcon = categoryIcons[cat.id] || Sparkles;
+          {/* Categories */}
+          {mainCategories.map((cat) => {
+            const CatIcon = cat.icon;
             return (
               <div key={cat.id}>
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500/10 to-accent-500/10 flex items-center justify-center">
-                    <CatIcon className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+                  <div className="w-7 h-7 rounded-md bg-primary-500/10 flex items-center justify-center">
+                    <CatIcon className="w-3.5 h-3.5 text-primary-400" />
                   </div>
-                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                  <h3 className="text-sm font-semibold text-white">
                     {cat.name}
                   </h3>
                 </div>
-                <ul className="space-y-2.5">
+                <ul className="space-y-2">
                   {cat.tools.map((tool) => (
                     <li key={tool.id}>
                       <Link
-                        href={tool.path}
-                        className="text-sm text-slate-500 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex items-center gap-1.5 group"
+                        href={`/tools/${tool.id}`}
+                        className="text-sm text-slate-500 hover:text-white transition-colors flex items-center gap-1.5 group"
                       >
-                        <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600 group-hover:bg-primary-500 group-hover:w-1.5 transition-all" />
+                        <span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-primary-500 transition-colors" />
                         {tool.name}
                       </Link>
                     </li>
@@ -126,59 +106,66 @@ export default function Footer() {
             );
           })}
 
-          {/* Resources Column */}
+          {/* Resources */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500/10 to-accent-500/10 flex items-center justify-center">
-                <BookOpen className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+              <div className="w-7 h-7 rounded-md bg-primary-500/10 flex items-center justify-center">
+                <svg
+                  className="w-3.5 h-3.5 text-primary-400"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                </svg>
               </div>
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
-                资源
-              </h3>
+              <h3 className="text-sm font-semibold text-white">资源</h3>
             </div>
-            <ul className="space-y-2.5">
+            <ul className="space-y-2">
               <li>
                 <Link
-                  href="/blog"
-                  className="text-sm text-slate-500 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex items-center gap-1.5 group"
+                  href="/"
+                  className="text-sm text-slate-500 hover:text-white transition-colors flex items-center gap-1.5 group"
                 >
-                  <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600 group-hover:bg-primary-500 group-hover:w-1.5 transition-all" />
-                  博客文章
+                  <span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-primary-500 transition-colors" />
+                  首页
                 </Link>
               </li>
               <li>
                 <Link
                   href="/products"
-                  className="text-sm text-slate-500 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex items-center gap-1.5 group"
+                  className="text-sm text-slate-500 hover:text-white transition-colors flex items-center gap-1.5 group"
                 >
-                  <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600 group-hover:bg-primary-500 group-hover:w-1.5 transition-all" />
+                  <span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-primary-500 transition-colors" />
                   产品推荐
                 </Link>
               </li>
               <li>
                 <Link
-                  href="#about"
-                  className="text-sm text-slate-500 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex items-center gap-1.5 group"
+                  href="#"
+                  className="text-sm text-slate-500 hover:text-white transition-colors flex items-center gap-1.5 group"
                 >
-                  <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600 group-hover:bg-primary-500 group-hover:w-1.5 transition-all" />
+                  <span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-primary-500 transition-colors" />
                   关于我们
                 </Link>
               </li>
               <li>
                 <Link
-                  href="#privacy"
-                  className="text-sm text-slate-500 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex items-center gap-1.5 group"
+                  href="#"
+                  className="text-sm text-slate-500 hover:text-white transition-colors flex items-center gap-1.5 group"
                 >
-                  <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600 group-hover:bg-primary-500 group-hover:w-1.5 transition-all" />
+                  <span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-primary-500 transition-colors" />
                   隐私政策
                 </Link>
               </li>
               <li>
                 <Link
-                  href="#terms"
-                  className="text-sm text-slate-500 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex items-center gap-1.5 group"
+                  href="#"
+                  className="text-sm text-slate-500 hover:text-white transition-colors flex items-center gap-1.5 group"
                 >
-                  <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600 group-hover:bg-primary-500 group-hover:w-1.5 transition-all" />
+                  <span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-primary-500 transition-colors" />
                   使用条款
                 </Link>
               </li>
@@ -188,22 +175,19 @@ export default function Footer() {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-slate-200 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="border-t border-[#27272a]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-slate-500 dark:text-slate-500">
-              © 2026 工具箱. 保留所有权利.
+            <p className="text-xs text-slate-600">
+              © 2026 Toolify. All rights reserved.
             </p>
-            <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-500">
+            <div className="flex items-center gap-4 text-xs text-slate-600">
               <span className="flex items-center gap-1.5">
-                <Shield className="w-4 h-4 text-emerald-500" />
-                数据安全
-              </span>
-              <span className="hidden sm:inline">·</span>
-              <span className="flex items-center gap-1.5">
-                <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
+                <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
                 用心打造
               </span>
+              <span className="text-[#27272a]">·</span>
+              <span>持续更新</span>
             </div>
           </div>
         </div>

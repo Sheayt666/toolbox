@@ -1,8 +1,0 @@
-﻿node.exe : error: unknown option '--no-turbopack'
-At C:\Users\hiak0\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\tools\node\npx.ps1:16 char:5
-+     & "$basedir/node$exe"  "$basedir/node_modules/npm/bin/npx-cli.js" ...
-+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (error: unknown option '--no-turbopack':String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
- 
-(Did you mean --turbopack?)

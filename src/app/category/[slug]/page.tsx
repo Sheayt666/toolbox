@@ -8,45 +8,11 @@ import {
   Home,
   Grid3X3,
   Sparkles,
-  ArrowRight,
-  Calculator,
-  Type,
-  Wand2,
-  ArrowLeftRight,
-  Coffee,
-  Code2,
+  Hash,
   type LucideIcon,
 } from "lucide-react";
 import ToolCard from "@/components/ToolCard";
-import { tools, getCategoryBySlug, categories } from "@/lib/tools";
-
-// Category descriptions and icons
-const categoryMeta: Record<string, { description: string; icon: LucideIcon }> = {
-  calculator: {
-    description: "各类在线计算器，包括房贷、个税、BMI、年龄、单位换算等实用计算工具",
-    icon: Calculator,
-  },
-  text: {
-    description: "文本处理工具，包括大小写转换、字数统计、Markdown编辑等文字处理功能",
-    icon: Type,
-  },
-  generator: {
-    description: "在线生成器，包括二维码、密码、UUID、哈希值等一键生成工具",
-    icon: Wand2,
-  },
-  converter: {
-    description: "格式转换工具，包括Base64、URL编码、进制转换等数据格式互转",
-    icon: ArrowLeftRight,
-  },
-  life: {
-    description: "日常生活实用工具，包括倒计时、纪念日、番茄钟等生活辅助工具",
-    icon: Coffee,
-  },
-  developer: {
-    description: "开发者必备工具，包括JSON格式化、正则测试、时间戳转换等开发效率工具",
-    icon: Code2,
-  },
-};
+import { getCategoryBySlug, categories, getToolsByCategory } from "@/lib/tools";
 
 export default function CategoryPage() {
   const params = useParams();
@@ -54,61 +20,50 @@ export default function CategoryPage() {
 
   const category = getCategoryBySlug(slug);
 
-  // If category not found or is "all", show 404
   if (!category || slug === "all") {
     notFound();
   }
 
-  const meta = categoryMeta[slug] || {
-    description: `浏览${category.name}分类下的所有在线工具`,
-    icon: Grid3X3,
-  };
-
-  const MetaIcon = meta.icon;
-
   const categoryTools = useMemo(() => {
-    return tools.filter((tool) => tool.category === category.name);
+    return getToolsByCategory(category.name);
   }, [category.name]);
 
-  // Get other categories for exploration section
-  const otherCategories = categories.filter(
-    (c) => c.slug !== slug && c.slug !== "all"
-  );
+  const CatIcon = category.icon || Grid3X3;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-10 pb-16 lg:pt-16 lg:pb-20">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary-50/60 via-slate-50 to-slate-50 dark:from-indigo-950/30 dark:via-slate-950 dark:to-slate-950" />
-        <div className="absolute top-0 left-1/3 w-[400px] h-[400px] bg-primary-400/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-10 right-1/4 w-[300px] h-[300px] bg-accent-400/15 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen bg-[#09090b] text-white">
+      {/* Hero Section - Toolify style */}
+      <section className="relative overflow-hidden pt-10 pb-10">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0d0d0f] to-[#09090b]" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[250px] bg-primary-500/[0.1] rounded-full blur-[80px] pointer-events-none" />
+        <div className="absolute inset-0 bg-grid opacity-20" />
 
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
           <nav className="mb-6" aria-label="Breadcrumb">
-            <ol className="flex items-center flex-wrap gap-1.5 text-sm">
+            <ol className="flex items-center flex-wrap gap-1.5 text-xs">
               <li>
                 <Link
                   href="/"
-                  className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                  className="flex items-center gap-1.5 text-slate-500 hover:text-slate-300 transition-colors"
                 >
                   <Home className="w-3.5 h-3.5" />
                   首页
                 </Link>
               </li>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600" />
+              <ChevronRight className="w-3 h-3 text-slate-700" />
               <li>
                 <Link
-                  href="/#tools"
-                  className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                  href="/"
+                  className="flex items-center gap-1.5 text-slate-500 hover:text-slate-300 transition-colors"
                 >
                   <Grid3X3 className="w-3.5 h-3.5" />
                   全部工具
                 </Link>
               </li>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600" />
+              <ChevronRight className="w-3 h-3 text-slate-700" />
               <li>
-                <span className="text-slate-900 dark:text-white font-medium">
+                <span className="text-slate-300 font-medium">
                   {category.name}
                 </span>
               </li>
@@ -116,131 +71,94 @@ export default function CategoryPage() {
           </nav>
 
           {/* Category Header */}
-          <div className="text-center max-w-3xl mx-auto animate-fade-in-up">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 text-white shadow-lg shadow-primary-500/25 mb-5">
-              <MetaIcon className="w-8 h-8" />
+          <div className="text-center animate-fade-in-up">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 text-white shadow-xl shadow-primary-500/25 mb-4">
+              <CatIcon className="w-7 h-7" />
             </div>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm font-medium text-primary-600 dark:text-primary-400 shadow-sm mb-5">
-              <Sparkles className="w-4 h-4" />
-              <span>{categoryTools.length} 款工具</span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-500/10 border border-primary-500/20 text-xs font-medium text-primary-400 mb-4">
+              <Hash className="w-3 h-3" />
+              {categoryTools.length} 款工具
             </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white mb-4 leading-tight tracking-tight">
+            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3 tracking-tight leading-[1.2]">
               {category.name}
             </h1>
-            <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
-              {meta.description}
+            <p className="text-base text-slate-400 max-w-xl mx-auto leading-relaxed">
+              浏览 {category.name} 分类下的所有在线工具，精选优质工具，助力高效工作
             </p>
           </div>
         </div>
       </section>
 
-      {/* Category Navigation Pills */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-4 mb-10">
-        <div className="flex flex-wrap gap-2 justify-center">
+      {/* Category Navigation - Toolify tag style */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+        <div className="flex flex-wrap gap-1.5 justify-center">
           {categories
             .filter((c) => c.slug !== "all")
-            .map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/category/${cat.slug}`}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  cat.slug === slug
-                    ? "bg-gradient-to-r from-primary-500 to-accent-500 text-white shadow-md shadow-primary-500/25"
-                    : "bg-white dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-primary-300 dark:hover:border-primary-600/50 hover:text-primary-600 dark:hover:text-primary-400"
-                }`}
-              >
-                {cat.name}
-              </Link>
-            ))}
+            .map((cat) => {
+              const CatTagIcon = cat.icon;
+              return (
+                <Link
+                  key={cat.id}
+                  href={`/category/${cat.slug}`}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md transition-all ${
+                    cat.slug === slug
+                      ? "text-white bg-primary-500/20 border border-primary-500/30"
+                      : "text-slate-400 bg-[#18181b]/60 border border-transparent hover:text-white hover:bg-[#27272a] hover:border-[#3f3f46]"
+                  }`}
+                >
+                  <CatTagIcon className="w-3 h-3 opacity-70" />
+                  {cat.name}
+                </Link>
+              );
+            })}
         </div>
       </section>
 
       {/* Tools Grid */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 lg:pb-20">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-            全部 {category.name}
+          <h2 className="text-lg font-semibold text-white">
+            全部工具 <span className="text-slate-500 font-normal">({categoryTools.length})</span>
           </h2>
-          <span className="text-sm text-slate-500 dark:text-slate-400">
-            共 {categoryTools.length} 款
-          </span>
         </div>
 
         {categoryTools.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {categoryTools.map((tool, index) => (
               <div
                 key={tool.id}
-                className="animate-fade-in-up"
-                style={{ animationDelay: `${index * 50}ms` }}
+                className="animate-fade-in"
+                style={{ animationDelay: `${Math.min(index * 20, 200)}ms` }}
               >
                 <ToolCard
-                  id={tool.id}
+                  href={`/tools/${tool.id}`}
+                  icon={tool.icon as LucideIcon}
                   name={tool.name}
                   description={tool.description}
-                  path={tool.path}
-                  icon={tool.icon as LucideIcon}
                   color={tool.color}
                   category={tool.category}
+                  isPopular={index < 3}
+                  verified={index % 5 === 0}
                 />
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 bg-white dark:bg-slate-900/40 rounded-3xl border border-slate-200/60 dark:border-slate-800">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-              <Grid3X3 className="w-8 h-8 text-slate-400" />
+          <div className="text-center py-20">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-[#18181b] border border-[#27272a] flex items-center justify-center">
+              <Grid3X3 className="w-7 h-7 text-slate-600" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+            <h3 className="text-lg font-semibold text-white mb-2">
               暂无工具
             </h3>
-            <p className="text-slate-500 dark:text-slate-400 mb-4">
-              该分类下暂无工具，敬请期待
-            </p>
+            <p className="text-slate-400 mb-5">该分类下暂无工具，敬请期待</p>
             <Link
               href="/"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary-500 to-accent-500 text-white font-medium rounded-xl hover:shadow-lg hover:shadow-primary-500/25 transition-all"
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-primary-500 to-accent-500 rounded-lg hover:from-primary-600 hover:to-accent-600 transition-all"
             >
               返回首页
-              <ArrowRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4" />
             </Link>
-          </div>
-        )}
-
-        {/* Explore Other Categories */}
-        {otherCategories.length > 0 && (
-          <div className="mt-16">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">
-              探索其他分类
-            </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-              {otherCategories.map((cat) => {
-                const catMeta = categoryMeta[cat.slug] || {
-                  icon: Grid3X3,
-                };
-                const CatIcon = catMeta.icon;
-                const catToolCount = tools.filter(
-                  (t) => t.category === cat.name
-                ).length;
-                return (
-                  <Link
-                    key={cat.id}
-                    href={`/category/${cat.slug}`}
-                    className="group p-5 bg-white dark:bg-slate-900/40 rounded-2xl border border-slate-200/60 dark:border-slate-800 hover:border-primary-300/60 dark:hover:border-primary-600/40 hover:shadow-lg hover:shadow-primary-500/5 transition-all text-center"
-                  >
-                    <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-primary-500/10 to-accent-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <CatIcon className="w-6 h-6 text-primary-500" />
-                    </div>
-                    <h3 className="font-semibold text-slate-900 dark:text-white mb-1 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                      {cat.name}
-                    </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {catToolCount} 款工具
-                    </p>
-                  </Link>
-                );
-              })}
-            </div>
           </div>
         )}
       </section>

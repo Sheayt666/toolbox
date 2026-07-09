@@ -570,14 +570,14 @@ export const tools: Tool[] = [
 ];
 
 export const categories = [
-  { id: "all", name: "全部工具", slug: "all" },
-  { id: "计算工具", name: "计算工具", slug: "calculator" },
-  { id: "文本工具", name: "文本工具", slug: "text" },
-  { id: "生成工具", name: "生成工具", slug: "generator" },
-  { id: "转换工具", name: "转换工具", slug: "converter" },
-  { id: "图片工具", name: "图片工具", slug: "image" },
-  { id: "生活工具", name: "生活工具", slug: "life" },
-  { id: "开发工具", name: "开发工具", slug: "developer" },
+  { id: "all", name: "全部工具", slug: "all", icon: Grid3X3 },
+  { id: "计算工具", name: "计算工具", slug: "calculator", icon: Calculator },
+  { id: "文本工具", name: "文本工具", slug: "text", icon: FileText },
+  { id: "生成工具", name: "生成工具", slug: "generator", icon: Sparkles },
+  { id: "转换工具", name: "转换工具", slug: "converter", icon: ArrowUpDown },
+  { id: "图片工具", name: "图片工具", slug: "image", icon: Image },
+  { id: "生活工具", name: "生活工具", slug: "life", icon: Home },
+  { id: "开发工具", name: "开发工具", slug: "developer", icon: Code2 },
 ];
 
 // Get category info by slug
@@ -589,4 +589,25 @@ export function getCategoryBySlug(slug: string) {
 export function getCategorySlugByName(name: string): string {
   const cat = categories.find((c) => c.name === name);
   return cat?.slug || "";
+}
+
+// Get all tools
+export function getAllTools(): Tool[] {
+  return tools;
+}
+
+// Get tools by category name
+export function getToolsByCategory(categoryName: string): Tool[] {
+  if (categoryName === "全部工具") return tools;
+  return tools.filter((t) => t.category === categoryName);
+}
+
+// Get popular tools (first 8)
+export function getPopularTools(): Tool[] {
+  return tools.slice(0, 8);
+}
+
+// Get tool by slug/id
+export function getToolBySlug(slug: string): Tool | undefined {
+  return tools.find((t) => t.id === slug);
 }
