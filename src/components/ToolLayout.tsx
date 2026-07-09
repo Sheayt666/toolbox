@@ -12,6 +12,7 @@ import {
   Bookmark,
   ExternalLink,
   Tag,
+  ShieldAlert,
   type LucideIcon,
 } from "lucide-react";
 import { useState } from "react";
@@ -277,6 +278,23 @@ export default function ToolLayout({
           <div className="lg:grid lg:grid-cols-[1fr_300px] lg:gap-6">
             {/* Main Content */}
             <div className="space-y-6">
+              {/* 温馨提示 */}
+              <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 mb-5">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                    <ShieldAlert className="w-4 h-4 text-amber-500" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-amber-400/90 font-medium mb-1">
+                      💡 使用前请备份文件
+                    </p>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      使用工具前请务必备份好原始文件，修改后的文件可能无法恢复。因使用工具导致的任何问题请自行承担，确认无误后再使用。
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* Tool Content Card */}
               <div className="bg-[#18181b] rounded-2xl border border-[#27272a] overflow-hidden">
                 {children}

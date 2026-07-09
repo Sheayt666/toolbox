@@ -15,6 +15,7 @@ import {
   Heart,
   Bookmark,
   QrCode,
+  AlertTriangle,
 } from "lucide-react";
 import ToolCard from "@/components/ToolCard";
 import { categories, getPopularTools, getAllTools } from "@/lib/tools";
@@ -427,6 +428,45 @@ export default function HomeContent() {
                   </div>
                   <p className="text-center text-xs text-slate-600 mt-2 font-medium">
                     微信扫码打赏
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Disclaimer - 免责声明 */}
+      <section className="pb-12">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-[#18181b]/60 rounded-xl border border-[#27272a] p-5 sm:p-6">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-4.5 h-4.5 text-amber-500" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                  免责声明
+                  <span className="text-xs font-normal text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">请务必阅读</span>
+                </h3>
+                <div className="text-xs text-slate-500 space-y-2 leading-relaxed">
+                  <p>
+                    1. <strong className="text-slate-400">文件安全提示：</strong>使用本站任何工具处理文件前，请务必备份好原始文件。部分工具（如图片压缩、格式转换、PDF处理等）会对文件进行修改，<span className="text-amber-400/80">修改后的文件可能无法恢复到原始状态</span>。
+                  </p>
+                  <p>
+                    2. <strong className="text-slate-400">风险自担：</strong>因使用本站工具导致的任何直接或间接损失（包括但不限于文件丢失、数据损坏、业务中断等），<span className="text-amber-400/80">本站不承担任何责任</span>。请确认无误后再使用。
+                  </p>
+                  <p>
+                    3. <strong className="text-slate-400">数据隐私：</strong>本站所有工具均在您的浏览器本地运行，不会上传您的文件到服务器。但请避免使用公共设备或不安全的网络环境处理敏感文件。
+                  </p>
+                  <p>
+                    4. <strong className="text-slate-400">使用范围：</strong>本站工具仅供个人学习和日常使用，请勿用于非法用途或批量商业用途。
+                  </p>
+                  <p>
+                    5. <strong className="text-slate-400">技术支持：</strong>虽然我们尽力保证工具的稳定性，但不保证所有功能在所有环境下都完全正常。如有问题可联系反馈，但不承诺一定解决。
+                  </p>
+                  <p className="pt-1 text-slate-600">
+                    继续使用本站即表示您已阅读并同意以上免责声明。
                   </p>
                 </div>
               </div>
