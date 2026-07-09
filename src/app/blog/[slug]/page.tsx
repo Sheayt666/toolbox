@@ -11,7 +11,7 @@ import { getFeaturedProducts } from "@/lib/products";
 import ProductCard from "@/components/ProductCard";
 
 interface BlogPostPageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 // 生成静态路径
@@ -22,10 +22,11 @@ export function generateStaticParams() {
 }
 
 // 生成SEO元数据
-export function generateMetadata({
+export async function generateMetadata({
   params,
-}: BlogPostPageProps): Metadata {
-  const post = getPostBySlug(params.slug);
+}: BlogPostPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const post = getPostBySlug(slug);
 
   if (!post) {
     return {
@@ -64,14 +65,15 @@ const formatDate = (dateStr: string) => {
   });
 };
 
-export default function BlogPostPage({ params }: BlogPostPageProps) {
-  const post = getPostBySlug(params.slug);
+export default async function BlogPostPage({ params }: BlogPostPageProps) {
+  const { slug } = await params;
+  const post = getPostBySlug(slug);
 
   if (!post) {
     notFound();
   }
 
-  const relatedPosts = getRelatedPosts(params.slug, 3);
+  const relatedPosts = getRelatedPosts(slug, 3);
   const featuredProducts = getFeaturedProducts(3);
 
   return (
