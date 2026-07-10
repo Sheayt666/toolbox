@@ -16,15 +16,129 @@ import {
   Bookmark,
   QrCode,
   AlertTriangle,
+  Briefcase,
+  Palette,
+  Code2,
+  HeartPulse,
+  GraduationCap,
+  Home as HomeIcon,
+  Gamepad2,
+  Users,
+  type LucideIcon,
 } from "lucide-react";
 import ToolCard from "@/components/ToolCard";
 import { categories, getPopularTools, getAllTools } from "@/lib/tools";
+
+// 人群画像 / 场景导航
+interface Persona {
+  id: string;
+  name: string;
+  icon: LucideIcon;
+  description: string;
+  categories: string[];
+  gradient: string;
+  iconColor: string;
+}
+
+const personas: Persona[] = [
+  {
+    id: "office",
+    name: "办公白领",
+    icon: Briefcase,
+    description: "文档处理 · 格式转换 · 文本编辑",
+    categories: ["PDF工具", "文本工具", "转换工具"],
+    gradient: "from-blue-500/20 to-cyan-500/20",
+    iconColor: "text-blue-400",
+  },
+  {
+    id: "designer",
+    name: "设计美工",
+    icon: Palette,
+    description: "图片处理 · 创意设计",
+    categories: ["设计工具", "图片工具"],
+    gradient: "from-pink-500/20 to-rose-500/20",
+    iconColor: "text-pink-400",
+  },
+  {
+    id: "developer",
+    name: "程序员",
+    icon: Code2,
+    description: "开发辅助 · 编码调试",
+    categories: ["开发工具", "转换工具"],
+    gradient: "from-green-500/20 to-emerald-500/20",
+    iconColor: "text-green-400",
+  },
+  {
+    id: "finance",
+    name: "理财达人",
+    icon: TrendingUp,
+    description: "投资计算 · 税务规划",
+    categories: ["金融理财", "计算工具"],
+    gradient: "from-amber-500/20 to-yellow-500/20",
+    iconColor: "text-amber-400",
+  },
+  {
+    id: "health",
+    name: "健康管理",
+    icon: HeartPulse,
+    description: "健康监测 · 医疗计算",
+    categories: ["健康医疗"],
+    gradient: "from-red-500/20 to-rose-500/20",
+    iconColor: "text-red-400",
+  },
+  {
+    id: "student",
+    name: "学生教师",
+    icon: GraduationCap,
+    description: "学习辅助 · 教育工具",
+    categories: ["教育学习", "计算工具", "查询工具"],
+    gradient: "from-indigo-500/20 to-purple-500/20",
+    iconColor: "text-indigo-400",
+  },
+  {
+    id: "life",
+    name: "生活达人",
+    icon: HomeIcon,
+    description: "日常生活 · 实用助手",
+    categories: ["生活工具", "查询工具"],
+    gradient: "from-teal-500/20 to-cyan-500/20",
+    iconColor: "text-teal-400",
+  },
+  {
+    id: "creator",
+    name: "内容创作",
+    icon: Sparkles,
+    description: "创意生成 · 多媒体制作",
+    categories: ["生成工具", "视频音频", "图片工具"],
+    gradient: "from-violet-500/20 to-fuchsia-500/20",
+    iconColor: "text-violet-400",
+  },
+  {
+    id: "casual",
+    name: "休闲娱乐",
+    icon: Gamepad2,
+    description: "趣味工具 · 休闲游戏",
+    categories: ["生活工具", "生成工具", "教育学习"],
+    gradient: "from-orange-500/20 to-red-500/20",
+    iconColor: "text-orange-400",
+  },
+  {
+    id: "query",
+    name: "资料查询",
+    icon: Search,
+    description: "信息检索 · 知识百科",
+    categories: ["查询工具", "转换工具"],
+    gradient: "from-slate-400/20 to-gray-500/20",
+    iconColor: "text-slate-300",
+  },
+];
 
 export default function HomeContent() {
   const searchParams = useSearchParams();
   const urlQuery = searchParams.get("q") || "";
   const [searchQuery, setSearchQuery] = useState(urlQuery);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activePersona, setActivePersona] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"trending" | "new" | "popular">("trending");
 
   useEffect(() => {
@@ -47,6 +161,13 @@ export default function HomeContent() {
       );
     }
 
+    if (activePersona) {
+      const persona = personas.find((p) => p.id === activePersona);
+      if (persona) {
+        result = result.filter((t) => persona.categories.includes(t.category));
+      }
+    }
+
     if (activeCategory) {
       result = result.filter((t) => t.category === activeCategory);
     }
@@ -57,9 +178,9 @@ export default function HomeContent() {
     }
 
     return result;
-  }, [searchQuery, activeCategory, sortBy, allTools]);
+  }, [searchQuery, activeCategory, activePersona, sortBy, allTools]);
 
-  const displayTools = searchQuery || activeCategory ? filteredTools : allTools;
+  const displayTools = searchQuery || activeCategory || activePersona ? filteredTools : allTools;
 
   return (
     <>
@@ -136,18 +257,72 @@ export default function HomeContent() {
         </div>
       </section>
 
+      {/* Persona / Scene Navigation - 人群画像导航 */}
+      <section className="pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="w-4 h-4 text-primary-400" />
+            <span className="text-sm font-medium text-primary-400">按场景选择</span>
+            <span className="text-xs text-slate-500 ml-1">找到最适合你的工具集</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            {personas.map((persona) => {
+              const PIcon = persona.icon;
+              const isActive = activePersona === persona.id;
+              const count = allTools.filter((t) => persona.categories.includes(t.category)).length;
+              return (
+                <button
+                  key={persona.id}
+                  onClick={() => {
+                    setActivePersona(isActive ? null : persona.id);
+                    setActiveCategory(null);
+                    setSearchQuery("");
+                  }}
+                  className={`group relative overflow-hidden rounded-xl border p-4 text-left transition-all ${
+                    isActive
+                      ? "border-primary-500/50 bg-primary-500/10 shadow-[0_0_20px_rgba(168,85,247,0.15)]"
+                      : "border-[#27272a] bg-[#18181b] hover:border-[#3f3f46] hover:bg-[#1c1c1f]"
+                  }`}
+                >
+                  {/* Gradient glow */}
+                  <div className={`absolute -top-8 -right-8 w-24 h-24 rounded-full bg-gradient-to-br ${persona.gradient} blur-2xl opacity-60 group-hover:opacity-100 transition-opacity`} />
+
+                  <div className="relative flex items-start gap-3">
+                    <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${persona.gradient} flex items-center justify-center flex-shrink-0`}>
+                      <PIcon className={`w-5 h-5 ${persona.iconColor}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className={`text-sm font-semibold truncate ${isActive ? "text-white" : "text-slate-200 group-hover:text-white"} transition-colors`}>
+                        {persona.name}
+                      </div>
+                      <div className="text-xs text-slate-500 truncate mt-0.5">
+                        {persona.description}
+                      </div>
+                      <div className="text-[10px] text-slate-600 mt-1">
+                        {count} 个工具
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* Main Content Area */}
       <section className="pb-16 lg:pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header - 99工具 style */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
             <div>
-              {(searchQuery || activeCategory) && (
+              {(searchQuery || activeCategory || activePersona) && (
                 <div className="flex items-center gap-2 mb-2">
                   <button
                     onClick={() => {
                       setSearchQuery("");
                       setActiveCategory(null);
+                      setActivePersona(null);
                     }}
                     className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
                   >
@@ -158,10 +333,23 @@ export default function HomeContent() {
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
                 {searchQuery
                   ? `"${searchQuery}" 的搜索结果 (${filteredTools.length})`
+                  : activePersona
+                  ? (() => {
+                      const p = personas.find((p) => p.id === activePersona);
+                      return `${p?.name || ""}专属工具 (${filteredTools.length})`;
+                    })()
                   : activeCategory
                   ? `${activeCategory} (${filteredTools.length})`
                   : "全部工具"}
               </h2>
+              {activePersona && (
+                <p className="text-xs text-slate-500 mt-1">
+                  {(() => {
+                    const p = personas.find((p) => p.id === activePersona);
+                    return p ? `已为你筛选 ${p.categories.join("、")} 相关工具` : "";
+                  })()}
+                </p>
+              )}
             </div>
 
             {/* Sort tabs - 99工具 style */}
@@ -203,8 +391,8 @@ export default function HomeContent() {
                     description={tool.description}
                     color={tool.color}
                     category={tool.category}
-                    isPopular={i < 3 && !searchQuery && !activeCategory}
-                    isNew={i >= displayTools.length - 3 && !searchQuery && !activeCategory}
+                    isPopular={i < 3 && !searchQuery && !activeCategory && !activePersona}
+                    isNew={i >= displayTools.length - 3 && !searchQuery && !activeCategory && !activePersona}
                     verified={i % 5 === 0}
                   />
                 </div>
@@ -223,6 +411,7 @@ export default function HomeContent() {
                 onClick={() => {
                   setSearchQuery("");
                   setActiveCategory(null);
+                  setActivePersona(null);
                 }}
                 className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[#18181b] border border-[#27272a] rounded-lg hover:bg-[#27272a] transition-colors"
               >
