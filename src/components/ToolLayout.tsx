@@ -347,14 +347,14 @@ export default function ToolLayout({
               )}
 
               {/* 打赏支持 */}
-              <div className="bg-gradient-to-br from-emerald-500/10 via-[#18181b] to-emerald-500/5 rounded-2xl border border-emerald-500/20 p-5 overflow-hidden relative">
+              <div className="bg-gradient-to-br from-emerald-500/10 via-[#18181b] to-emerald-500/5 rounded-2xl border border-emerald-500/20 p-5 sm:p-6 overflow-hidden relative">
                 {/* 装饰 */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
 
-                <div className="relative flex items-center gap-5">
+                <div className="relative flex flex-col sm:flex-row items-center gap-5 sm:gap-6">
                   {/* 左侧文案 */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
+                  <div className="flex-1 text-center sm:text-left">
+                    <div className="flex items-center gap-2 mb-2 justify-center sm:justify-start">
                       <Coffee className="w-4 h-4 text-emerald-400" />
                       <span className="text-sm font-semibold text-white">
                         觉得好用？请我喝杯咖啡 ☕
@@ -364,7 +364,7 @@ export default function ToolLayout({
                       99在线工具坚持免费无广告，你的打赏是我持续维护更新的动力。
                       觉得好用欢迎收藏本站，分享给更多朋友~
                     </p>
-                    <div className="flex items-center gap-3 mt-3 text-xs text-slate-500">
+                    <div className="flex items-center gap-3 mt-3 text-xs text-slate-500 justify-center sm:justify-start">
                       <span className="flex items-center gap-1">
                         <Bookmark className="w-3.5 h-3.5" />
                         收藏本站
@@ -379,16 +379,16 @@ export default function ToolLayout({
 
                   {/* 右侧收款码 */}
                   <div className="flex-shrink-0">
-                    <div className="bg-white rounded-xl p-2 shadow-lg shadow-emerald-500/10">
-                      <div className="w-20 h-20 rounded-lg overflow-hidden">
+                    <div className="bg-white rounded-xl p-3 shadow-xl shadow-emerald-500/10">
+                      <div className="w-36 h-36 bg-[#f5f5f5] rounded-lg overflow-hidden">
                         <img
                           src="/wechat-pay.jpg"
                           alt="微信打赏"
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      <p className="text-center text-[10px] text-slate-600 mt-1.5 font-medium">
-                        微信打赏
+                      <p className="text-center text-xs text-slate-600 mt-2 font-medium">
+                        微信扫码打赏
                       </p>
                     </div>
                   </div>
