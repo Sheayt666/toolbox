@@ -23,7 +23,7 @@ import { useState } from "react";
 import { getCategorySlugByName, getPopularTools, getToolsByCategory, getAllTools, getToolTags, getToolBySlug, popularTags } from "@/lib/tools";
 import ToolCard from "./ToolCard";
 import ToolSEOContent from "./ToolSEOContent";
-import { getToolSeoContent } from "@/data/toolSeoContent";
+import { getOrCreateToolSeoContent } from "@/data/toolSeoContent";
 import {
   BreadcrumbListSchema,
   SoftwareApplicationSchema,
@@ -71,7 +71,7 @@ export default function ToolLayout({
 
   const productCategory = category ? categoryProductMap[category] || "AI工具" : "AI工具";
   const recommendedProducts = getProductsByCategory(productCategory).slice(0, 2);
-  const seoContent = toolId ? getToolSeoContent(toolId) : undefined;
+  const seoContent = toolId ? getOrCreateToolSeoContent(toolId) : undefined;
 
   const relatedTools = category
     ? getToolsByCategory(category).filter((t) => t.id !== slug).slice(0, 8)
@@ -410,7 +410,14 @@ export default function ToolLayout({
               </div>
 
               {/* SEO Content */}
-              {seoContent && <ToolSEOContent seoContent={seoContent} />}
+              {seoContent && (
+                <ToolSEOContent
+                  seoContent={seoContent}
+                  currentToolId={toolId}
+                  currentToolName={title}
+                  currentToolCategory={category}
+                />
+              )}
 
               {/* Prev/Next Navigation - 内链SEO */}
               {(prevTool || nextTool) && (

@@ -41,6 +41,8 @@ export interface ToolSEOContent {
   metaDescription: string;
   /** 页面标题 */
   pageTitle: string;
+  /** 专业使用技巧（可选，由 seoGenerator 自动生成） */
+  proTips?: string[];
 }
 
 export const toolSeoContents: ToolSEOContent[] = [
@@ -17707,4 +17709,19 @@ export const toolSeoContents: ToolSEOContent[] = [
 
 export function getToolSeoContent(toolId: string): ToolSEOContent | undefined {
   return toolSeoContents.find((t) => t.toolId === toolId);
+}
+
+/**
+ * 获取工具SEO内容，若手写数据不存在则使用智能生成器自动生成
+ */
+export function getOrCreateToolSeoContent(toolId: string): ToolSEOContent | undefined {
+  const manual = toolSeoContents.find((t) => t.toolId === toolId);
+  if (manual) return manual;
+
+  // 动态导入避免循环依赖
+  const { tools } = require("@/lib/tools");
+  const { generateSeoContent } = require("@/lib/seoGenerator");
+  const tool = tools.find((t: any) => t.id === toolId);
+  if (!tool) return undefined;
+  return generateSeoContent(tool, tools);
 }
