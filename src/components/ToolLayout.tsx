@@ -15,6 +15,7 @@ import {
   ShieldAlert,
   Heart,
   Coffee,
+  Crown,
   X,
   ZoomIn,
   type LucideIcon,
@@ -32,6 +33,7 @@ import {
 } from "./SEOSchema";
 import { getProductsByCategory } from "@/lib/products";
 import PurchaseModal from "./PurchaseModal";
+import { VIPUpgradeBanner, PaidProductRecommendation, PrivateDomainCTA, SocialProofBadge, LimitedOfferPopup } from "./RevenueWidgets";
 
 interface ToolLayoutProps {
   children: React.ReactNode;
@@ -133,6 +135,8 @@ export default function ToolLayout({
         isOpen={isPurchaseOpen}
         onClose={() => setIsPurchaseOpen(false)}
       />
+
+      <LimitedOfferPopup />
 
       {seoContent && (
         <>
@@ -311,6 +315,23 @@ export default function ToolLayout({
               <div className="bg-[#18181b] rounded-2xl border border-[#27272a] overflow-hidden">
                 {children}
               </div>
+
+              {/* VIP Upgrade Banner */}
+              <VIPUpgradeBanner category={category} />
+
+              {/* Paid Product Recommendation */}
+              {recommendedProducts.length > 0 && (
+                <PaidProductRecommendation
+                  products={recommendedProducts}
+                  onPurchase={() => setIsPurchaseOpen(true)}
+                />
+              )}
+
+              {/* Social Proof */}
+              <SocialProofBadge />
+
+              {/* Private Domain CTA */}
+              <PrivateDomainCTA />
 
               {/* 标签云 - SEO内链 */}
               {(toolTags.length > 0 || popularTags.length > 0) && (
@@ -553,6 +574,25 @@ export default function ToolLayout({
                       </Link>
                     );
                   })}
+                </div>
+              </div>
+
+              {/* VIP Membership Card */}
+              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/25 p-4">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 rounded-full blur-2xl" />
+                <div className="relative">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Crown className="w-5 h-5 text-amber-400" />
+                    <span className="text-sm font-bold text-white">VIP会员</span>
+                    <span className="text-[10px] font-bold text-amber-300 bg-amber-500/20 px-1.5 py-0.5 rounded">省70%</span>
+                  </div>
+                  <p className="text-xs text-slate-400 mb-3">¥99/年 · 全工具解锁</p>
+                  <Link
+                    href="/vip"
+                    className="block w-full py-2 text-center text-xs font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all"
+                  >
+                    立即开通 →
+                  </Link>
                 </div>
               </div>
 

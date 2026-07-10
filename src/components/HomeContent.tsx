@@ -24,10 +24,13 @@ import {
   Home as HomeIcon,
   Gamepad2,
   Users,
+  Crown,
   type LucideIcon,
 } from "lucide-react";
 import ToolCard from "@/components/ToolCard";
+import { VIPPricingCards, SocialProofBadge, LimitedOfferPopup } from "./RevenueWidgets";
 import { categories, getPopularTools, getAllTools } from "@/lib/tools";
+import { getPopularProducts } from "@/lib/products";
 
 // 人群画像 / 场景导航
 interface Persona {
@@ -184,6 +187,8 @@ export default function HomeContent() {
 
   return (
     <>
+      <LimitedOfferPopup />
+
       {/* Hero Section - 99工具 style minimal */}
       <section className="relative overflow-hidden pt-14 pb-10">
         {/* Background gradient */}
@@ -304,6 +309,82 @@ export default function HomeContent() {
                     </div>
                   </div>
                 </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* VIP Membership Section */}
+      <section className="pb-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1 mb-3 text-xs font-bold text-amber-300 bg-amber-500/10 rounded-full border border-amber-500/20">
+              <Crown className="w-3.5 h-3.5" />
+              VIP会员限时特惠
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2 tracking-tight">
+              开通VIP，解锁全部高级功能
+            </h2>
+            <p className="text-slate-400 text-sm">
+              500+工具去水印 · 批量处理 · 无限制使用 · 12款付费工具包全解锁
+            </p>
+          </div>
+          <VIPPricingCards />
+          <div className="mt-6">
+            <SocialProofBadge />
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Paid Products */}
+      <section className="pb-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between mb-6">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="w-4 h-4 text-accent-400" />
+                <span className="text-sm font-medium text-accent-400">精品推荐</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                热门付费工具包
+              </h2>
+            </div>
+            <Link
+              href="/products"
+              className="text-sm text-primary-400 hover:underline font-medium"
+            >
+              查看全部 →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {getPopularProducts().slice(0, 4).map((product) => {
+              const PIcon = product.icon;
+              return (
+                <Link
+                  key={product.id}
+                  href={`/products/${product.id}`}
+                  className="group bg-[#18181b] rounded-xl border border-[#27272a] hover:border-primary-500/30 overflow-hidden transition-all"
+                >
+                  <div className={`h-28 bg-gradient-to-br ${product.gradient} flex items-center justify-center relative`}>
+                    <PIcon className="w-10 h-10 text-white/80" />
+                    <div className="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-bold text-white bg-black/30 rounded">
+                      ¥{product.price}
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <div className="text-sm font-semibold text-white mb-1 truncate group-hover:text-primary-400 transition-colors">
+                      {product.shortName || product.name}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-amber-400 flex items-center gap-0.5">
+                        <Star className="w-3 h-3 fill-current" />
+                        {product.rating}
+                      </span>
+                      <span className="text-xs text-slate-600">已售{product.salesCount}+</span>
+                    </div>
+                  </div>
+                </Link>
               );
             })}
           </div>
