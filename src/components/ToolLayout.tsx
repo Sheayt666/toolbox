@@ -15,6 +15,8 @@ import {
   ShieldAlert,
   Heart,
   Coffee,
+  X,
+  ZoomIn,
   type LucideIcon,
 } from "lucide-react";
 import { useState } from "react";
@@ -53,6 +55,7 @@ export default function ToolLayout({
   const [copied, setCopied] = useState(false);
   const [isPurchaseOpen, setIsPurchaseOpen] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [isRewardOpen, setIsRewardOpen] = useState(false);
 
   const categoryProductMap: Record<string, string> = {
     "开发工具": "开发",
@@ -379,18 +382,29 @@ export default function ToolLayout({
 
                   {/* 右侧收款码 */}
                   <div className="flex-shrink-0">
-                    <div className="bg-white rounded-xl p-3 shadow-xl shadow-emerald-500/10">
-                      <div className="w-36 h-36 bg-[#f5f5f5] rounded-lg overflow-hidden">
+                    <button
+                      onClick={() => setIsRewardOpen(true)}
+                      className="block group relative bg-white rounded-xl p-3 shadow-xl shadow-emerald-500/10 hover:shadow-2xl hover:shadow-emerald-500/20 transition-all hover:scale-[1.02] cursor-pointer"
+                      aria-label="点击放大二维码"
+                    >
+                      <div className="w-36 h-36 bg-[#f5f5f5] rounded-lg overflow-hidden relative">
                         <img
                           src="/wechat-pay.jpg"
                           alt="微信打赏"
                           className="w-full h-full object-cover"
                         />
+                        {/* 悬停遮罩提示 */}
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 flex items-center justify-center transition-all">
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center gap-1">
+                            <ZoomIn className="w-6 h-6 text-white" />
+                            <span className="text-[10px] text-white font-medium">点击放大</span>
+                          </div>
+                        </div>
                       </div>
                       <p className="text-center text-xs text-slate-600 mt-2 font-medium">
                         微信扫码打赏
                       </p>
-                    </div>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -617,6 +631,72 @@ export default function ToolLayout({
           </div>
         </div>
       </div>
+
+      {/* 打赏二维码放大弹窗 */}
+      {isRewardOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setIsRewardOpen(false)}
+        >
+          <div
+            className="relative bg-[#18181b] rounded-2xl border border-emerald-500/30 p-6 sm:p-8 max-w-md w-full shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 关闭按钮 */}
+            <button
+              onClick={() => setIsRewardOpen(false)}
+              className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-[#27272a] hover:bg-[#3f3f46] text-slate-400 hover:text-white transition-colors"
+              aria-label="关闭"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* 弹窗内容 */}
+            <div className="flex flex-col items-center text-center">
+              {/* 标题 */}
+              <div className="flex items-center gap-2 mb-3">
+                <Coffee className="w-5 h-5 text-emerald-400" />
+                <h3 className="text-lg font-bold text-white">微信打赏支持</h3>
+              </div>
+              <p className="text-sm text-slate-400 mb-5 leading-relaxed">
+                感谢使用99在线工具，长按或扫描下方二维码即可打赏 ☕
+              </p>
+
+              {/* 大尺寸二维码 */}
+              <div className="bg-white rounded-2xl p-4 shadow-xl">
+                <div className="w-64 h-64 sm:w-72 sm:h-72 bg-[#f5f5f5] rounded-xl overflow-hidden">
+                  <img
+                    src="/wechat-pay.jpg"
+                    alt="微信打赏二维码"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <p className="text-center text-sm text-slate-600 mt-3 font-medium">
+                  微信扫码打赏
+                </p>
+              </div>
+
+              {/* 底部提示 */}
+              <div className="flex items-center gap-4 mt-5 text-xs text-slate-500">
+                <span className="flex items-center gap-1.5">
+                  <Bookmark className="w-3.5 h-3.5" />
+                  收藏本站
+                </span>
+                <span className="w-px h-3 bg-[#27272a]" />
+                <span className="flex items-center gap-1.5">
+                  <Heart className="w-3.5 h-3.5" />
+                  感谢支持
+                </span>
+                <span className="w-px h-3 bg-[#27272a]" />
+                <span className="flex items-center gap-1.5">
+                  <Coffee className="w-3.5 h-3.5" />
+                  免费无广告
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
