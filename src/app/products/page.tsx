@@ -13,6 +13,7 @@ import {
   Filter,
   type LucideIcon,
   MessageCircle,
+  RefreshCw,
 } from "lucide-react";
 import { products, productCategories, trustBadges } from "@/lib/products";
 import ProductCard from "@/components/ProductCard";
@@ -27,7 +28,7 @@ export default function ProductsPage() {
       activeCategory === "all" || product.category === activeCategory
   );
 
-  const badgeIcons: LucideIcon[] = [Shield, Zap, RefreshCcw, Users];
+  const badgeIcons: LucideIcon[] = [Shield, Zap, RefreshCw, Users];
 
   const handleBuy = () => {
     setIsPurchaseOpen(true);

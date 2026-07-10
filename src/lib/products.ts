@@ -21,6 +21,7 @@
   Briefcase,
   Megaphone,
   Wrench,
+  RefreshCw,
   type LucideIcon,
 } from "lucide-react";
 
@@ -111,7 +112,7 @@ export const products: Product[] = [
         description: "分类清晰，一键复制，开箱即用，无需学习成本",
       },
       {
-        icon: RefreshCcw,
+        icon: RefreshCw,
         title: "品质保证",
         description: "精心打磨，每一条都经过实测验证",
       },
@@ -756,7 +757,7 @@ export const products: Product[] = [
         description: "支持HEX/RGB一键复制，直接在设计软件中使用",
       },
       {
-        icon: RefreshCcw,
+        icon: RefreshCw,
         title: "品质保证",
         description: "每月新增配色方案，紧跟设计潮流趋势",
       },
@@ -1095,7 +1096,7 @@ export const products: Product[] = [
         description: "总价值超500元的内容，特惠价仅需39.9元",
       },
       {
-        icon: RefreshCcw,
+        icon: RefreshCw,
         title: "品质保证",
         description: "每季度更新工具库，永久免费获取新版本",
       },
