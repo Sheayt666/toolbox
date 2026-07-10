@@ -2161,10 +2161,6 @@ export function getRelatedProducts(productId: string, count: number = 3): Produc
   return related.slice(0, count);
 }
 
-export function getPopularProducts(count: number = 4): Product[] {
-  return [...products].sort((a, b) => b.salesCount - a.salesCount).slice(0, count);
-}
-
 export function getFeaturedProducts(count: number = 3): Product[] {
   // 返回有badge标记的热销/推荐产品
   const featured = products.filter((p) => p.badge);
