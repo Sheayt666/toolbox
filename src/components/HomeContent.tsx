@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import ToolCard from "@/components/ToolCard";
 import { categories, getPopularTools, getAllTools } from "@/lib/tools";
+import { searchTools } from "@/lib/searchEngine";
 
 // 人群画像 / 场景导航
 interface Persona {
@@ -148,17 +149,13 @@ export default function HomeContent() {
   const allTools = getAllTools();
   const popularTools = getPopularTools();
 
-  // Filter tools
+  // Filter tools - 使用智能搜索引擎
   const filteredTools = useMemo(() => {
-    let result = [...allTools];
+    let result: typeof allTools = [...allTools];
 
-    if (searchQuery) {
-      result = result.filter(
-        (t) =>
-          t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          t.category.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+    if (searchQuery.trim()) {
+      const searchResults = searchTools(searchQuery, allTools);
+      result = searchResults.map((r) => r.tool);
     }
 
     if (activePersona) {
@@ -219,7 +216,7 @@ export default function HomeContent() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="搜索工具，如 PDF 压缩、JSON 格式化、图片转换..."
+                    placeholder="搜索工具，如 图片压缩、JSON格式化、我想把图片变小..."
                     className="w-full h-14 pl-12 pr-24 text-base bg-transparent text-white outline-none placeholder:text-slate-500"
                   />
                   <button className="absolute right-2 top-1/2 -translate-y-1/2 h-10 px-5 text-sm font-medium text-white bg-gradient-to-r from-primary-500 to-accent-500 rounded-lg hover:from-primary-600 hover:to-accent-600 transition-all">

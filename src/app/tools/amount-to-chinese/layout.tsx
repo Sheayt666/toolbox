@@ -12,6 +12,9 @@ export const metadata: Metadata = {
     type: "website",
     locale: "zh_CN",
   },
+  alternates: {
+    canonical: "/tools/amount-to-chinese",
+  },
 };
 
 export default function ToolLayout({

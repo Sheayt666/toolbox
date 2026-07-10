@@ -103,7 +103,7 @@ export default function RootLayout({
           name={siteName}
           url={siteUrl}
           description={siteDescription}
-          searchUrl={`${siteUrl}/?s={search_term_string}`}
+          searchUrl={`${siteUrl}/?q={search_term_string}`}
         />
         <Header />
         <main className="flex-1 pb-16 lg:pb-0">{children}</main>

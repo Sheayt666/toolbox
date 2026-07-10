@@ -22,6 +22,9 @@ export const metadata: Metadata = {
     type: "website",
     locale: "zh_CN",
   },
+  alternates: {
+    canonical: "/tools/circle-crop",
+  },
 };
 
 export default function ToolLayout({

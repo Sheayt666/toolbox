@@ -17,6 +17,9 @@ export const metadata: Metadata = {
     type: "website",
     locale: "zh_CN",
   },
+  alternates: {
+    canonical: "/tools/pdf-sign",
+  },
 };
 
 export default function ToolLayout({

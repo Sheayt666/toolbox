@@ -18,6 +18,9 @@ export const metadata: Metadata = {
     type: "website",
     locale: "zh_CN",
   },
+  alternates: {
+    canonical: "/tools/css-formatter",
+  },
 };
 
 export default function ToolLayout({

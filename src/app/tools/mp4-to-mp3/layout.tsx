@@ -17,6 +17,9 @@ export const metadata: Metadata = {
     type: "website",
     locale: "zh_CN",
   },
+  alternates: {
+    canonical: "/tools/mp4-to-mp3",
+  },
 };
 
 export default function ToolLayout({

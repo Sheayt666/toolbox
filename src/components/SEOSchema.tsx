@@ -330,7 +330,7 @@ export function ToolPageSchema({
   faqs,
   howToSteps,
   breadcrumbs,
-  siteUrl = "https://toolbox.example.com",
+  siteUrl = "https://99gongju.online",
 }: ToolPageSchemaProps) {
   const fullUrl = `${siteUrl}${tool.path}`;
 

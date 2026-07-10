@@ -21,6 +21,9 @@ export const metadata: Metadata = {
     type: "website",
     locale: "zh_CN",
   },
+  alternates: {
+    canonical: "/tools/avatar-generator",
+  },
 };
 
 export default function ToolLayout({

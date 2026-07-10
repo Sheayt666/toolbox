@@ -57,6 +57,8 @@ export default function ToolLayout({
   const [saved, setSaved] = useState(false);
   const [isRewardOpen, setIsRewardOpen] = useState(false);
 
+  const SITE_URL = "https://99gongju.online";
+
   const categoryProductMap: Record<string, string> = {
     "开发工具": "开发",
     "设计工具": "设计",
@@ -71,7 +73,8 @@ export default function ToolLayout({
 
   const productCategory = category ? categoryProductMap[category] || "AI工具" : "AI工具";
   const recommendedProducts = getProductsByCategory(productCategory).slice(0, 2);
-  const seoContent = toolId ? getOrCreateToolSeoContent(toolId) : undefined;
+  const effectiveToolId = toolId || slug;
+  const seoContent = effectiveToolId ? getOrCreateToolSeoContent(effectiveToolId) : undefined;
 
   const relatedTools = category
     ? getToolsByCategory(category).filter((t) => t.id !== slug).slice(0, 8)
@@ -107,25 +110,23 @@ export default function ToolLayout({
     }
   };
 
+  const toolPageUrl = `${SITE_URL}/tools/${slug || ""}`;
+  const categoryPageUrl = category ? `${SITE_URL}/category/${getCategorySlugByName(category)}` : "";
+
   const breadcrumbItems = [
-    { name: "首页", url: typeof window !== "undefined" ? window.location.origin : "" },
-    { name: "全部工具", url: typeof window !== "undefined" ? `${window.location.origin}/#tools` : "" },
+    { name: "首页", url: SITE_URL },
+    { name: "全部工具", url: `${SITE_URL}/#tools` },
   ];
   if (category) {
     breadcrumbItems.push({
       name: category,
-      url:
-        typeof window !== "undefined"
-          ? `${window.location.origin}/category/${getCategorySlugByName(category)}`
-          : "",
+      url: categoryPageUrl,
     });
   }
   breadcrumbItems.push({
     name: title,
-    url: typeof window !== "undefined" ? window.location.href : "",
+    url: toolPageUrl,
   });
-
-  const currentUrl = typeof window !== "undefined" ? window.location.href : "";
 
   return (
     <>
@@ -140,7 +141,7 @@ export default function ToolLayout({
           <SoftwareApplicationSchema
             name={title}
             description={seoContent.metaDescription || description}
-            url={currentUrl}
+            url={toolPageUrl}
             applicationCategory="UtilityApplication"
             operatingSystem="Web"
             offers={{ price: "0", priceCurrency: "CNY" }}

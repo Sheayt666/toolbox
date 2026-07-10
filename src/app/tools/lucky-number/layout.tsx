@@ -12,6 +12,9 @@ export const metadata: Metadata = {
     type: "website",
     locale: "zh_CN",
   },
+  alternates: {
+    canonical: "/tools/lucky-number",
+  },
 };
 
 export default function ToolLayout({
