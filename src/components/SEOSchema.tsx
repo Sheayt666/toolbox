@@ -259,6 +259,52 @@ export function ArticleSchema({
 }
 
 // ============================================================
+// Organization Schema - 组织结构化数据
+// ============================================================
+
+interface OrganizationSchemaProps {
+  name: string;
+  url: string;
+  logo?: string;
+  description?: string;
+  email?: string;
+  sameAs?: string[];
+}
+
+export function OrganizationSchema({
+  name,
+  url,
+  logo,
+  description,
+  email,
+  sameAs = [],
+}: OrganizationSchemaProps) {
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name,
+    url,
+    ...(description && { description }),
+    ...(logo && {
+      logo: {
+        "@type": "ImageObject",
+        url: logo,
+      },
+    }),
+    ...(email && { email }),
+    ...(sameAs.length > 0 && { sameAs }),
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      // eslint-disable-next-line react/no-danger
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+    />
+  );
+}
+
+// ============================================================
 // WebSite Schema - 网站结构化数据（带搜索功能）
 // ============================================================
 

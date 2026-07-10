@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import Analytics from "@/components/Analytics";
-import { WebSiteSchema } from "@/components/SEOSchema";
+import { WebSiteSchema, OrganizationSchema } from "@/components/SEOSchema";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -104,6 +104,13 @@ export default function RootLayout({
           url={siteUrl}
           description={siteDescription}
           searchUrl={`${siteUrl}/?q={search_term_string}`}
+        />
+        <OrganizationSchema
+          name={siteName}
+          url={siteUrl}
+          logo={`${siteUrl}/favicon.svg`}
+          description={siteDescription}
+          email="2629676609@qq.com"
         />
         <Header />
         <main className="flex-1 pb-16 lg:pb-0">{children}</main>

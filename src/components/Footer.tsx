@@ -1,5 +1,5 @@
 ﻿import Link from "next/link";
-import { Wrench, Heart, Mail, Code2, MessageCircle } from "lucide-react";
+import { Wrench, Heart, Mail, Code2 } from "lucide-react";
 import { categories, getAllTools, getToolsByCategory } from "@/lib/tools";
 
 export default function Footer() {
@@ -53,42 +53,37 @@ export default function Footer() {
             {/* Social */}
             <div className="flex items-center gap-2">
               <a
-                href="#"
+                href="https://github.com/Sheayt666/toolbox"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="p-2 rounded-lg bg-[#18181b] hover:bg-[#27272a] text-slate-400 hover:text-white transition-colors"
                 aria-label="GitHub"
               >
                 <Code2 className="w-4 h-4" />
               </a>
               <a
-                href="#"
+                href="mailto:2629676609@qq.com"
                 className="p-2 rounded-lg bg-[#18181b] hover:bg-[#27272a] text-slate-400 hover:text-white transition-colors"
-                aria-label="Twitter"
-              >
-                <MessageCircle className="w-4 h-4" />
-              </a>
-              <a
-                href="mailto:hello@99工具.com"
-                className="p-2 rounded-lg bg-[#18181b] hover:bg-[#27272a] text-slate-400 hover:text-white transition-colors"
-                aria-label="Email"
+                aria-label="邮箱"
               >
                 <Mail className="w-4 h-4" />
               </a>
             </div>
           </div>
 
-          {/* Categories */}
+          {/* Categories - 分类标题可点击 */}
           {mainCategories.map((cat) => {
             const CatIcon = cat.icon;
             return (
               <div key={cat.id}>
-                <div className="flex items-center gap-2 mb-4">
+                <Link href={`/category/${cat.slug}`} className="flex items-center gap-2 mb-4 group">
                   <div className="w-7 h-7 rounded-md bg-primary-500/10 flex items-center justify-center">
                     <CatIcon className="w-3.5 h-3.5 text-primary-400" />
                   </div>
-                  <h3 className="text-sm font-semibold text-white">
+                  <h3 className="text-sm font-semibold text-white group-hover:text-primary-400 transition-colors">
                     {cat.name}
                   </h3>
-                </div>
+                </Link>
                 <ul className="space-y-2">
                   {cat.tools.map((tool) => (
                     <li key={tool.id}>
@@ -135,6 +130,24 @@ export default function Footer() {
               </li>
               <li>
                 <Link
+                  href="/tools"
+                  className="text-sm text-slate-500 hover:text-white transition-colors flex items-center gap-1.5 group"
+                >
+                  <span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-primary-500 transition-colors" />
+                  工具大全
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/blog"
+                  className="text-sm text-slate-500 hover:text-white transition-colors flex items-center gap-1.5 group"
+                >
+                  <span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-primary-500 transition-colors" />
+                  使用博客
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/products"
                   className="text-sm text-slate-500 hover:text-white transition-colors flex items-center gap-1.5 group"
                 >
@@ -144,29 +157,11 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="#"
-                  className="text-sm text-slate-500 hover:text-white transition-colors flex items-center gap-1.5 group"
-                >
-                  <span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-primary-500 transition-colors" />
-                  关于我们
-                </Link>
-              </li>
-              <li>
-                <Link
                   href="/disclaimer"
                   className="text-sm text-slate-500 hover:text-white transition-colors flex items-center gap-1.5 group"
                 >
                   <span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-primary-500 transition-colors" />
                   免责声明
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-sm text-slate-500 hover:text-white transition-colors flex items-center gap-1.5 group"
-                >
-                  <span className="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-primary-500 transition-colors" />
-                  隐私政策
                 </Link>
               </li>
             </ul>

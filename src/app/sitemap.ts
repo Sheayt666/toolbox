@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import { tools, categories, popularTags } from "@/lib/tools";
 import { posts } from "@/lib/posts";
+import { products } from "@/lib/products";
 import { getToolSeoContent } from "@/data/toolSeoContent";
 
 export const dynamic = "force-static";
@@ -16,6 +17,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: "daily" as const,
     priority: 1,
   };
+
+  // 工具总览页
+  const toolsOverviewPage = {
+    url: `${baseUrl}/tools`,
+    lastModified: new Date(),
+    changeFrequency: "daily" as const,
+    priority: 0.95,
+  };
+
+  // 核心关键词着陆页
+  const hubPages = [
+    { url: `${baseUrl}/hub/online-tools`, priority: 0.9 },
+    { url: `${baseUrl}/hub/tool-directory`, priority: 0.9 },
+    { url: `${baseUrl}/hub/free-tools`, priority: 0.9 },
+  ].map((p) => ({
+    ...p,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+  }));
 
   // 分类页面（排除"全部"）
   const categoryUrls = categories
@@ -51,6 +71,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   };
 
+  // 产品详情页
+  const productDetailUrls = products.map((product) => ({
+    url: `${baseUrl}/products/${product.id}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+
   // 免责声明页
   const disclaimerPage = {
     url: `${baseUrl}/disclaimer`,
@@ -80,10 +108,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     homePage,
+    toolsOverviewPage,
+    ...hubPages,
     ...categoryUrls,
     ...tagUrls,
     blogPage,
     productsPage,
+    ...productDetailUrls,
     disclaimerPage,
     ...toolUrls,
     ...blogUrls,
