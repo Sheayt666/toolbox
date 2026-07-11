@@ -1,36 +1,142 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 99在线工具 (99gongju.online)
 
-## Getting Started
+> 500+ 免费在线工具，涵盖开发、设计、效率、生活等全场景
 
-First, run the development server:
+## 项目概览
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+| 项目 | 说明 |
+|------|------|
+| 官方网站 | https://99gongju.online |
+| 技术栈 | Next.js 16 + TypeScript + Tailwind CSS |
+| 部署方式 | Cloudflare Pages (静态导出) |
+| 工具数量 | 500+ 在线工具 |
+| 分类数量 | 14 大分类 |
+| 页面数量 | 561 个静态页面 |
+
+## 仓库结构
+
+```
+toolbox/
+├── src/                  # 网站源代码
+│   ├── app/              # Next.js App Router 页面
+│   ├── components/       # React 组件
+│   ├── lib/              # 工具函数 & 数据
+│   └── data/             # SEO内容等数据文件
+├── docs/                 # 项目文档 & 战略报告
+│   ├── strategy/         # 7份战略报告 (HTML)
+│   ├── operations/       # 运营SOP文档
+│   ├── customer-service/ # 客服话术 & 流程
+│   ├── promotion/        # 推广物料 & 主图素材
+│   └── guides/           # 使用指南
+├── products/             # 3款数字产品 (可售卖)
+│   ├── AI高效写作提示词包/
+│   ├── Notion高效管理模板合集/
+│   └── 全栈开发者效率工具包/
+└── public/               # 静态资源
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 快速开始
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 开发环境
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# 安装依赖
+npm install
 
-## Learn More
+# 启动开发服务器
+npm run dev
 
-To learn more about Next.js, take a look at the following resources:
+# 构建生产版本 (静态导出到 out/ 目录)
+npm run build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 部署
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+本项目使用 Cloudflare Pages 自动部署：
+- 推送到 `master` 分支自动触发构建
+- 构建命令：`npm run build`
+- 输出目录：`out`
 
-## Deploy on Vercel
+## 文档索引
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 战略报告 (`docs/strategy/`)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| # | 报告 | 核心内容 |
+|---|------|---------|
+| 1 | 营收策略报告 | 基础营收体系规划 |
+| 2 | 极致营收策略 | 多维度营收增长路径 |
+| 3 | 极致颠覆策略 | 颠覆性增长模型 |
+| 4 | 统治霸权策略 | 8大统治战略 + 36个月路线图 |
+| 5 | 项目可行性评估 | 市场/技术/财务可行性分析 |
+| 6 | 商业计划书 | 完整商业计划 |
+| 7 | SEO策略报告 | 全站SEO优化体系 |
+
+### 运营文档 (`docs/operations/`)
+
+- 小红书运营完全指南
+- 闲鱼上架完全指南
+- 技术社区推广指南
+- 7天快速启动计划表
+
+### 客服文档 (`docs/customer-service/`)
+
+- 客服工作流SOP
+- 好评模板库
+- 自动回复话术大全
+- 小红书私信回复话术
+- 闲鱼自动回复设置指南
+
+### 推广物料 (`docs/promotion/`)
+
+- GitHub README
+- 掘金/V2EX/知乎/公众号文章
+- 小红书/闲鱼推广文案
+- 15张主图素材
+
+## 数字产品 (`products/`)
+
+| 产品 | 文件数 | 售价参考 |
+|------|--------|---------|
+| AI高效写作提示词包 | 10 | 9.9元 |
+| Notion高效管理模板合集 | 24 | 19.9元 |
+| 全栈开发者效率工具包 | 10 | 29.9元 |
+
+## 功能特性
+
+### 核心功能
+- 500+ 免费在线工具，无需注册即用
+- 14大分类：开发工具、图片工具、文本工具、计算工具、PDF工具、设计工具、转换工具、查询工具、金融理财、健康医疗、教育学习、生活工具、生成工具、视频音频
+- 9维度智能搜索：精确匹配、场景映射、模糊匹配、拼音搜索、标签搜索、分词搜索
+- 10种人群画像导航：办公白领、设计美工、程序员、理财达人、健康管理、学生教师、生活达人、内容创作、休闲娱乐、资料查询
+
+### SEO体系
+- 500+工具页独立SEO着陆页（8大内容板块）
+- 14个分类页独立SEO内容
+- 20个标签页SEO内容
+- 4个核心关键词着陆页
+- 8种结构化数据 Schema
+- 密集内链网络（同分类+跨分类+底部导航）
+- 完整 Sitemap.xml
+
+## 工具分类
+
+| 分类 | 说明 |
+|------|------|
+| 开发工具 | JSON格式化、代码格式化、加密解密、正则测试等 |
+| 图片工具 | 图片压缩、格式转换、尺寸调整、水印等 |
+| 文本工具 | 文本对比、字数统计、大小写转换等 |
+| 计算工具 | 科学计算器、单位换算、房贷计算等 |
+| PDF工具 | PDF合并、分割、转换等 |
+| 设计工具 | 颜色选择器、渐变生成、二维码生成等 |
+| 转换工具 | 进制转换、单位转换、格式转换等 |
+| 查询工具 | IP查询、邮编查询、汇率查询等 |
+| 金融理财 | 房贷计算、复利计算、个税计算等 |
+| 健康医疗 | BMI计算、卡路里计算、预产期计算等 |
+| 教育学习 | 单位换算、公式计算、学习工具等 |
+| 生活工具 | 日期计算、倒计时、随机生成等 |
+| 生成工具 | AI生成、随机生成、模板生成等 |
+| 视频音频 | 格式转换、剪辑工具等 |
+
+## License
+
+MIT
