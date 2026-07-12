@@ -184,7 +184,25 @@ export default function ZombieDefensePage() {
   const scoreSubmitRef = useRef<number>(0);
 
   const [mounted, setMounted] = useState(false);
+  const [canvasReady, setCanvasReady] = useState(false);
   const [phase, setPhase] = useState<"loading" | "menu" | "playing" | "paused" | "gameover">("loading");
+
+  /* ---------------------------------------------------------------- */
+  /*  Callback ref — fires synchronously when <canvas> mounts/unmounts */
+  /*  This is the reliable way to init ctx, bypassing GameShell's       */
+  /*  own mounted check that delays canvas DOM insertion.              */
+  /* ---------------------------------------------------------------- */
+  const setCanvasRef = useCallback((canvas: HTMLCanvasElement | null) => {
+    canvasRef.current = canvas;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      if (ctx) ctxRef.current = ctx;
+      setCanvasReady(true);
+    } else {
+      ctxRef.current = null;
+      setCanvasReady(false);
+    }
+  }, []);
   const [stats, setStats] = useState<GameStat[]>([
     { label: "波数", value: 0, icon: "🌊" },
     { label: "击杀", value: 0, icon: "💀" },
@@ -1045,18 +1063,6 @@ export default function ZombieDefensePage() {
   }, []);
 
   /* ---------------------------------------------------------------- */
-  /*  Canvas setup                                                     */
-  /* ---------------------------------------------------------------- */
-  useEffect(() => {
-    if (!mounted || phase === "loading") return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctxRef.current = ctx;
-  }, [mounted, phase]);
-
-  /* ---------------------------------------------------------------- */
   /*  HUD sync interval                                                */
   /* ---------------------------------------------------------------- */
   useEffect(() => {
@@ -1106,6 +1112,7 @@ export default function ZombieDefensePage() {
   /*  Mouse                                                            */
   /* ---------------------------------------------------------------- */
   useEffect(() => {
+    if (!canvasReady) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -1140,12 +1147,13 @@ export default function ZombieDefensePage() {
       canvas.removeEventListener("mousedown", onMouseDown);
       window.removeEventListener("mouseup", onMouseUp);
     };
-  }, [placeBarricade, phase]);
+  }, [placeBarricade, canvasReady]);
 
   /* ---------------------------------------------------------------- */
   /*  Touch controls (virtual joystick)                                */
   /* ---------------------------------------------------------------- */
   useEffect(() => {
+    if (!canvasReady) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -1203,7 +1211,7 @@ export default function ZombieDefensePage() {
       canvas.removeEventListener("touchend", onTouchEnd);
       canvas.removeEventListener("touchcancel", onTouchEnd);
     };
-  }, [phase]);
+  }, [canvasReady]);
 
   /* ---------------------------------------------------------------- */
   /*  Build barricade button (mobile)                                  */
@@ -1248,7 +1256,7 @@ export default function ZombieDefensePage() {
       {/* Canvas */}
       <div className="relative w-full max-w-[700px] mx-auto">
         <canvas
-          ref={canvasRef}
+          ref={setCanvasRef}
           width={CANVAS_W}
           height={CANVAS_H}
           className="w-full rounded-xl border border-white/10 bg-[#0f0f1a] touch-none"
