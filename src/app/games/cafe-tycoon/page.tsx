@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Coffee, RotateCcw, Play } from "lucide-react";
+import { Coffee, RotateCcw, Play, Pause } from "lucide-react";
 import GameShell, { type GameStat } from "@/components/games/GameShell";
 import { submitScore } from "@/lib/gamification";
 
@@ -97,6 +97,7 @@ export default function CafeTycoonPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<number | null>(null);
   const [dayTransition, setDayTransition] = useState(false);
   const [dayResult, setDayResult] = useState<{ revenue: number; target: number; passed: boolean } | null>(null);
+  const [paused, setPaused] = useState(false);
 
   const coinsRef = useRef(50);
   const dayRef = useRef(1);
@@ -116,6 +117,8 @@ export default function CafeTycoonPage() {
   const spawnTimerRef = useRef(0);
   const baristaTimerRef = useRef(0);
   const tickIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pausedRef = useRef(false);
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   /* ----- mounted 初始化 ----- */
   useEffect(() => {
@@ -129,6 +132,28 @@ export default function CafeTycoonPage() {
     } catch {
       /* ignore */
     }
+  }, []);
+
+  /* ----- 定时器管理 ----- */
+  const addTimer = useCallback((fn: () => void, ms: number) => {
+    const id = setTimeout(() => {
+      timersRef.current = timersRef.current.filter((t) => t !== id);
+      fn();
+    }, ms);
+    timersRef.current.push(id);
+    return id;
+  }, []);
+
+  const clearAllTimers = useCallback(() => {
+    timersRef.current.forEach((t) => clearTimeout(t));
+    timersRef.current = [];
+  }, []);
+
+  /* ----- 暂停切换 ----- */
+  const togglePause = useCallback(() => {
+    if (!runningRef.current || overRef.current) return;
+    pausedRef.current = !pausedRef.current;
+    setPaused(pausedRef.current);
   }, []);
 
   /* ----- 同步 ref 到 state ----- */
@@ -148,10 +173,10 @@ export default function CafeTycoonPage() {
   const addFloatText = useCallback((text: string, color: string) => {
     const id = floatTextIdRef.current++;
     setFloatTexts((prev) => [...prev, { id, text, x: 50, y: 50, color, life: 60 }]);
-    setTimeout(() => {
+    addTimer(() => {
       setFloatTexts((prev) => prev.filter((f) => f.id !== id));
     }, 1500);
-  }, []);
+  }, [addTimer]);
 
   /* ----- 游戏结束 ----- */
   const doGameOver = useCallback(() => {
@@ -205,20 +230,22 @@ export default function CafeTycoonPage() {
   /* ----- 游戏主 tick ----- */
   const gameTick = useCallback(() => {
     if (!runningRef.current || overRef.current) return;
+    if (pausedRef.current) return;
 
     // 时间流逝
     timeLeftRef.current -= TICK_MS / 1000;
     if (timeLeftRef.current <= 0) {
       // 一天结束
-      const passed = dayRevenueRef.current >= getDayTarget(dayRef.current);
+      const revenue = dayRevenueRef.current;
+      const passed = revenue >= getDayTarget(dayRef.current);
       if (passed) {
         dayRef.current++;
         dayRevenueRef.current = 0;
         timeLeftRef.current = 60;
         reputationRef.current = Math.min(5, reputationRef.current + 0.5);
         setDayTransition(true);
-        setDayResult({ revenue: dayRevenueRef.current, target: getDayTarget(dayRef.current - 1), passed: true });
-        setTimeout(() => {
+        setDayResult({ revenue, target: getDayTarget(dayRef.current - 1), passed: true });
+        addTimer(() => {
           setDayTransition(false);
           setDayResult(null);
         }, 2500);
@@ -233,8 +260,8 @@ export default function CafeTycoonPage() {
         dayRevenueRef.current = 0;
         timeLeftRef.current = 60;
         setDayTransition(true);
-        setDayResult({ revenue: dayRevenueRef.current, target: getDayTarget(dayRef.current - 1), passed: false });
-        setTimeout(() => {
+        setDayResult({ revenue, target: getDayTarget(dayRef.current - 1), passed: false });
+        addTimer(() => {
           setDayTransition(false);
           setDayResult(null);
         }, 2500);
@@ -306,7 +333,7 @@ export default function CafeTycoonPage() {
     }
 
     syncState();
-  }, [syncState, spawnCustomer, doGameOver]);
+  }, [syncState, spawnCustomer, doGameOver, addTimer]);
 
   /* ----- 获取每日目标 ----- */
   function getDayTarget(d: number): number {
@@ -347,7 +374,7 @@ export default function CafeTycoonPage() {
     addFloatText(`+${earned}💰`, "#fbbf24");
 
     // 顾客离开
-    setTimeout(() => {
+    addTimer(() => {
       customersRef.current = customersRef.current.filter((c) => c.id !== customerId);
       syncState();
     }, 500);
@@ -423,6 +450,7 @@ export default function CafeTycoonPage() {
 
   /* ----- 开始游戏 ----- */
   const start = useCallback(() => {
+    clearAllTimers();
     coinsRef.current = 50;
     dayRef.current = 1;
     dayRevenueRef.current = 0;
@@ -444,9 +472,13 @@ export default function CafeTycoonPage() {
     submittedRef.current = false;
     spawnTimerRef.current = 1000;
     baristaTimerRef.current = 0;
+    pausedRef.current = false;
     setSelectedCustomer(null);
     setOver(false);
     setResult(null);
+    setPaused(false);
+    setDayTransition(false);
+    setDayResult(null);
     runningRef.current = true;
     setRunning(true);
     setDayTarget(getDayTarget(1));
@@ -454,7 +486,7 @@ export default function CafeTycoonPage() {
 
     if (tickIntervalRef.current) clearInterval(tickIntervalRef.current);
     tickIntervalRef.current = setInterval(gameTick, TICK_MS);
-  }, [syncState, gameTick]);
+  }, [syncState, gameTick, clearAllTimers]);
 
   /* ----- 重新开始 ----- */
   const restart = useCallback(() => {
@@ -472,6 +504,8 @@ export default function CafeTycoonPage() {
         clearInterval(tickIntervalRef.current);
         tickIntervalRef.current = null;
       }
+      timersRef.current.forEach((t) => clearTimeout(t));
+      timersRef.current = [];
     };
   }, []);
 
@@ -480,12 +514,42 @@ export default function CafeTycoonPage() {
     setDayTarget(getDayTarget(day));
   }, [day]);
 
+  /* ----- 键盘暂停 (P 键) ----- */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "p" || e.key === "P") {
+        togglePause();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [togglePause]);
+
   const stats: GameStat[] = [
     { label: "金币", value: coins },
     { label: "第几天", value: day },
     { label: "日收入", value: dayRevenue },
     { label: "最高记录", value: best },
   ];
+
+  if (!mounted) {
+    return (
+      <GameShell
+        gameId={GAME_ID}
+        title="咖啡店大亨"
+        description="经营你的咖啡店！接单、制作、服务顾客，赚取金币升级设备。每天有收入目标，连续3天未达标即关门大吉！"
+        instructions=""
+        icon={Coffee}
+        iconEmoji="☕"
+        iconGradient="from-amber-600 to-yellow-700"
+        refreshKey={refreshKey}
+      >
+        <div className="flex items-center justify-center min-h-[400px] text-slate-400 text-sm">
+          加载中...
+        </div>
+      </GameShell>
+    );
+  }
 
   return (
     <GameShell
@@ -573,6 +637,15 @@ export default function CafeTycoonPage() {
                   收入: <span className="text-amber-400 font-bold">{dayResult.revenue}</span> / 目标: {dayResult.target}
                 </p>
                 <p className="text-xs text-slate-500 mt-2">准备第 {day} 天...</p>
+              </div>
+            )}
+
+            {/* 暂停覆盖层 */}
+            {paused && running && !over && (
+              <div className="absolute inset-0 bg-[#09090b]/85 backdrop-blur-sm flex flex-col items-center justify-center z-40 animate-overlay-in">
+                <Pause className="w-12 h-12 text-amber-400 mb-3" />
+                <h3 className="text-2xl font-bold text-white mb-2">已暂停</h3>
+                <p className="text-xs text-slate-500">按 P 键或点击继续按钮恢复游戏</p>
               </div>
             )}
 
@@ -767,6 +840,15 @@ export default function CafeTycoonPage() {
               className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-xl transition-colors shadow-lg shadow-amber-600/30"
             >
               <Play className="w-4 h-4" /> 开始
+            </button>
+          )}
+          {running && !over && (
+            <button
+              onClick={togglePause}
+              className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-[#3f3f46] hover:bg-[#52525b] rounded-xl transition-colors border border-[#52525b]"
+            >
+              {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+              {paused ? "继续" : "暂停"}
             </button>
           )}
           <button

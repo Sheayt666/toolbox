@@ -122,6 +122,7 @@ export default function CookieEmpirePage() {
   const tickRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const saveRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const animIdRef = useRef(0);
+  const autoSubmitCounterRef = useRef(0);
 
   /* ===== Mount: load save ===== */
   useEffect(() => {
@@ -212,6 +213,13 @@ export default function CookieEmpirePage() {
       } catch {
         /* ignore */
       }
+      // Periodically submit score to leaderboard (every ~30s = 6 auto-saves)
+      autoSubmitCounterRef.current += 1;
+      if (autoSubmitCounterRef.current >= 6) {
+        autoSubmitCounterRef.current = 0;
+        const score = Math.floor(s.totalEarned);
+        if (score > 0) submitScore(GAME_ID, score, "自动");
+      }
     }, 5000);
 
     // Save on unmount
@@ -280,6 +288,9 @@ export default function CookieEmpirePage() {
     const s = stateRef.current;
     const newCrystals = calcCrystals(s.totalEarned);
     if (newCrystals <= s.sugarCrystals) return;
+
+    // Submit score to leaderboard on prestige
+    submitScore(GAME_ID, Math.floor(s.totalEarned), "转生");
 
     const saved = {
       ...defaultSave(),

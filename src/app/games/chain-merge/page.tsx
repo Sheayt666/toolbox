@@ -131,6 +131,7 @@ export default function ChainMergePage() {
   const [floatPts, setFloatPts] = useState<{ id: number; pts: number; r: number; c: number } | null>(
     null,
   );
+  const [mounted, setMounted] = useState(false);
 
   const scoreRef = useRef(0);
   const bestRef = useRef(0);
@@ -313,6 +314,7 @@ export default function ChainMergePage() {
   useEffect(() => {
     rngRef.current = newRng("normal");
     setGrid(genGrid(rngRef.current));
+    setMounted(true);
     try {
       const saved = parseInt(localStorage.getItem(BEST_SCORE_KEY) || "0", 10) || 0;
       if (saved > 0) {
@@ -348,6 +350,27 @@ export default function ChainMergePage() {
   const fresh = !running && !over && score === 0 && moves === 0;
   const selCount = selected ? selected.length : 0;
   const selPts = selCount >= 2 ? selCount * selCount * 10 : 0;
+
+  if (!mounted) {
+    return (
+      <GameShell
+        gameId={GAME_ID}
+        title="链式合成"
+        description="点击同色相连的方块高亮整条链，再次点击即可一次性消除！消除得分 = 数量²×10，链越长收益越高。方块下落后顶部补充新块，直到无路可消。每日挑战模式使用固定种子，全员同盘竞技。"
+        instructions={`点击一个方块，系统会用泛洪算法找出所有相连的同色方块（至少 2 个）并高亮。再次点击高亮区域即可消除整组，得分 = 数量² × 10。消除后上方方块下落、顶部生成新块。当棋盘上不再有任何相邻同色块时游戏结束。按 P 暂停、R 重开。`}
+        icon={Link2}
+        iconEmoji="🔗"
+        iconGradient="from-teal-400 to-cyan-500"
+        stats={[]}
+        shareScore={0}
+        refreshKey={0}
+      >
+        <div className="flex items-center justify-center h-[400px]">
+          <div className="text-slate-500">加载中...</div>
+        </div>
+      </GameShell>
+    );
+  }
 
   return (
     <GameShell

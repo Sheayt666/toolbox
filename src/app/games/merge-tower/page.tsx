@@ -187,6 +187,7 @@ export default function MergeTowerPage() {
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const [, setTick] = useState(0);
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
   const [hoverSlot, setHoverSlot] = useState<number | null>(null);
@@ -389,6 +390,7 @@ export default function MergeTowerPage() {
     };
     raf = requestAnimationFrame(loop);
     gameOverRef.current = doGameOver;
+    setMounted(true);
     return () => cancelAnimationFrame(raf);
   }, [step, doGameOver]);
 
@@ -546,6 +548,27 @@ export default function MergeTowerPage() {
   const paused = !running && !over && !fresh;
 
   const prepLeft = phaseRef.current === "prep" ? Math.max(0, prepCdRef.current) : 0;
+
+  if (!mounted) {
+    return (
+      <GameShell
+        gameId={GAME_ID}
+        title="合成塔防"
+        description="合成塔防融合了合成消除与塔防策略：在 5×6 网格上放置防御塔，把相同等级的塔拖拽合并成更高阶的神塔，抵御一波波沿路径进攻的敌人。8 个塔阶、3 种敌人、3 条命，看你能撑到第几波！"
+        instructions={`点击空地花费 ${TOWER_COST} 金币放置 1 级箭塔。把相同等级的塔拖拽到一起（或先点选一个、再点另一个）即可合成更高阶的塔，最高 8 阶。塔会自动攻击射程内的敌人，击杀获得金币。敌人走到终点扣 1 命，共 3 命。每波清空后短暂准备进入下一波。`}
+        icon={Castle}
+        iconEmoji="🏰"
+        iconGradient="from-amber-500 to-orange-600"
+        stats={[]}
+        shareScore={0}
+        refreshKey={0}
+      >
+        <div className="flex items-center justify-center h-[400px]">
+          <div className="text-slate-500">加载中...</div>
+        </div>
+      </GameShell>
+    );
+  }
 
   return (
     <GameShell

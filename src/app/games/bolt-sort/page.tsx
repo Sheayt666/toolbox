@@ -395,6 +395,42 @@ export default function BoltSortPage() {
     { label: "最高记录", value: best },
   ];
 
+  if (!mounted) {
+    return (
+      <GameShell
+        gameId={GAME_ID}
+        title="螺丝分拣"
+        description="将彩色螺丝按颜色分拣到管子中！点击管子选择，再点击目标管子移动。同色螺丝才能叠放，将所有螺丝按颜色排好即可过关！"
+        instructions={`玩法：
+  1. 点击一个管子选中它（会高亮显示）
+  2. 再点击另一个管子，将顶部螺丝移动过去
+  3. 螺丝只能放在空管子或同色螺丝上方
+  4. 当所有管子内的螺丝都是同色（或空）时通关
+
+10个关卡，难度递增：
+  管子数量和颜色种类逐渐增加
+  每关有步数和时间奖励分
+
+每日挑战：
+  使用固定种子生成关卡，每天一题，可与好友对比
+
+计分：
+  每关基础100分 + 时间奖励 + 步数奖励
+  通关额外500分奖励`}
+        icon={Wrench}
+        iconEmoji="🔩"
+        iconGradient="from-zinc-400 to-slate-600"
+        stats={[]}
+        shareScore={0}
+        refreshKey={0}
+      >
+        <div className="flex items-center justify-center h-[400px]">
+          <div className="text-slate-500">加载中...</div>
+        </div>
+      </GameShell>
+    );
+  }
+
   return (
     <GameShell
       gameId={GAME_ID}

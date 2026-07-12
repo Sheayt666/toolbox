@@ -481,6 +481,32 @@ export default function BlockJigsawPage() {
     { label: "状态", value: over ? "已结束" : running ? "进行中" : "待开始" },
   ];
 
+  if (!mounted) {
+    return (
+      <GameShell
+        gameId={GAME_ID}
+        title="方块拼图"
+        description="将底部方块拖入10x10网格，填满整行或整列即可消除得分。连击消除获得额外奖励，无法放置任何方块时游戏结束！"
+        instructions={`拖拽底部的方块到网格中放置。
+填满一整行或一整列即可消除并得分。
+一次消除多行/多列会触发连击，获得额外奖励分。
+三个方块全部放置后会自动补充新的三个方块。
+当没有任何方块可以放入网格时游戏结束。
+分数 = 放置方块格数 + 消除行/列数 × 100 + 连击奖励。`}
+        icon={Puzzle}
+        iconEmoji="🧩"
+        iconGradient="from-emerald-400 to-green-500"
+        stats={[]}
+        shareScore={0}
+        refreshKey={0}
+      >
+        <div className="flex items-center justify-center h-[400px]">
+          <div className="text-slate-500">加载中...</div>
+        </div>
+      </GameShell>
+    );
+  }
+
   return (
     <GameShell
       gameId={GAME_ID}

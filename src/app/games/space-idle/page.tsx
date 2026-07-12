@@ -122,6 +122,7 @@ export default function SpaceIdlePage() {
   const tickRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const saveRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const animIdRef = useRef(0);
+  const autoSubmitCounterRef = useRef(0);
 
   /* ===== Mount: load save ===== */
   useEffect(() => {
@@ -208,6 +209,13 @@ export default function SpaceIdlePage() {
       } catch {
         /* ignore */
       }
+      // Periodically submit score to leaderboard (every ~30s = 6 auto-saves)
+      autoSubmitCounterRef.current += 1;
+      if (autoSubmitCounterRef.current >= 6) {
+        autoSubmitCounterRef.current = 0;
+        const score = Math.floor(s.totalEnergy);
+        if (score > 0) submitScore(GAME_ID, score, "自动");
+      }
     }, 5000);
     return () => {
       if (saveRef.current) clearInterval(saveRef.current);
@@ -272,6 +280,10 @@ export default function SpaceIdlePage() {
 
   /* ===== Hard reset ===== */
   const hardReset = useCallback(() => {
+    // Submit score to leaderboard before resetting progress
+    const prevScore = Math.floor(stateRef.current.totalEnergy);
+    if (prevScore > 0) submitScore(GAME_ID, prevScore, "重置");
+
     const saved = defaultSave();
     stateRef.current = saved;
     setEnergy(0);

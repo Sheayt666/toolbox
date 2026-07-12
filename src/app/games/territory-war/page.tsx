@@ -86,6 +86,7 @@ export default function TerritoryWarPage() {
   const [result, setResult] = useState<Result | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [aliveCount, setAliveCount] = useState(0);
+  const [mounted, setMounted] = useState(false);
 
   const spawnParticles = useCallback(
     (x: number, y: number, color: string, count: number) => {
@@ -624,6 +625,7 @@ export default function TerritoryWarPage() {
     stepRef.current = stepPhysics;
     drawRef.current = draw;
     gameOverRef.current = doGameOver;
+    setMounted(true);
     let raf: number;
     let last = performance.now();
     const loop = (time: number) => {
@@ -747,6 +749,33 @@ export default function TerritoryWarPage() {
     { label: "存活", value: aliveCount },
     { label: "状态", value: over ? "已结束" : paused ? "暂停" : running ? "进行中" : "待开始" },
   ];
+
+  if (!mounted) {
+    return (
+      <GameShell
+        gameId={GAME_ID}
+        title="领地战争"
+        description="Paper.io 风格的领地争夺战！控制你的方块在网格上移动，离开领地留下轨迹，回到自己领地时围出的区域全部归你。小心别让对手截断你的轨迹！"
+        instructions={`使用方向键或 WASD 控制移动方向（手机端滑动屏幕）。
+离开自己的领地时会留下彩色轨迹。
+当轨迹回到自己的领地时，围出的区域全部变成你的领地。
+如果其他玩家/AI 截断了你的轨迹（碰到你的轨迹），你就会死亡。
+同样，你可以截断对手的轨迹来消灭他们。
+撞到地图边缘也会死亡。
+分数 = 你占领的领地占总地图的百分比。`}
+        icon={MapIcon}
+        iconEmoji="🗺️"
+        iconGradient="from-cyan-400 to-blue-500"
+        stats={[]}
+        shareScore={0}
+        refreshKey={0}
+      >
+        <div className="flex items-center justify-center h-[400px]">
+          <div className="text-slate-500">加载中...</div>
+        </div>
+      </GameShell>
+    );
+  }
 
   return (
     <GameShell
