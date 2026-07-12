@@ -20,9 +20,6 @@ import { tools, categories } from "@/lib/tools";
 import { blogPosts } from "@/lib/blog-posts";
 import { popularTags } from "@/lib/tools";
 
-// Edge runtime for static export compatibility
-export const runtime = "edge";
-
 // History entry shape stored in localStorage by useToolHistory hook
 interface HistoryEntry {
   toolId: string;

@@ -1,8 +1,5 @@
 "use client";
 
-// Edge runtime for the embed generator page.
-export const runtime = "edge";
-
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
