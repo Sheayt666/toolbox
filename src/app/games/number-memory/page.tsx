@@ -23,6 +23,7 @@ function generateNumber(length: number): string {
 /* ============ 组件 ============ */
 
 export default function NumberMemoryPage() {
+  const [mounted, setMounted] = useState(false);
   const [phase, setPhase] = useState<Phase>("ready");
   const [length, setLength] = useState(START_LENGTH);
   const [target, setTarget] = useState("");
@@ -46,6 +47,7 @@ export default function NumberMemoryPage() {
     } catch {
       /* ignore */
     }
+    setMounted(true);
   }, []);
 
   const clearTimers = useCallback(() => {
@@ -164,6 +166,28 @@ export default function NumberMemoryPage() {
     { label: "状态", value: phase === "ready" ? "待开始" : phase === "over" ? "已结束" : "进行中" },
   ];
 
+  // === 加载状态 ===
+  if (!mounted) {
+    return (
+      <GameShell
+        gameId={GAME_ID}
+        title="数字记忆挑战"
+        description="屏幕显示一串数字 3 秒后隐藏，请输入你记住的数字。答对则位数 +1，答错游戏结束。从 3 位开始，最高 20 位。"
+        instructions="加载中..."
+        icon={Brain}
+        iconEmoji="🧠"
+        iconGradient="from-violet-500 to-purple-500"
+        stats={stats}
+        shareScore={bestScore ?? 0}
+        refreshKey={0}
+      >
+        <div className="flex items-center justify-center py-20">
+          <div className="w-10 h-10 border-2 border-[#8b5cf6] border-t-transparent rounded-full animate-spin" />
+        </div>
+      </GameShell>
+    );
+  }
+
   return (
     <GameShell
       gameId={GAME_ID}
@@ -220,6 +244,7 @@ export default function NumberMemoryPage() {
               </div>
               <button
                 onClick={startGame}
+                aria-label="开始挑战"
                 className="bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl px-8 py-3.5 text-white font-bold text-lg hover:opacity-90 transition-opacity shadow-lg shadow-[#8b5cf6]/30 active:scale-95 min-h-[44px]"
               >
                 开始挑战
@@ -259,6 +284,7 @@ export default function NumberMemoryPage() {
               />
               <button
                 onClick={handleSubmit}
+                aria-label="提交答案"
                 className="mt-4 bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl px-8 py-3 text-white font-medium hover:opacity-90 transition-opacity active:scale-95 min-h-[44px]"
               >
                 提交
@@ -302,6 +328,7 @@ export default function NumberMemoryPage() {
               )}
               <button
                 onClick={startGame}
+                aria-label="再来一次"
                 className="mt-2 inline-flex items-center gap-2 bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl px-6 py-3 text-white font-medium hover:opacity-90 transition-opacity active:scale-95 min-h-[44px]"
               >
                 <RefreshCw className="w-4 h-4" />

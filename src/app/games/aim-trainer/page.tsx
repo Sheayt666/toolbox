@@ -41,7 +41,9 @@ interface Result {
 }
 
 export default function AimTrainerPage() {
+  const [mounted, setMounted] = useState(false);
   const [phase, setPhase] = useState<Phase>("ready");
+  const [paused, setPaused] = useState(false);
   const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
   const [hits, setHits] = useState(0);
   const [misses, setMisses] = useState(0);
@@ -75,6 +77,7 @@ export default function AimTrainerPage() {
     } catch {
       /* ignore */
     }
+    setMounted(true);
   }, []);
 
   const addBurst = useCallback((x: number, y: number, type: "hit" | "miss") => {
@@ -154,6 +157,44 @@ export default function AimTrainerPage() {
     setRefreshKey((k) => k + 1);
   }, [bestScore]);
 
+  // P 键暂停/继续
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "p" || e.key === "P") {
+        if (phase === "playing") {
+          setPaused((p) => {
+            if (!p) {
+              // 暂停时清除自动隐藏计时器
+              if (autoHideRef.current) { clearTimeout(autoHideRef.current); autoHideRef.current = null; }
+              if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+            } else {
+              // 恢复时重启倒计时
+              timerRef.current = setInterval(() => {
+                setTimeLeft((t) => {
+                  if (t <= 1) { endGame(); return 0; }
+                  return t - 1;
+                });
+              }, 1000);
+              // 重启目标自动隐藏
+              if (target) {
+                autoHideRef.current = setTimeout(() => {
+                  missesRef.current += 1;
+                  setMisses(missesRef.current);
+                  comboRef.current = 0;
+                  setCombo(0);
+                  spawnTarget();
+                }, TARGET_LIFETIME);
+              }
+            }
+            return !p;
+          });
+        }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [phase, target, endGame, spawnTarget]);
+
   const startGame = useCallback(() => {
     submittedRef.current = false;
     hitsRef.current = 0;
@@ -167,6 +208,7 @@ export default function AimTrainerPage() {
     setMaxCombo(0);
     setBursts([]);
     setResult(null);
+    setPaused(false);
     setTimeLeft(GAME_DURATION);
     setPhase("playing");
     // 等待下一帧让 arena 渲染
@@ -185,7 +227,7 @@ export default function AimTrainerPage() {
 
   const handleHit = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!target) return;
+    if (!target || paused) return;
     const reactionTime = Date.now() - targetSpawnTimeRef.current;
     reactionTimesRef.current.push(reactionTime);
     hitsRef.current += 1;
@@ -205,7 +247,7 @@ export default function AimTrainerPage() {
   };
 
   const handleMiss = (e: React.MouseEvent) => {
-    if (phase !== "playing") return;
+    if (phase !== "playing" || paused) return;
     missesRef.current += 1;
     setMisses(missesRef.current);
     comboRef.current = 0;
@@ -240,6 +282,28 @@ export default function AimTrainerPage() {
         ];
 
   const timePercent = (timeLeft / GAME_DURATION) * 100;
+
+  // === 加载状态 ===
+  if (!mounted) {
+    return (
+      <GameShell
+        gameId={GAME_ID}
+        title="瞄准训练器"
+        description="30 秒倒计时，随机位置出现圆形目标。点击目标得分，目标会在 1.5 秒后自动消失。统计命中数、命中率与反应时间。"
+        instructions="加载中..."
+        icon={Crosshair}
+        iconEmoji="🎯"
+        iconGradient="from-red-500 to-orange-500"
+        stats={[]}
+        shareScore={0}
+        refreshKey={0}
+      >
+        <div className="flex items-center justify-center py-20">
+          <div className="w-10 h-10 border-2 border-[#8b5cf6] border-t-transparent rounded-full animate-spin" />
+        </div>
+      </GameShell>
+    );
+  }
 
   return (
     <GameShell
@@ -313,6 +377,7 @@ export default function AimTrainerPage() {
             )}
             <button
               onClick={startGame}
+              aria-label="开始训练"
               className="h-12 px-8 text-base font-bold text-white bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg shadow-[#8b5cf6]/30"
             >
               开始训练
@@ -344,6 +409,7 @@ export default function AimTrainerPage() {
               <button
                 key={target.id}
                 onClick={handleHit}
+                aria-label="点击目标"
                 className="absolute w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[#a855f7] to-[#7c3aed] hover:from-[#c084fc] hover:to-[#8b5cf6] transition-transform active:scale-90 shadow-lg shadow-[#8b5cf6]/50 aim-target-in flex items-center justify-center"
                 style={{
                   left: `${target.x}px`,
@@ -369,6 +435,39 @@ export default function AimTrainerPage() {
                 }}
               />
             ))}
+
+            {/* 暂停覆盖层 */}
+            {paused && (
+              <div className="absolute inset-0 bg-[#09090b]/80 backdrop-blur-sm flex flex-col items-center justify-center z-20">
+                <div className="text-5xl mb-3">⏸</div>
+                <h3 className="text-xl font-bold mb-2">已暂停</h3>
+                <p className="text-sm text-slate-400 mb-4">按 P 键继续游戏</p>
+                <button
+                  onClick={() => {
+                    setPaused(false);
+                    timerRef.current = setInterval(() => {
+                      setTimeLeft((t) => {
+                        if (t <= 1) { endGame(); return 0; }
+                        return t - 1;
+                      });
+                    }, 1000);
+                    if (target) {
+                      autoHideRef.current = setTimeout(() => {
+                        missesRef.current += 1;
+                        setMisses(missesRef.current);
+                        comboRef.current = 0;
+                        setCombo(0);
+                        spawnTarget();
+                      }, TARGET_LIFETIME);
+                    }
+                  }}
+                  aria-label="继续游戏"
+                  className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors active:scale-95"
+                >
+                  继续
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -430,6 +529,7 @@ export default function AimTrainerPage() {
               </div>
               <button
                 onClick={startGame}
+                aria-label="再来一局"
                 className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-all hover:scale-105 active:scale-95"
               >
                 <RotateCcw className="w-4 h-4" /> 再来一局

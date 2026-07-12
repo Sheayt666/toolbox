@@ -117,6 +117,8 @@ function checkWin(board: CellState[][]): boolean {
 /* ============ 组件 ============ */
 
 export default function MinesweeperPage() {
+  const [mounted, setMounted] = useState(false);
+  const [paused, setPaused] = useState(false);
   const [board, setBoard] = useState<CellState[][]>(createEmptyBoard);
   const [status, setStatus] = useState<GameStatus>("ready");
   const [flagsUsed, setFlagsUsed] = useState(0);
@@ -137,6 +139,7 @@ export default function MinesweeperPage() {
     } catch {
       /* ignore */
     }
+    setMounted(true);
   }, []);
 
   // 卸载时清理计时器
@@ -154,17 +157,35 @@ export default function MinesweeperPage() {
     timerRef.current = setInterval(() => setTime((t) => t + 1), 1000);
   }, [stopTimer]);
 
+  // P 键暂停/继续
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "p" || e.key === "P") {
+        if (status === "playing") {
+          setPaused((p) => {
+            if (!p) stopTimer();
+            else startTimer();
+            return !p;
+          });
+        }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [status, stopTimer, startTimer]);
+
   const reset = useCallback(() => {
     setBoard(createEmptyBoard());
     setStatus("ready");
     setFlagsUsed(0);
     setTime(0);
     setSubmitted(false);
+    setPaused(false);
     stopTimer();
   }, [stopTimer]);
 
   const reveal = (row: number, col: number) => {
-    if (status === "won" || status === "lost") return;
+    if (status === "won" || status === "lost" || paused) return;
     const current = board[row][col];
     if (current.flagged || current.revealed) return;
 
@@ -206,7 +227,7 @@ export default function MinesweeperPage() {
   };
 
   const toggleFlag = (row: number, col: number) => {
-    if (status === "won" || status === "lost" || status === "ready") return;
+    if (status === "won" || status === "lost" || status === "ready" || paused) return;
     const cell = board[row][col];
     if (cell.revealed) return;
     const newBoard = board.map((r) => r.map((c) => ({ ...c })));
@@ -260,6 +281,32 @@ export default function MinesweeperPage() {
     { label: "最佳", value: bestScore ?? "—" },
   ];
 
+  // === 加载状态 ===
+  if (!mounted) {
+    return (
+      <GameShell
+        gameId={GAME_ID}
+        title="扫雷"
+        description="经典 9×9 扫雷，10 个雷。点击挖开格子，长按或切换旗子模式标记。踩到雷游戏结束，挖开所有非雷格子获胜。"
+        instructions="加载中..."
+        icon={Bomb}
+        iconEmoji="💣"
+        iconGradient="from-gray-500 to-slate-500"
+        stats={[
+          { label: "剩余雷", value: MINES },
+          { label: "时间", value: 0 },
+          { label: "最佳", value: "—" },
+        ]}
+        shareScore={0}
+        refreshKey={0}
+      >
+        <div className="flex items-center justify-center py-20">
+          <div className="w-10 h-10 border-2 border-[#8b5cf6] border-t-transparent rounded-full animate-spin" />
+        </div>
+      </GameShell>
+    );
+  }
+
   return (
     <GameShell
       gameId={GAME_ID}
@@ -283,15 +330,17 @@ export default function MinesweeperPage() {
         <div className="flex items-center justify-center gap-2 mb-4 flex-wrap">
           <button
             onClick={reset}
+            aria-label="重新开始"
             className="flex items-center gap-2 bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 hover:border-[#8b5cf6] transition-colors min-h-[44px]"
           >
             <RefreshCw className="w-4 h-4 text-[#8b5cf6]" />
             <span className="text-sm font-medium">
-              {status === "won" ? "😎" : status === "lost" ? "💀" : "🙂"}
+              {paused ? "⏸" : status === "won" ? "😎" : status === "lost" ? "💀" : "🙂"}
             </span>
           </button>
           <button
             onClick={() => setMode("dig")}
+            aria-label="切换到挖掘模式"
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all min-h-[44px] ${
               mode === "dig"
                 ? "bg-[#8b5cf6] text-white shadow-lg shadow-[#8b5cf6]/30"
@@ -303,6 +352,7 @@ export default function MinesweeperPage() {
           </button>
           <button
             onClick={() => setMode("flag")}
+            aria-label="切换到标旗模式"
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all min-h-[44px] ${
               mode === "flag"
                 ? "bg-[#8b5cf6] text-white shadow-lg shadow-[#8b5cf6]/30"
@@ -316,7 +366,7 @@ export default function MinesweeperPage() {
 
         {/* 游戏网格 */}
         <div className="flex justify-center mb-4">
-          <div className="inline-block bg-[#18181b] border border-[#27272a] rounded-xl p-3 shadow-xl">
+          <div className="relative inline-block bg-[#18181b] border border-[#27272a] rounded-xl p-3 shadow-xl">
             <div
               className="grid gap-1 sm:gap-1.5 lg:gap-2"
               style={{ gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))` }}
@@ -335,6 +385,7 @@ export default function MinesweeperPage() {
                         longPressTimer.current = null;
                       }
                     }}
+                    aria-label={`第${r + 1}行第${c + 1}列 ${cell.revealed ? (cell.isMine ? "雷" : cell.adjacent > 0 ? `${cell.adjacent}` : "空") : cell.flagged ? "已标记" : "未挖开"}`}
                     className={`w-9 h-9 sm:w-11 sm:h-11 lg:w-12 lg:h-12 flex items-center justify-center rounded-md text-base sm:text-lg lg:text-xl font-bold transition-all select-none ${
                       cell.revealed
                         ? cell.isMine
@@ -358,24 +409,45 @@ export default function MinesweeperPage() {
                 )),
               )}
             </div>
+
+            {/* 暂停覆盖层 */}
+            {paused && status === "playing" && (
+              <div className="absolute inset-0 rounded-xl bg-[#09090b]/80 backdrop-blur-sm flex flex-col items-center justify-center p-4 text-center animate-overlay-in z-10">
+                <div className="text-5xl mb-3">⏸</div>
+                <h3 className="text-2xl font-bold mb-2">已暂停</h3>
+                <p className="text-sm text-slate-400 mb-4">按 P 键继续游戏</p>
+                <button
+                  onClick={() => { setPaused(false); startTimer(); }}
+                  aria-label="继续游戏"
+                  className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors shadow-lg shadow-[#8b5cf6]/30"
+                >
+                  继续
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* 结果提示 */}
-        {status === "won" && (
-          <div className="text-center mb-4 animate-bounce-in">
-            <div className="inline-block bg-green-500/10 border border-green-500/30 rounded-xl px-6 py-4">
-              <p key={scoreAnim} className="text-green-400 font-bold text-xl mb-1 animate-score-pop">🎉 恭喜通关！</p>
-              <p className="text-zinc-400 text-sm">用时 {time} 秒</p>
-            </div>
-          </div>
-        )}
-        {status === "lost" && (
-          <div className="text-center mb-4 animate-shake">
-            <div className="inline-block bg-red-500/10 border border-red-500/30 rounded-xl px-6 py-4">
-              <p className="text-red-400 font-bold text-xl mb-1">💥 踩到雷了！</p>
-              <p className="text-zinc-400 text-sm">再来一局吧</p>
-            </div>
+        {/* 游戏结束覆盖层 */}
+        {(status === "won" || status === "lost") && (
+          <div className="mt-4 rounded-xl bg-[#18181b] border border-[#27272a] p-6 text-center animate-overlay-in">
+            <div className="text-5xl mb-3">{status === "won" ? "🎉" : "💥"}</div>
+            <h3 className={`text-2xl font-bold mb-2 ${status === "won" ? "text-[#22c55e]" : "text-red-400"}`}>
+              {status === "won" ? "恭喜通关！" : "游戏结束"}
+            </h3>
+            <p className="text-sm text-slate-400 mb-1">
+              {status === "won" ? `用时 ${time} 秒` : "踩到雷了！"}
+            </p>
+            {status === "won" && bestScore !== null && (
+              <p className="text-xs text-slate-500 mb-3">最佳记录: {bestScore}</p>
+            )}
+            <button
+              onClick={reset}
+              aria-label="再来一局"
+              className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors shadow-lg shadow-[#8b5cf6]/30"
+            >
+              <RefreshCw className="w-4 h-4" /> 再来一局
+            </button>
           </div>
         )}
       </div>

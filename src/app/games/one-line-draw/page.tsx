@@ -416,6 +416,13 @@ export default function OneLineDrawPage() {
     errorTimerRef.current = setTimeout(() => setErrorMsg(null), 1500);
   }, []);
 
+  /* ===== cleanup error timer on unmount ===== */
+  useEffect(() => {
+    return () => {
+      if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+    };
+  }, []);
+
   /* ===== handle node click ===== */
   const handleNodeClick = useCallback(
     (nodeIdx: number) => {
@@ -596,7 +603,7 @@ export default function OneLineDrawPage() {
         refreshKey={refreshKey}
       >
         <div className="flex items-center justify-center h-[400px]">
-          <div className="text-slate-500">加载中...</div>
+          <div className="w-10 h-10 border-2 border-[#8b5cf6] border-t-transparent rounded-full animate-spin" />
         </div>
       </GameShell>
     );
@@ -621,7 +628,8 @@ export default function OneLineDrawPage() {
           <button
             onClick={() => changeLevel(-1)}
             disabled={levelIdx === 0}
-            className="p-2 rounded-lg bg-[#27272a] text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            aria-label="上一关"
+            className="p-2 rounded-lg bg-[#27272a] text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -639,7 +647,8 @@ export default function OneLineDrawPage() {
           <button
             onClick={() => changeLevel(1)}
             disabled={levelIdx === LEVELS.length - 1}
-            className="p-2 rounded-lg bg-[#27272a] text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            aria-label="下一关"
+            className="p-2 rounded-lg bg-[#27272a] text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -875,7 +884,8 @@ export default function OneLineDrawPage() {
                 {levelIdx < LEVELS.length - 1 ? (
                   <button
                     onClick={() => changeLevel(1)}
-                    className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors"
+                    aria-label="下一关"
+                    className="inline-flex items-center gap-2 min-h-[44px] px-5 py-2 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors"
                   >
                     下一关
                     <ChevronRight className="w-4 h-4" />
@@ -887,7 +897,8 @@ export default function OneLineDrawPage() {
                 )}
                 <button
                   onClick={handleReset}
-                  className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
+                  aria-label="重玩本关"
+                  className="inline-flex items-center gap-2 min-h-[44px] px-5 py-2 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
                 >
                   <RotateCcw className="w-4 h-4" />
                   重玩
@@ -902,14 +913,16 @@ export default function OneLineDrawPage() {
           <button
             onClick={handleUndo}
             disabled={path.length === 0 || completed}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] disabled:opacity-30 disabled:cursor-not-allowed rounded-lg transition-colors"
+            aria-label="撤销上一步"
+            className="inline-flex items-center gap-1.5 min-h-[44px] px-4 py-2 text-xs font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] disabled:opacity-30 disabled:cursor-not-allowed rounded-lg transition-colors"
           >
             <Undo2 className="w-3.5 h-3.5" />
             撤销
           </button>
           <button
             onClick={handleReset}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-lg transition-colors"
+            aria-label="重置本关"
+            className="inline-flex items-center gap-1.5 min-h-[44px] px-4 py-2 text-xs font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-lg transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             重置
@@ -926,7 +939,8 @@ export default function OneLineDrawPage() {
                 key={i}
                 onClick={() => isUnlocked && goToLevel(i)}
                 disabled={!isUnlocked}
-                className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors ${
+                aria-label={isUnlocked ? `第${i + 1}关: ${lv.name}` : `第${i + 1}关未解锁`}
+                className={`w-10 h-10 rounded-lg text-xs font-medium transition-colors ${
                   isCurrent
                     ? "bg-[#8b5cf6] text-white"
                     : isUnlocked

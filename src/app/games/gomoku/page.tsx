@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Grid3x3, RotateCcw, Brain, Zap, Sparkles, Trophy } from "lucide-react";
 import GameShell, { type GameStat } from "@/components/games/GameShell";
 import { submitScore } from "@/lib/gamification";
@@ -239,6 +239,7 @@ function getAIMove(board: Stone[][], difficulty: Difficulty): Pos {
 /* ============ 组件 ============ */
 
 export default function GomokuPage() {
+  const [mounted, setMounted] = useState(false);
   const [board, setBoard] = useState<Stone[][]>(createEmptyBoard);
   const [result, setResult] = useState<GameResult>("playing");
   const [winLine, setWinLine] = useState<Pos[] | null>(null);
@@ -256,6 +257,7 @@ export default function GomokuPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [showOverlay, setShowOverlay] = useState(false);
   const [hoverPos, setHoverPos] = useState<Pos | null>(null);
+  const overlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const canPlay = result === "playing" && !isAiThinking;
 
@@ -303,7 +305,8 @@ export default function GomokuPage() {
         setSubmitted(true);
       }
 
-      setTimeout(() => setShowOverlay(true), 700);
+      if (overlayTimerRef.current) clearTimeout(overlayTimerRef.current);
+      overlayTimerRef.current = setTimeout(() => setShowOverlay(true), 700);
     },
     [submitted],
   );
@@ -396,7 +399,11 @@ export default function GomokuPage() {
     } catch {
       /* ignore */
     }
+    setMounted(true);
   }, []);
+
+  // 卸载时清理定时器
+  useEffect(() => () => { if (overlayTimerRef.current) clearTimeout(overlayTimerRef.current); }, []);
 
   const totalGames = stats.wins + stats.losses + stats.draws;
   const winRate = totalGames > 0 ? Math.round((stats.wins / totalGames) * 100) : 0;
@@ -417,6 +424,28 @@ export default function GomokuPage() {
       : result === "lose"
         ? "text-red-400"
         : "text-yellow-400";
+
+  // === 加载状态 ===
+  if (!mounted) {
+    return (
+      <GameShell
+        gameId={GAME_ID}
+        title="五子棋AI"
+        description="15×15棋盘经典五子棋对战。AI采用模式识别+威胁评估算法，支持三档难度。黑棋先手，五子连珠获胜！"
+        instructions="加载中..."
+        icon={Grid3x3}
+        iconEmoji="♟️"
+        iconGradient="from-amber-400 to-orange-500"
+        stats={statsDisplay}
+        shareScore={stats.bestScore}
+        refreshKey={0}
+      >
+        <div className="flex items-center justify-center py-20">
+          <div className="w-10 h-10 border-2 border-[#8b5cf6] border-t-transparent rounded-full animate-spin" />
+        </div>
+      </GameShell>
+    );
+  }
 
   return (
     <GameShell
@@ -449,7 +478,8 @@ AI算法：评估每个空位的进攻得分与防守威胁，选择最大化（
               <button
                 key={d}
                 onClick={() => changeDifficulty(d)}
-                className={`inline-flex items-center gap-1.5 h-9 px-3 sm:px-4 text-xs sm:text-sm font-medium rounded-lg border transition-all ${
+                aria-label={`难度: ${cfg.label}`}
+                className={`inline-flex items-center gap-1.5 min-h-[44px] px-3 sm:px-4 text-xs sm:text-sm font-medium rounded-lg border transition-all ${
                   active
                     ? `${cfg.bg} ${cfg.color}`
                     : "bg-[#27272a] text-slate-400 border-[#3f3f46] hover:bg-[#3f3f46]"
@@ -509,6 +539,7 @@ AI算法：评估每个空位的进攻得分与防守威胁，选择最大化（
                     onClick={() => handleClick(r, c)}
                     onMouseEnter={() => canPlay && cell === 0 && setHoverPos({ r, c })}
                     onMouseLeave={() => setHoverPos(null)}
+                    aria-label={`第${r + 1}行第${c + 1}列 ${cell === 1 ? "黑棋" : cell === 2 ? "白棋" : "空位"}`}
                     className={`relative w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 border-r border-b border-[#8b6f47] flex items-center justify-center ${
                       canPlay && cell === 0
                         ? "cursor-pointer hover:bg-amber-700/10"
@@ -571,7 +602,8 @@ AI算法：评估每个空位的进攻得分与防守威胁，选择最大化（
         <div className="flex items-center gap-3">
           <button
             onClick={reset}
-            className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
+            aria-label="重新开始"
+            className="inline-flex items-center gap-2 min-h-[44px] px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
           >
             <RotateCcw className="w-4 h-4" /> 重新开始
           </button>
@@ -618,6 +650,7 @@ AI算法：评估每个空位的进攻得分与防守威胁，选择最大化（
           <div>
             <button
               onClick={reset}
+              aria-label="再来一局"
               className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-amber-500 hover:bg-amber-600 rounded-xl transition-colors shadow-lg shadow-amber-500/30"
             >
               <RotateCcw className="w-4 h-4" /> 再来一局

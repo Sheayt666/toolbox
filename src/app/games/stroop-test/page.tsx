@@ -72,6 +72,7 @@ export default function StroopTestPage() {
   const [timeLeft, setTimeLeft] = useState(DURATION);
   const [running, setRunning] = useState(false);
   const [finished, setFinished] = useState(false);
+  const [paused, setPaused] = useState(false);
   const [flash, setFlash] = useState<"correct" | "wrong" | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -126,20 +127,33 @@ export default function StroopTestPage() {
 
   // 倒计时
   useEffect(() => {
-    if (!running || finished) return;
+    if (!running || finished || paused) return;
     const id = window.setInterval(() => {
       setTimeLeft((t) => (t <= 1 ? 0 : t - 1));
     }, 1000);
     return () => window.clearInterval(id);
-  }, [running, finished]);
+  }, [running, finished, paused]);
 
   // 时间到自动结束
   useEffect(() => {
     if (running && timeLeft === 0 && !finished) finish();
   }, [running, timeLeft, finished, finish]);
 
+  // P 键暂停/继续
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "p" || e.key === "P") {
+        if (running && !finished) {
+          setPaused((p) => !p);
+        }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [running, finished]);
+
   const handleAnswer = (name: string) => {
-    if (finished || !q) return;
+    if (finished || !q || paused) return;
     if (!running) setRunning(true);
     const isCorrect = name === q.ink.name;
     totalRef.current += 1;
@@ -176,6 +190,7 @@ export default function StroopTestPage() {
     setTimeLeft(DURATION);
     setRunning(false);
     setFinished(false);
+    setPaused(false);
     setFlash(null);
     setResult(null);
     setQ(makeQuestion());
@@ -303,6 +318,7 @@ export default function StroopTestPage() {
               </div>
               <button
                 onClick={restart}
+                aria-label="再来一次"
                 className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-all hover:scale-105 active:scale-95"
               >
                 <RotateCcw className="w-4 h-4" /> 再来一次
@@ -345,7 +361,8 @@ export default function StroopTestPage() {
                 <button
                   key={opt.name}
                   onClick={() => handleAnswer(opt.name)}
-                  disabled={finished}
+                  disabled={finished || paused}
+                  aria-label={`选择颜色: ${opt.name}`}
                   className="min-h-[64px] sm:min-h-[72px] lg:min-h-[80px] rounded-xl bg-[#27272a] hover:bg-[#3f3f46] text-white text-xl sm:text-2xl font-medium transition-all hover:scale-[1.03] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   <span
@@ -359,17 +376,34 @@ export default function StroopTestPage() {
           </div>
         )}
 
+        {/* 暂停覆盖层 */}
+        {paused && !finished && mounted && q && (
+          <div className="w-full max-w-md mt-4 rounded-xl bg-[#09090b]/90 backdrop-blur-sm border border-[#27272a] p-8 text-center animate-overlay-in">
+            <div className="text-5xl mb-3">⏸</div>
+            <h3 className="text-xl font-bold mb-2">已暂停</h3>
+            <p className="text-sm text-slate-400 mb-4">按 P 键继续游戏</p>
+            <button
+              onClick={() => setPaused(false)}
+              aria-label="继续游戏"
+              className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors active:scale-95"
+            >
+              继续
+            </button>
+          </div>
+        )}
+
         {/* 提示 & 重新开始按钮 */}
         {!finished && mounted && q && (
           <>
-            {!running && (
+            {!running && !paused && (
               <p className="mt-4 text-xs text-slate-500 animate-pulse">
                 点击任意选项开始 30 秒倒计时
               </p>
             )}
             <button
               onClick={restart}
-              className="mt-5 inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
+              aria-label="重新开始"
+              className="mt-5 inline-flex items-center gap-2 min-h-[44px] px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
             >
               <RotateCcw className="w-4 h-4" /> 重新开始
             </button>

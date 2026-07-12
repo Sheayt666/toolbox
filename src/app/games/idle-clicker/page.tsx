@@ -351,7 +351,7 @@ export default function IdleClickerPage() {
         refreshKey={refreshKey}
       >
         <div className="flex items-center justify-center h-[400px]">
-          <div className="text-slate-500">加载中...</div>
+          <div className="w-10 h-10 border-2 border-[#8b5cf6] border-t-transparent rounded-full animate-spin" />
         </div>
       </GameShell>
     );
@@ -396,6 +396,7 @@ export default function IdleClickerPage() {
           <div className="relative">
             <button
               onClick={handleClick}
+              aria-label="点击大饼干获得积分"
               className="relative w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64 rounded-full flex items-center justify-center transition-transform duration-100 hover:scale-105 active:scale-95"
               style={{
                 transform: `scale(${cookieScale}) rotate(${cookieRotate}deg)`,
@@ -467,6 +468,7 @@ export default function IdleClickerPage() {
                 key={def.id}
                 onClick={() => buyUpgrade(def)}
                 disabled={!canAfford || maxed}
+                aria-label={`升级${def.name}，当前等级${level}，价格${formatNum(price)}`}
                 className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all ${
                   maxed
                     ? "bg-[#18181b] border-[#27272a] opacity-50"
@@ -519,7 +521,8 @@ export default function IdleClickerPage() {
         <div className="flex justify-center">
           <button
             onClick={handleReset}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-slate-400 hover:text-red-400 bg-[#18181b] border border-[#27272a] hover:border-red-500/30 rounded-lg transition-colors"
+            aria-label="重置进度"
+            className="inline-flex items-center gap-1.5 min-h-[44px] px-4 py-2 text-xs font-medium text-slate-400 hover:text-red-400 bg-[#18181b] border border-[#27272a] hover:border-red-500/30 rounded-lg transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             重置进度

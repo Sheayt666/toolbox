@@ -59,6 +59,7 @@ function generateLevel(level: number): LevelData {
 /* ============ 组件 ============ */
 
 export default function ColorGuessPage() {
+  const [mounted, setMounted] = useState(false);
   const [state, setState] = useState<GameState>("ready");
   const [level, setLevel] = useState(1);
   const [levelData, setLevelData] = useState<LevelData | null>(null);
@@ -83,6 +84,7 @@ export default function ColorGuessPage() {
       /* ignore */
     }
     setDecoColors(Array.from({ length: 6 }, () => randomHSL()));
+    setMounted(true);
   }, []);
 
   const startGame = useCallback(() => {
@@ -132,6 +134,28 @@ export default function ColorGuessPage() {
     { label: "最佳", value: bestScore ?? "—" },
   ];
 
+  // === 加载状态 ===
+  if (!mounted) {
+    return (
+      <GameShell
+        gameId={GAME_ID}
+        title="颜色辨别测试"
+        description="所有格子颜色相同，其中一格色差不同。点击找出它，答对进入下一关，网格变大、色差变小。答错游戏结束。"
+        instructions="加载中..."
+        icon={Palette}
+        iconEmoji="🌈"
+        iconGradient="from-fuchsia-500 to-pink-500"
+        stats={stats}
+        shareScore={bestScore ?? 0}
+        refreshKey={0}
+      >
+        <div className="flex items-center justify-center py-20">
+          <div className="w-10 h-10 border-2 border-[#8b5cf6] border-t-transparent rounded-full animate-spin" />
+        </div>
+      </GameShell>
+    );
+  }
+
   return (
     <GameShell
       gameId={GAME_ID}
@@ -167,6 +191,7 @@ export default function ColorGuessPage() {
               </div>
               <button
                 onClick={startGame}
+                aria-label="开始游戏"
                 className="bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl px-8 py-3.5 text-white font-bold text-lg hover:opacity-90 transition-opacity shadow-lg shadow-[#8b5cf6]/30 active:scale-95 min-h-[44px]"
               >
                 开始游戏
@@ -192,6 +217,7 @@ export default function ColorGuessPage() {
                     <button
                       key={i}
                       onClick={() => handleCellClick(i)}
+                      aria-label={`第${Math.floor(i / levelData.n) + 1}行第${(i % levelData.n) + 1}列色块`}
                       className={`w-14 h-14 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-lg transition-all hover:scale-105 active:scale-95 ${
                         isCorrect ? "ring-4 ring-green-400 scale-110" : ""
                       } ${isWrong ? "ring-4 ring-red-400 scale-110" : ""}`}
@@ -239,6 +265,7 @@ export default function ColorGuessPage() {
             <div>
               <button
                 onClick={startGame}
+                aria-label="再来一局"
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl px-6 py-3 text-white font-medium hover:opacity-90 transition-opacity active:scale-95 min-h-[44px]"
               >
                 <RefreshCw className="w-4 h-4" />

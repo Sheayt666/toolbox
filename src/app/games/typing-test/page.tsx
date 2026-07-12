@@ -29,6 +29,7 @@ interface Result {
 }
 
 export default function TypingTestPage() {
+  const [mounted, setMounted] = useState(false);
   const [typed, setTyped] = useState("");
   const typedRef = useRef("");
   const [timeLeft, setTimeLeft] = useState(DURATION);
@@ -51,6 +52,7 @@ export default function TypingTestPage() {
     } catch {
       /* ignore */
     }
+    setMounted(true);
   }, []);
 
   const finish = useCallback(() => {
@@ -145,6 +147,33 @@ export default function TypingTestPage() {
   ];
 
   const timePercent = (timeLeft / DURATION) * 100;
+
+  // === 加载状态 ===
+  if (!mounted) {
+    return (
+      <GameShell
+        gameId={GAME_ID}
+        title="打字速度测试"
+        description="60 秒倒计时打字挑战，中英文混合文本，实时计算 WPM 与准确率"
+        instructions="加载中..."
+        icon={Keyboard}
+        iconEmoji="⌨️"
+        iconGradient="from-blue-500 to-cyan-500"
+        stats={[
+          { label: "WPM", value: 0 },
+          { label: "准确率", value: "100%" },
+          { label: "剩余时间", value: `${DURATION}s` },
+          { label: "进度", value: "0%" },
+        ]}
+        shareScore={0}
+        refreshKey={0}
+      >
+        <div className="flex items-center justify-center py-20">
+          <div className="w-10 h-10 border-2 border-[#8b5cf6] border-t-transparent rounded-full animate-spin" />
+        </div>
+      </GameShell>
+    );
+  }
 
   return (
     <GameShell
@@ -243,6 +272,7 @@ WPM = (正确字符数 / 5) / 已用分钟数；准确率 = 正确字符 / 总�
               </div>
               <button
                 onClick={restart}
+                aria-label="再测一次"
                 className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-all hover:scale-105 active:scale-95"
               >
                 <RotateCcw className="w-4 h-4" /> 再测一次
@@ -316,7 +346,8 @@ WPM = (正确字符数 / 5) / 已用分钟数；准确率 = 正确字符 / 总�
                 </p>
                 <button
                   onClick={restart}
-                  className="mt-5 inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
+                  aria-label="重新开始"
+                  className="mt-5 inline-flex items-center gap-2 min-h-[44px] px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
                 >
                   <RotateCcw className="w-4 h-4" /> 重新开始
                 </button>

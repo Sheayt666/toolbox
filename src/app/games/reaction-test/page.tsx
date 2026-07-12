@@ -33,6 +33,7 @@ function timeColor(ms: number): string {
 }
 
 export default function ReactionTestPage() {
+  const [mounted, setMounted] = useState(false);
   const [phase, setPhase] = useState<Phase>("idle");
   const [times, setTimes] = useState<number[]>([]);
   const [lastTime, setLastTime] = useState<number | null>(null);
@@ -45,7 +46,7 @@ export default function ReactionTestPage() {
   const timesRef = useRef<number[]>([]);
   const submittedRef = useRef(false);
 
-  // 读取历史最佳
+  // Best score
   useEffect(() => {
     try {
       const b = localStorage.getItem(BEST_KEY);
@@ -53,6 +54,7 @@ export default function ReactionTestPage() {
     } catch {
       /* ignore */
     }
+    setMounted(true);
   }, []);
 
   const scheduleGreen = useCallback(() => {
@@ -183,6 +185,28 @@ export default function ReactionTestPage() {
     { label: "最佳反应", value: bestThisGame !== null ? `${bestThisGame}ms` : "—" },
   ];
 
+  // === 加载状态 ===
+  if (!mounted) {
+    return (
+      <GameShell
+        gameId={GAME_ID}
+        title="反应力测试"
+        description="测量你的毫秒级反应速度，5 轮取平均值，分数 = 1000 - 平均反应时间/10"
+        instructions="加载中..."
+        icon={Zap}
+        iconEmoji="⚡"
+        iconGradient="from-yellow-500 to-amber-500"
+        stats={stats}
+        shareScore={0}
+        refreshKey={0}
+      >
+        <div className="flex items-center justify-center py-20">
+          <div className="w-10 h-10 border-2 border-[#8b5cf6] border-t-transparent rounded-full animate-spin" />
+        </div>
+      </GameShell>
+    );
+  }
+
   return (
     <GameShell
       gameId={GAME_ID}
@@ -226,6 +250,7 @@ export default function ReactionTestPage() {
         {/* 反应区域 */}
         <button
           onClick={handleClick}
+          aria-label={phase === "idle" ? "点击开始反应力测试" : phase === "waiting" ? "等待绿灯亮起" : phase === "ready" ? "立即点击！" : phase === "tooSoon" ? "点击重试该轮" : "测试完成"}
           className={`w-full max-w-[640px] min-h-[340px] sm:min-h-[460px] lg:min-h-[520px] rounded-xl flex flex-col items-center justify-center select-none transition-colors ${areaBg[phase]} ${
             phase === "ready"
               ? "reaction-pulse"
@@ -350,6 +375,7 @@ export default function ReactionTestPage() {
               </div>
               <button
                 onClick={restart}
+                aria-label="再测一次"
                 className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-all hover:scale-105 active:scale-95"
               >
                 <RotateCcw className="w-4 h-4" /> 再测一次
@@ -362,7 +388,8 @@ export default function ReactionTestPage() {
         {phase !== "done" && (
           <button
             onClick={restart}
-            className="mt-5 inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
+            aria-label="重新开始"
+            className="mt-5 inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
           >
             <RotateCcw className="w-4 h-4" /> 重新开始
           </button>

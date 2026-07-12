@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Grid3x3, RefreshCw, Brain, Zap, Sparkles, RotateCcw } from "lucide-react";
 import GameShell, { type GameStat } from "@/components/games/GameShell";
 import { submitScore } from "@/lib/gamification";
@@ -129,6 +129,7 @@ const DIFFICULTY_CONFIG: Record<Difficulty, { label: string; icon: typeof Zap; c
 };
 
 export default function TicTacToePage() {
+  const [mounted, setMounted] = useState(false);
   const [board, setBoard] = useState<Player[]>(Array(9).fill(null));
   const [difficulty, setDifficulty] = useState<Difficulty>("hard");
   const [result, setResult] = useState<GameResult>("playing");
@@ -140,6 +141,7 @@ export default function TicTacToePage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [resultData, setResultData] = useState<Result | null>(null);
   const [showResultOverlay, setShowResultOverlay] = useState(false);
+  const overlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const reset = useCallback(() => {
     setBoard(Array(9).fill(null));
@@ -188,7 +190,8 @@ export default function TicTacToePage() {
       }
 
       // 延迟显示结果覆盖层，让落子动画完成
-      setTimeout(() => setShowResultOverlay(true), 500);
+      if (overlayTimerRef.current) clearTimeout(overlayTimerRef.current);
+      overlayTimerRef.current = setTimeout(() => setShowResultOverlay(true), 500);
     },
     [difficulty, submitted],
   );
@@ -199,7 +202,11 @@ export default function TicTacToePage() {
       const raw = localStorage.getItem(STATS_KEY);
       if (raw) setStats(JSON.parse(raw));
     } catch { /* ignore */ }
+    setMounted(true);
   }, []);
+
+  // 卸载时清理定时器
+  useEffect(() => () => { if (overlayTimerRef.current) clearTimeout(overlayTimerRef.current); }, []);
 
   // AI 回合
   useEffect(() => {
@@ -267,6 +274,28 @@ export default function TicTacToePage() {
     { label: "胜率", value: `${winRate}%` },
   ];
 
+  // === 加载状态 ===
+  if (!mounted) {
+    return (
+      <GameShell
+        gameId={GAME_ID}
+        title="井字棋 AI 对战"
+        description="与 AI 对战的经典井字棋，三种难度可选，困难模式使用 Minimax 算法不可战胜"
+        instructions="加载中..."
+        icon={Grid3x3}
+        iconEmoji="⭕"
+        iconGradient="from-indigo-500 to-blue-500"
+        stats={statsDisplay}
+        shareScore={stats.bestScore}
+        refreshKey={0}
+      >
+        <div className="flex items-center justify-center py-20">
+          <div className="w-10 h-10 border-2 border-[#8b5cf6] border-t-transparent rounded-full animate-spin" />
+        </div>
+      </GameShell>
+    );
+  }
+
   return (
     <GameShell
       gameId={GAME_ID}
@@ -295,7 +324,8 @@ export default function TicTacToePage() {
               <button
                 key={d}
                 onClick={() => switchDifficulty(d)}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
+                aria-label={`难度: ${cfg.label}`}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 min-h-[44px] text-sm font-medium transition-all ${
                   isActive
                     ? `bg-gradient-to-r ${cfg.color} text-white shadow-lg`
                     : "bg-[#09090b] border border-[#27272a] text-slate-400 hover:border-[#8b5cf6] hover:text-slate-200"
@@ -336,6 +366,7 @@ export default function TicTacToePage() {
                     key={i}
                     onClick={() => handleClick(i)}
                     disabled={!!cell || result !== "playing" || isAiTurn}
+                    aria-label={`第${Math.floor(i / 3) + 1}行第${(i % 3) + 1}列 ${cell ?? "空位"}`}
                     className={`w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 flex items-center justify-center rounded-xl text-5xl sm:text-6xl lg:text-7xl font-bold transition-all duration-200 ${
                       isWinCell
                         ? "animate-win-glow border border-[#8b5cf6]"
@@ -397,6 +428,7 @@ export default function TicTacToePage() {
               <div className="flex gap-3">
                 <button
                   onClick={reset}
+                  aria-label="再来一局"
                   className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors shadow-lg shadow-[#8b5cf6]/30"
                 >
                   <RotateCcw className="w-4 h-4" /> 再来一局
@@ -425,7 +457,8 @@ export default function TicTacToePage() {
         {/* 重开按钮 */}
         <button
           onClick={reset}
-          className="mt-5 inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
+          aria-label="重新开始"
+          className="mt-5 inline-flex items-center gap-2 min-h-[44px] px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
         >
           <RefreshCw className="w-4 h-4 text-[#a78bfa]" /> 重新开始
         </button>

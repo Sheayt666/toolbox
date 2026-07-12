@@ -166,6 +166,7 @@ export default function SlidingPuzzlePage() {
   const [moves, setMoves] = useState(0);
   const [seconds, setSeconds] = useState(0);
   const [solved, setSolved] = useState(false);
+  const [paused, setPaused] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [bestMoves, setBestMoves] = useState(0);
@@ -176,16 +177,18 @@ export default function SlidingPuzzlePage() {
   const boardRef = useRef<number[]>(solvedState());
   const movesRef = useRef(0);
   const startTimeRef = useRef(0);
+  const pausedAtRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setInterval>>(undefined);
   const submittedRef = useRef(false);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const startTimer = useCallback(() => {
     startTimeRef.current = Date.now();
+    pausedAtRef.current = 0;
     setSeconds(0);
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+      const elapsed = Math.floor((Date.now() - startTimeRef.current - pausedAtRef.current) / 1000);
       setSeconds(elapsed);
     }, 1000);
   }, []);
@@ -195,6 +198,17 @@ export default function SlidingPuzzlePage() {
       clearInterval(timerRef.current);
       timerRef.current = undefined;
     }
+  }, []);
+
+  const resumeTimer = useCallback(() => {
+    if (pausedAtRef.current > 0) {
+      pausedAtRef.current += Date.now() - (startTimeRef.current + pausedAtRef.current);
+    }
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startTimeRef.current - pausedAtRef.current) / 1000);
+      setSeconds(elapsed);
+    }, 1000);
   }, []);
 
   /* ===== init (mounted) ===== */
@@ -221,7 +235,7 @@ export default function SlidingPuzzlePage() {
   /* ===== handle tile click ===== */
   const handleTileClick = useCallback(
     (pos: number) => {
-      if (submittedRef.current) return;
+      if (submittedRef.current || paused) return;
       if (!canMove(boardRef.current, pos)) return;
 
       const newBoard = moveTile(boardRef.current, pos);
@@ -275,7 +289,7 @@ export default function SlidingPuzzlePage() {
 
   /* ===== swipe handlers ===== */
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (submittedRef.current) return;
+    if (submittedRef.current || paused) return;
     touchStartRef.current = {
       x: e.touches[0].clientX,
       y: e.touches[0].clientY,
@@ -283,7 +297,7 @@ export default function SlidingPuzzlePage() {
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (submittedRef.current || !touchStartRef.current) return;
+    if (submittedRef.current || paused || !touchStartRef.current) return;
     const dir = getSwipeDir(
       touchStartRef.current.x,
       touchStartRef.current.y,
@@ -351,6 +365,7 @@ export default function SlidingPuzzlePage() {
     setSolved(false);
     setResult(null);
     setCelebrate(false);
+    setPaused(false);
     submittedRef.current = false;
     setIsDaily(daily);
     startTimer();
@@ -360,6 +375,30 @@ export default function SlidingPuzzlePage() {
   useEffect(() => {
     return () => stopTimer();
   }, [stopTimer]);
+
+  /* ===== P 键暂停/继续 ===== */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "p" || e.key === "P") {
+        if (!solved && !submittedRef.current) {
+          setPaused((p) => {
+            if (!p) {
+              // 记录暂停开始时间
+              pausedAtRef.current = Date.now() - startTimeRef.current - pausedAtRef.current;
+              stopTimer();
+            } else {
+              // 恢复：调整 pausedAtRef 为实际暂停的时长
+              pausedAtRef.current = Date.now() - startTimeRef.current - pausedAtRef.current;
+              resumeTimer();
+            }
+            return !p;
+          });
+        }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [solved, stopTimer, resumeTimer]);
 
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60);
@@ -388,7 +427,7 @@ export default function SlidingPuzzlePage() {
         refreshKey={refreshKey}
       >
         <div className="flex items-center justify-center h-[400px]">
-          <div className="text-slate-500">加载中...</div>
+          <div className="w-10 h-10 border-2 border-[#8b5cf6] border-t-transparent rounded-full animate-spin" />
         </div>
       </GameShell>
     );
@@ -412,14 +451,16 @@ export default function SlidingPuzzlePage() {
         <div className="flex items-center gap-2 flex-wrap justify-center">
           <button
             onClick={() => newGame(false)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-lg transition-colors"
+            aria-label="随机打乱"
+            className="inline-flex items-center gap-1.5 min-h-[44px] px-3 py-1.5 text-xs font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-lg transition-colors"
           >
             <Shuffle className="w-3.5 h-3.5" />
             随机打乱
           </button>
           <button
             onClick={() => newGame(true)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+            aria-label="每日一题"
+            className={`inline-flex items-center gap-1.5 min-h-[44px] px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
               isDaily
                 ? "text-white bg-[#8b5cf6]"
                 : "text-slate-300 bg-[#27272a] hover:bg-[#3f3f46]"
@@ -481,6 +522,7 @@ export default function SlidingPuzzlePage() {
                   key={pos}
                   onClick={() => handleTileClick(pos)}
                   disabled={isEmpty || solved}
+                  aria-label={isEmpty ? "空位" : `数字${num}${movable && !solved ? "（可移动）" : ""}`}
                   className={`relative w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-xl flex items-center justify-center text-2xl sm:text-3xl lg:text-4xl font-bold transition-all duration-200 ${
                     isEmpty
                       ? "bg-transparent cursor-default"
@@ -512,6 +554,26 @@ export default function SlidingPuzzlePage() {
             })}
           </div>
 
+          {/* 暂停覆盖层 */}
+          {paused && !solved && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#09090b]/90 backdrop-blur-sm rounded-2xl z-10">
+              <div className="text-5xl mb-2">⏸</div>
+              <div className="text-xl font-bold text-white">已暂停</div>
+              <p className="text-sm text-slate-400">按 P 键继续游戏</p>
+              <button
+                onClick={() => {
+                  pausedAtRef.current = Date.now() - startTimeRef.current - pausedAtRef.current;
+                  resumeTimer();
+                  setPaused(false);
+                }}
+                aria-label="继续游戏"
+                className="mt-2 inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors"
+              >
+                继续
+              </button>
+            </div>
+          )}
+
           {/* Solved overlay */}
           {solved && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#09090b]/90 backdrop-blur-sm rounded-2xl z-10">
@@ -535,7 +597,8 @@ export default function SlidingPuzzlePage() {
               )}
               <button
                 onClick={() => newGame(false)}
-                className="mt-2 inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors"
+                aria-label="再来一局"
+                className="mt-2 inline-flex items-center gap-2 min-h-[44px] px-6 py-2.5 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors"
               >
                 <RotateCcw className="w-4 h-4" />
                 再来一局

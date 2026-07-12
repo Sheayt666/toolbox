@@ -410,13 +410,15 @@ export default function Game2048Page() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setWon(false)}
-                  className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-[#22c55e] hover:bg-[#16a34a] rounded-xl transition-colors"
+                  aria-label="继续游戏"
+                  className="inline-flex items-center gap-2 min-h-[44px] px-5 text-sm font-medium text-white bg-[#22c55e] hover:bg-[#16a34a] rounded-xl transition-colors"
                 >
                   继续游戏
                 </button>
                 <button
                   onClick={restart}
-                  className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
+                  aria-label="重新开始"
+                  className="inline-flex items-center gap-2 min-h-[44px] px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
                 >
                   <RotateCcw className="w-4 h-4" /> 重新开始
                 </button>
@@ -440,6 +442,7 @@ export default function Game2048Page() {
               )}
               <button
                 onClick={restart}
+                aria-label="再来一局"
                 className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors shadow-lg shadow-[#8b5cf6]/30"
               >
                 <RotateCcw className="w-4 h-4" /> 再来一局
@@ -453,6 +456,7 @@ export default function Game2048Page() {
           <div />
           <button
             onClick={() => doMove("up")}
+            aria-label="向上移动"
             className="h-12 rounded-xl bg-[#27272a] text-white text-xl font-bold active:bg-[#8b5cf6] active:scale-95 transition-all border border-[#3f3f46]"
           >
             ↑
@@ -460,18 +464,21 @@ export default function Game2048Page() {
           <div />
           <button
             onClick={() => doMove("left")}
+            aria-label="向左移动"
             className="h-12 rounded-xl bg-[#27272a] text-white text-xl font-bold active:bg-[#8b5cf6] active:scale-95 transition-all border border-[#3f3f46]"
           >
             ←
           </button>
           <button
             onClick={() => doMove("down")}
+            aria-label="向下移动"
             className="h-12 rounded-xl bg-[#27272a] text-white text-xl font-bold active:bg-[#8b5cf6] active:scale-95 transition-all border border-[#3f3f46]"
           >
             ↓
           </button>
           <button
             onClick={() => doMove("right")}
+            aria-label="向右移动"
             className="h-12 rounded-xl bg-[#27272a] text-white text-xl font-bold active:bg-[#8b5cf6] active:scale-95 transition-all border border-[#3f3f46]"
           >
             →
@@ -480,7 +487,8 @@ export default function Game2048Page() {
 
         <button
           onClick={restart}
-          className="mt-6 inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
+          aria-label="重新开始"
+          className="mt-6 inline-flex items-center gap-2 min-h-[44px] px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
         >
           <RotateCcw className="w-4 h-4" /> 重新开始
         </button>

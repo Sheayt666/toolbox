@@ -54,6 +54,7 @@ export default function MemoryMatchPage() {
   const [started, setStarted] = useState(false);
   const [finished, setFinished] = useState(false);
   const [locked, setLocked] = useState(false);
+  const [paused, setPaused] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [bestScore, setBestScore] = useState<number | null>(null);
@@ -103,7 +104,7 @@ export default function MemoryMatchPage() {
 
   // Timer
   useEffect(() => {
-    if (!started || finished) return;
+    if (!started || finished || paused) return;
     const id = window.setInterval(() => {
       setSeconds((s) => {
         secondsRef.current = s + 1;
@@ -111,10 +112,23 @@ export default function MemoryMatchPage() {
       });
     }, 1000);
     return () => window.clearInterval(id);
+  }, [started, finished, paused]);
+
+  // P 键暂停/继续
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "p" || e.key === "P") {
+        if (started && !finished) {
+          setPaused((p) => !p);
+        }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [started, finished]);
 
   const handleClick = (index: number) => {
-    if (finished || locked) return;
+    if (finished || locked || paused) return;
     if (cards[index].flipped || cards[index].matched) return;
     if (!started) setStarted(true);
 
@@ -169,6 +183,7 @@ export default function MemoryMatchPage() {
     setStarted(false);
     setFinished(false);
     setLocked(false);
+    setPaused(false);
     setResult(null);
   };
 
@@ -275,6 +290,22 @@ export default function MemoryMatchPage() {
             })}
           </div>
 
+          {/* 暂停覆盖层 */}
+          {paused && !finished && (
+            <div className="absolute inset-0 rounded-xl bg-[#09090b]/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center animate-overlay-in z-10">
+              <div className="text-5xl mb-3">⏸</div>
+              <h3 className="text-xl font-bold mb-2">已暂停</h3>
+              <p className="text-sm text-slate-400 mb-4">按 P 键继续游戏</p>
+              <button
+                onClick={() => setPaused(false)}
+                aria-label="继续游戏"
+                className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors active:scale-95"
+              >
+                继续
+              </button>
+            </div>
+          )}
+
           {/* Result overlay */}
           {finished && result && (
             <div className="absolute inset-0 rounded-xl bg-[#09090b]/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center animate-bounce-in">
@@ -292,6 +323,7 @@ export default function MemoryMatchPage() {
               </p>
               <button
                 onClick={restart}
+                aria-label="再来一局"
                 className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors active:scale-95"
               >
                 <RotateCcw className="w-4 h-4" /> 再来一局
@@ -303,6 +335,7 @@ export default function MemoryMatchPage() {
         {!finished && (
           <button
             onClick={restart}
+            aria-label="重新开始"
             className="mt-5 inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors active:scale-95"
           >
             <RotateCcw className="w-4 h-4" /> 重新开始
