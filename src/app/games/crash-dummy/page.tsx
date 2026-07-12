@@ -456,8 +456,6 @@ export default function CrashDummyPage() {
   /* ---- mount ---- */
   useEffect(() => {
     setMounted(true);
-    const canvas = canvasRef.current;
-    if (canvas) ctxRef.current = canvas.getContext("2d");
     try {
       const raw = localStorage.getItem(SAVE_KEY);
       if (raw) {
@@ -471,6 +469,14 @@ export default function CrashDummyPage() {
     } catch { /* ignore */ }
     return () => { timersRef.current.forEach(clearTimeout); };
   }, []);
+
+  /* ---- canvas setup (after mounted renders the canvas) ---- */
+  useEffect(() => {
+    if (mounted) {
+      const canvas = canvasRef.current;
+      if (canvas) ctxRef.current = canvas.getContext("2d");
+    }
+  }, [mounted]);
 
   const savePersist = useCallback(() => {
     try { localStorage.setItem(SAVE_KEY, JSON.stringify(persistRef.current)); } catch { /* ignore */ }

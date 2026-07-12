@@ -381,10 +381,16 @@ export default function BugSurvivorPage() {
   /* ---- mount ---- */
   useEffect(() => {
     setMounted(true);
-    const canvas = canvasRef.current;
-    if (canvas) ctxRef.current = canvas.getContext("2d");
     return () => { timersRef.current.forEach(clearTimeout); };
   }, []);
+
+  /* ---- canvas setup (after mounted renders the canvas) ---- */
+  useEffect(() => {
+    if (mounted) {
+      const canvas = canvasRef.current;
+      if (canvas) ctxRef.current = canvas.getContext("2d");
+    }
+  }, [mounted]);
 
   /* ---- keyboard ---- */
   useEffect(() => {
