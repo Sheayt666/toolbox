@@ -509,7 +509,7 @@ export default function BlockJigsawPage() {
         refreshKey={0}
       >
         <div className="flex items-center justify-center h-[400px]">
-          <div className="text-slate-500">加载中...</div>
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-600 border-t-emerald-400" />
         </div>
       </GameShell>
     );
@@ -607,6 +607,7 @@ export default function BlockJigsawPage() {
             <div className="absolute inset-0 rounded-lg bg-[#09090b]/85 backdrop-blur-sm flex flex-col items-center justify-center animate-overlay-in">
               <button
                 onClick={startGame}
+                aria-label="开始游戏"
                 className="inline-flex items-center gap-2 h-12 px-7 text-base font-medium text-white bg-emerald-500 hover:bg-emerald-600 rounded-xl transition-colors shadow-lg shadow-emerald-500/30"
               >
                 <Play className="w-5 h-5" /> 开始游戏
@@ -635,6 +636,7 @@ export default function BlockJigsawPage() {
               )}
               <button
                 onClick={restart}
+                aria-label="再来一局"
                 className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-emerald-500 hover:bg-emerald-600 rounded-xl transition-colors shadow-lg shadow-emerald-500/30"
               >
                 <RotateCcw className="w-4 h-4" /> 再来一局
@@ -693,14 +695,16 @@ export default function BlockJigsawPage() {
           {!running && !over && (
             <button
               onClick={startGame}
-              className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-emerald-500 hover:bg-emerald-600 rounded-xl transition-colors shadow-lg shadow-emerald-500/30"
+              aria-label="开始游戏"
+              className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-white bg-emerald-500 hover:bg-emerald-600 rounded-xl transition-colors shadow-lg shadow-emerald-500/30"
             >
               <Play className="w-4 h-4" /> 开始
             </button>
           )}
           <button
             onClick={restart}
-            className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
+            aria-label="重新开始"
+            className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
           >
             <RotateCcw className="w-4 h-4" /> 重新开始
           </button>

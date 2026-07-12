@@ -434,7 +434,8 @@ export default function CookieEmpirePage() {
             </div>
             <button
               onClick={() => setOfflineEarnings(null)}
-              className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded bg-[#27272a]"
+              aria-label="收取离线收益"
+              className="text-xs text-slate-400 hover:text-white px-3 py-2 rounded bg-[#27272a]"
             >
               收取
             </button>
@@ -458,6 +459,7 @@ export default function CookieEmpirePage() {
         <div className="flex justify-center mb-6">
           <button
             onClick={clickCookie}
+            aria-label="点击饼干获得饼干"
             className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full bg-gradient-to-br from-amber-500 to-orange-700 flex items-center justify-center glow-pulse active:cookie-bounce hover:scale-105 transition-transform shadow-2xl shadow-orange-900/50 border-4 border-amber-600/30"
           >
             <span className="text-6xl sm:text-7xl select-none">🍪</span>
@@ -487,7 +489,8 @@ export default function CookieEmpirePage() {
             {crystalGain > 0 && (
               <button
                 onClick={() => setShowPrestige(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 rounded-lg transition-all active:scale-95"
+                aria-label={`转生获得${crystalGain}糖晶`}
+                className="inline-flex items-center gap-1.5 h-11 px-4 text-xs font-medium text-white bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 rounded-lg transition-all active:scale-95"
               >
                 <ArrowUpCircle className="w-3.5 h-3.5" />
                 转生 +{crystalGain}
@@ -510,6 +513,7 @@ export default function CookieEmpirePage() {
                   key={i}
                   onClick={() => buyUpgrade(i)}
                   disabled={owned || !canAfford}
+                  aria-label={`${up.name} - ${up.desc}${owned ? " 已拥有" : canAfford ? "" : " 余额不足"}`}
                   className={`p-2 rounded-lg border text-left transition-all ${
                     owned
                       ? "bg-emerald-500/10 border-emerald-500/30 opacity-60"
@@ -548,6 +552,7 @@ export default function CookieEmpirePage() {
                   key={i}
                   onClick={() => buyBuilding(i)}
                   disabled={!canAfford}
+                  aria-label={`购买${b.name} - 当前${owned}个 - 价格${formatNum(price)}饼干`}
                   className={`w-full p-2.5 rounded-lg border flex items-center gap-3 transition-all ${
                     canAfford
                       ? "bg-[#18181b] border-amber-500/20 hover:border-amber-500/50 hover:bg-amber-500/5 cursor-pointer active:scale-[0.98]"
@@ -596,7 +601,8 @@ export default function CookieEmpirePage() {
         {/* Reset button */}
         <button
           onClick={hardReset}
-          className="w-full inline-flex items-center justify-center gap-2 h-9 px-4 text-xs font-medium text-slate-500 hover:text-red-400 bg-[#18181b] border border-[#27272a] hover:border-red-500/30 rounded-lg transition-colors"
+          aria-label="重置全部进度"
+          className="w-full inline-flex items-center justify-center gap-2 h-11 px-4 text-xs font-medium text-slate-500 hover:text-red-400 bg-[#18181b] border border-[#27272a] hover:border-red-500/30 rounded-lg transition-colors"
         >
           <RotateCcw className="w-3.5 h-3.5" /> 重置全部进度
         </button>
@@ -632,13 +638,15 @@ export default function CookieEmpirePage() {
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowPrestige(false)}
-                  className="flex-1 h-10 text-sm font-medium text-slate-400 bg-[#27272a] hover:bg-[#3f3f46] rounded-lg transition-colors"
+                  aria-label="取消转生"
+                  className="flex-1 h-11 text-sm font-medium text-slate-400 bg-[#27272a] hover:bg-[#3f3f46] rounded-lg transition-colors"
                 >
                   取消
                 </button>
                 <button
                   onClick={doPrestige}
-                  className="flex-1 h-10 text-sm font-medium text-white bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 rounded-lg transition-all active:scale-95"
+                  aria-label="确认转生"
+                  className="flex-1 h-11 text-sm font-medium text-white bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 rounded-lg transition-all active:scale-95"
                 >
                   确认转生
                 </button>

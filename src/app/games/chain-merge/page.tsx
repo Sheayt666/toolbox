@@ -366,7 +366,7 @@ export default function ChainMergePage() {
         refreshKey={0}
       >
         <div className="flex items-center justify-center h-[400px]">
-          <div className="text-slate-500">加载中...</div>
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-600 border-t-emerald-400" />
         </div>
       </GameShell>
     );
@@ -390,7 +390,8 @@ export default function ChainMergePage() {
         <div className="flex items-center gap-2 mb-3">
           <button
             onClick={() => switchMode("normal")}
-            className={`inline-flex items-center gap-1.5 h-8 px-3 text-xs font-medium rounded-lg transition-colors ${
+            aria-label="切换到普通模式"
+            className={`inline-flex items-center gap-1.5 h-11 px-3 text-xs font-medium rounded-lg transition-colors ${
               mode === "normal"
                 ? "bg-cyan-500 text-white"
                 : "bg-[#27272a] text-slate-400 hover:text-white"
@@ -400,7 +401,8 @@ export default function ChainMergePage() {
           </button>
           <button
             onClick={() => switchMode("daily")}
-            className={`inline-flex items-center gap-1.5 h-8 px-3 text-xs font-medium rounded-lg transition-colors ${
+            aria-label="切换到每日挑战模式"
+            className={`inline-flex items-center gap-1.5 h-11 px-3 text-xs font-medium rounded-lg transition-colors ${
               mode === "daily"
                 ? "bg-teal-500 text-white"
                 : "bg-[#27272a] text-slate-400 hover:text-white"
@@ -495,6 +497,7 @@ export default function ChainMergePage() {
               <div className="absolute inset-0 rounded-xl bg-[#09090b]/80 backdrop-blur-sm flex flex-col items-center justify-center animate-overlay-in">
                 <button
                   onClick={fresh ? () => start() : resume}
+                  aria-label={fresh ? "开始游戏" : "继续游戏"}
                   className="inline-flex items-center gap-2 h-12 px-7 text-base font-medium text-white bg-cyan-500 hover:bg-cyan-600 rounded-xl transition-colors shadow-lg shadow-cyan-500/30"
                 >
                   <Play className="w-5 h-5" /> {fresh ? "开始游戏" : "继续游戏"}
@@ -529,6 +532,7 @@ export default function ChainMergePage() {
                 )}
                 <button
                   onClick={() => start()}
+                  aria-label="再来一局"
                   className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-cyan-500 hover:bg-cyan-600 rounded-xl transition-colors shadow-lg shadow-cyan-500/30"
                 >
                   <RotateCcw className="w-4 h-4" /> 再来一局
@@ -543,7 +547,8 @@ export default function ChainMergePage() {
           {running && !over ? (
             <button
               onClick={paused ? resume : pause}
-              className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-200 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
+              aria-label={paused ? "继续游戏" : "暂停游戏"}
+              className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-slate-200 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
             >
               {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
               {paused ? "继续" : "暂停"}
@@ -551,7 +556,8 @@ export default function ChainMergePage() {
           ) : null}
           <button
             onClick={restart}
-            className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
+            aria-label="重新开始"
+            className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
           >
             <RotateCcw className="w-4 h-4" /> 重新开始
           </button>

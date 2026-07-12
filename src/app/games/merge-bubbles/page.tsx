@@ -147,6 +147,7 @@ export default function MergeBubblesPage() {
   const [currentTier, setCurrentTier] = useState(0);
   const [nextTier, setNextTier] = useState(1);
   const [maxTier, setMaxTier] = useState(0);
+  const [mounted, setMounted] = useState(false);
 
   const spawnParticles = useCallback(
     (x: number, y: number, color: string, count: number) => {
@@ -735,6 +736,7 @@ export default function MergeBubblesPage() {
 
   // Load best score
   useEffect(() => {
+    setMounted(true);
     try {
       const saved = parseInt(localStorage.getItem(BEST_SCORE_KEY) || "0", 10) || 0;
       if (saved > 0) {
@@ -762,6 +764,18 @@ export default function MergeBubblesPage() {
     pausedRef.current = !pausedRef.current;
     setPaused(pausedRef.current);
   }, []);
+
+  // 键盘：P 暂停/继续
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === "p") {
+        if (!runningRef.current || overRef.current) return;
+        pause();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [pause]);
 
   const restart = useCallback(() => {
     submittedRef.current = false;
@@ -800,6 +814,27 @@ export default function MergeBubblesPage() {
     { label: "下一个", value: `${nextTier + 1}级` },
     { label: "最高合成", value: `${maxTier + 1}级` },
   ];
+
+  if (!mounted) {
+    return (
+      <GameShell
+        gameId={GAME_ID}
+        title="合成泡泡"
+        description="融合射击与合成的泡泡游戏！从底部发射泡泡，相同等级的泡泡碰撞后会合成更高一级的泡泡。10 个等级等你挑战，泡泡堆到红线就游戏结束！"
+        instructions=""
+        icon={Sparkles}
+        iconEmoji="🔮"
+        iconGradient="from-purple-400 to-indigo-500"
+        stats={[]}
+        shareScore={0}
+        refreshKey={0}
+      >
+        <div className="flex items-center justify-center h-[400px]">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-600 border-t-purple-400" />
+        </div>
+      </GameShell>
+    );
+  }
 
   return (
     <GameShell
@@ -881,6 +916,7 @@ export default function MergeBubblesPage() {
             <div className="absolute inset-0 rounded-xl bg-[#09090b]/80 backdrop-blur-sm flex flex-col items-center justify-center animate-overlay-in">
               <button
                 onClick={start}
+                aria-label="开始游戏"
                 className="inline-flex items-center gap-2 h-12 px-7 text-base font-medium text-white bg-purple-500 hover:bg-purple-600 rounded-xl transition-colors shadow-lg shadow-purple-500/30"
               >
                 <Play className="w-5 h-5" /> 开始游戏
@@ -899,6 +935,7 @@ export default function MergeBubblesPage() {
               <h3 className="text-xl font-bold mb-4">已暂停</h3>
               <button
                 onClick={pause}
+                aria-label="继续游戏"
                 className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-purple-500 hover:bg-purple-600 rounded-xl transition-colors"
               >
                 <Play className="w-4 h-4" /> 继续
@@ -925,6 +962,7 @@ export default function MergeBubblesPage() {
               )}
               <button
                 onClick={restart}
+                aria-label="再来一局"
                 className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-purple-500 hover:bg-purple-600 rounded-xl transition-colors shadow-lg shadow-purple-500/30"
               >
                 <RotateCcw className="w-4 h-4" /> 再来一局
@@ -938,7 +976,8 @@ export default function MergeBubblesPage() {
           {running && !over ? (
             <button
               onClick={pause}
-              className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
+              aria-label={paused ? "继续游戏" : "暂停游戏"}
+              className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
             >
               {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
               {paused ? "继续" : "暂停"}
@@ -947,7 +986,8 @@ export default function MergeBubblesPage() {
             !over && (
               <button
                 onClick={start}
-                className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-purple-500 hover:bg-purple-600 rounded-xl transition-colors shadow-lg shadow-purple-500/30"
+                aria-label="开始游戏"
+                className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-white bg-purple-500 hover:bg-purple-600 rounded-xl transition-colors shadow-lg shadow-purple-500/30"
               >
                 <Play className="w-4 h-4" /> 开始
               </button>
@@ -955,7 +995,8 @@ export default function MergeBubblesPage() {
           )}
           <button
             onClick={restart}
-            className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
+            aria-label="重新开始"
+            className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
           >
             <RotateCcw className="w-4 h-4" /> 重新开始
           </button>

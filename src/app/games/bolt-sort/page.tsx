@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Wrench, RotateCcw, Play, ChevronRight, Clock } from "lucide-react";
+import { Wrench, RotateCcw, Play, ChevronRight, Clock, Pause } from "lucide-react";
 import GameShell, { type GameStat } from "@/components/games/GameShell";
 import { submitScore } from "@/lib/gamification";
 
@@ -169,6 +169,7 @@ export default function BoltSortPage() {
   const [levelComplete, setLevelComplete] = useState(false);
   const [dailyMode, setDailyMode] = useState(false);
   const [score, setScore] = useState(0);
+  const [paused, setPaused] = useState(false);
 
   const tubesRef = useRef<Tube[]>([]);
   const levelRef = useRef(1);
@@ -182,6 +183,8 @@ export default function BoltSortPage() {
   const dailyModeRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const runningRef = useRef(false);
+  const pausedRef = useRef(false);
+  const pauseStartTimeRef = useRef(0);
 
   /* ----- mounted 初始化 ----- */
   useEffect(() => {
@@ -229,6 +232,8 @@ export default function BoltSortPage() {
     setStartTime(Date.now());
     startTimeRef.current = Date.now();
     setElapsed(0);
+    pausedRef.current = false;
+    setPaused(false);
     runningRef.current = true;
     setRunning(true);
 
@@ -307,7 +312,7 @@ export default function BoltSortPage() {
 
   /* ----- 点击管子 ----- */
   const onTubeClick = useCallback((tubeId: number) => {
-    if (!runningRef.current || overRef.current || levelComplete) return;
+    if (!runningRef.current || overRef.current || pausedRef.current || levelComplete) return;
 
     if (selectedTube === null) {
       // 选择源管子（必须有螺栓）
@@ -377,6 +382,47 @@ export default function BoltSortPage() {
     startLevel(lvl, false);
   }, [startLevel]);
 
+  /* ----- 暂停/继续 ----- */
+  const pause = useCallback(() => {
+    if (!runningRef.current || overRef.current || pausedRef.current) return;
+    pausedRef.current = true;
+    setPaused(true);
+    pauseStartTimeRef.current = Date.now();
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  const resume = useCallback(() => {
+    if (!pausedRef.current) return;
+    pausedRef.current = false;
+    setPaused(false);
+    const pauseDuration = Date.now() - pauseStartTimeRef.current;
+    startTimeRef.current += pauseDuration;
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      const el = (Date.now() - startTimeRef.current) / 1000;
+      setElapsed(el);
+    }, 100);
+  }, []);
+
+  /* ----- 键盘：P 暂停/继续 ----- */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === "p") {
+        if (overRef.current) return;
+        if (runningRef.current && !pausedRef.current) {
+          pause();
+        } else if (pausedRef.current) {
+          resume();
+        }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [pause, resume]);
+
   /* ----- 清理 ----- */
   useEffect(() => {
     return () => {
@@ -425,7 +471,7 @@ export default function BoltSortPage() {
         refreshKey={0}
       >
         <div className="flex items-center justify-center h-[400px]">
-          <div className="text-slate-500">加载中...</div>
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-600 border-t-zinc-400" />
         </div>
       </GameShell>
     );
@@ -600,6 +646,7 @@ export default function BoltSortPage() {
                 {level >= MAX_LEVEL ? (
                   <button
                     onClick={() => doGameOver(true)}
+                    aria-label="查看最终成绩"
                     className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-green-500 hover:bg-green-600 rounded-xl transition-colors shadow-lg shadow-green-500/30"
                   >
                     查看最终成绩 🏆
@@ -607,6 +654,7 @@ export default function BoltSortPage() {
                 ) : (
                   <button
                     onClick={nextLevel}
+                    aria-label="下一关"
                     className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-green-500 hover:bg-green-600 rounded-xl transition-colors shadow-lg shadow-green-500/30"
                   >
                     下一关 <ChevronRight className="w-4 h-4" />
@@ -621,13 +669,15 @@ export default function BoltSortPage() {
                 <div className="flex flex-col items-center gap-3 mb-4">
                   <button
                     onClick={start}
+                    aria-label="从第1关开始"
                     className="inline-flex items-center gap-2 h-12 px-7 text-base font-medium text-white bg-zinc-600 hover:bg-zinc-700 rounded-xl transition-colors shadow-lg shadow-zinc-500/30"
                   >
                     <Play className="w-5 h-5" /> 从第1关开始
                   </button>
                   <button
                     onClick={startDaily}
-                    className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-purple-300 bg-purple-600/20 hover:bg-purple-600/30 rounded-xl transition-colors border border-purple-600/50"
+                    aria-label="每日挑战"
+                    className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-purple-300 bg-purple-600/20 hover:bg-purple-600/30 rounded-xl transition-colors border border-purple-600/50"
                   >
                     <Clock className="w-4 h-4" /> 每日挑战
                   </button>
@@ -643,7 +693,8 @@ export default function BoltSortPage() {
                         <button
                           key={lvl}
                           onClick={() => selectLevel(lvl)}
-                          className={`w-10 h-10 rounded-lg text-sm font-bold transition-all active:scale-95 border ${
+                          aria-label={`选择第${lvl}关`}
+                          className={`w-11 h-11 rounded-lg text-sm font-bold transition-all active:scale-95 border ${
                             isCompleted
                               ? "bg-green-600/20 border-green-600/50 text-green-400"
                               : "bg-[#18181b] border-[#3f3f46] text-slate-300 hover:border-zinc-500"
@@ -655,6 +706,20 @@ export default function BoltSortPage() {
                     })}
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* 暂停覆盖层 */}
+            {paused && !over && !levelComplete && (
+              <div className="absolute inset-0 bg-[#09090b]/85 backdrop-blur-sm flex flex-col items-center justify-center animate-overlay-in z-30">
+                <button
+                  onClick={resume}
+                  aria-label="继续游戏"
+                  className="inline-flex items-center gap-2 h-12 px-7 text-base font-medium text-white bg-zinc-600 hover:bg-zinc-700 rounded-xl transition-colors shadow-lg shadow-zinc-500/30"
+                >
+                  <Play className="w-5 h-5" /> 继续游戏
+                </button>
+                <p className="mt-4 text-xs text-slate-400">按 P 键继续</p>
               </div>
             )}
 
@@ -680,6 +745,7 @@ export default function BoltSortPage() {
                 )}
                 <button
                   onClick={restart}
+                  aria-label="重新开始"
                   className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-zinc-600 hover:bg-zinc-700 rounded-xl transition-colors shadow-lg shadow-zinc-500/30"
                 >
                   <RotateCcw className="w-4 h-4" /> 重新开始
@@ -694,15 +760,25 @@ export default function BoltSortPage() {
           {running && !over && !levelComplete && (
             <>
               <button
+                onClick={paused ? resume : pause}
+                aria-label={paused ? "继续游戏" : "暂停游戏"}
+                className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-slate-200 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
+              >
+                {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                {paused ? "继续" : "暂停"}
+              </button>
+              <button
                 onClick={resetLevel}
-                className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
+                aria-label="重置本关"
+                className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
               >
                 <RotateCcw className="w-4 h-4" /> 重置本关
               </button>
               {selectedTube !== null && (
                 <button
                   onClick={() => setSelectedTube(null)}
-                  className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-amber-300 bg-amber-600/20 hover:bg-amber-600/30 rounded-xl transition-colors border border-amber-600/50"
+                  aria-label="取消选择"
+                  className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-amber-300 bg-amber-600/20 hover:bg-amber-600/30 rounded-xl transition-colors border border-amber-600/50"
                 >
                   取消选择
                 </button>
@@ -713,13 +789,15 @@ export default function BoltSortPage() {
             <>
               <button
                 onClick={start}
-                className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-zinc-600 hover:bg-zinc-700 rounded-xl transition-colors shadow-lg shadow-zinc-500/30"
+                aria-label="开始游戏"
+                className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-white bg-zinc-600 hover:bg-zinc-700 rounded-xl transition-colors shadow-lg shadow-zinc-500/30"
               >
                 <Play className="w-4 h-4" /> 开始
               </button>
               <button
                 onClick={startDaily}
-                className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-purple-300 bg-purple-600/20 hover:bg-purple-600/30 rounded-xl transition-colors border border-purple-600/50"
+                aria-label="每日挑战"
+                className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-purple-300 bg-purple-600/20 hover:bg-purple-600/30 rounded-xl transition-colors border border-purple-600/50"
               >
                 <Clock className="w-4 h-4" /> 每日挑战
               </button>
@@ -727,7 +805,8 @@ export default function BoltSortPage() {
           )}
           <button
             onClick={restart}
-            className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
+            aria-label="从头开始"
+            className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
           >
             <RotateCcw className="w-4 h-4" /> 从头开始
           </button>

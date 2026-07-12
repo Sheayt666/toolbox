@@ -86,6 +86,7 @@ export default function StackTowerPage() {
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [mounted, setMounted] = useState(false);
 
   const gameOverRef = useRef<() => void>(() => {});
 
@@ -501,6 +502,7 @@ export default function StackTowerPage() {
 
   // 读取最高分
   useEffect(() => {
+    setMounted(true);
     try {
       const saved = parseInt(localStorage.getItem(BEST_SCORE_KEY) || "0", 10) || 0;
       if (saved > 0) {
@@ -601,6 +603,27 @@ export default function StackTowerPage() {
   const fresh = !running && !over && height === 0 && score === 0;
   const paused = !running && !over && !fresh;
 
+  if (!mounted) {
+    return (
+      <GameShell
+        gameId={GAME_ID}
+        title="物理叠塔"
+        description="经典叠塔游戏！方块在顶部左右滑动，看准时机点击让它稳稳落在上一块上。对齐越准，塔越窄得越慢；完美对齐不缩窄还有额外奖励。相机随塔升高而上移，挑战你能堆到第几层！"
+        instructions={`方块在画布顶部左右往复滑动，点击画布（或按空格 / 回车）让它落下。新方块只会保留与下方方块重叠的部分，超出部分会被切掉掉落，因此塔会越堆越窄。当偏差小于 ${PERFECT_TOL} 像素时判定为完美对齐：宽度不缩窄、额外加分、略微回长。一旦完全对不上（重叠为 0）即游戏结束。按 P 暂停。`}
+        icon={Building2}
+        iconEmoji="🏗️"
+        iconGradient="from-indigo-400 to-blue-500"
+        stats={[]}
+        shareScore={0}
+        refreshKey={0}
+      >
+        <div className="flex items-center justify-center h-[400px]">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-600 border-t-indigo-400" />
+        </div>
+      </GameShell>
+    );
+  }
+
   return (
     <GameShell
       gameId={GAME_ID}
@@ -646,6 +669,7 @@ export default function StackTowerPage() {
             <div className="absolute inset-0 rounded-xl bg-[#09090b]/75 backdrop-blur-sm flex flex-col items-center justify-center animate-overlay-in">
               <button
                 onClick={fresh ? start : resume}
+                aria-label={fresh ? "开始游戏" : "继续游戏"}
                 className="inline-flex items-center gap-2 h-12 px-7 text-base font-medium text-white bg-indigo-500 hover:bg-indigo-600 rounded-xl transition-colors shadow-lg shadow-indigo-500/30"
               >
                 <Play className="w-5 h-5" /> {fresh ? "开始游戏" : "继续游戏"}
@@ -682,6 +706,7 @@ export default function StackTowerPage() {
               )}
               <button
                 onClick={restart}
+                aria-label="再来一局"
                 className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 rounded-xl transition-colors shadow-lg shadow-indigo-500/30"
               >
                 <RotateCcw className="w-4 h-4" /> 再来一局
@@ -695,7 +720,8 @@ export default function StackTowerPage() {
           {running ? (
             <button
               onClick={pause}
-              className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-200 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
+              aria-label="暂停游戏"
+              className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-slate-200 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
             >
               <Pause className="w-4 h-4" /> 暂停
             </button>
@@ -704,7 +730,8 @@ export default function StackTowerPage() {
             !fresh && (
               <button
                 onClick={resume}
-                className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 rounded-xl transition-colors"
+                aria-label="继续游戏"
+                className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 rounded-xl transition-colors"
               >
                 <Play className="w-4 h-4" /> 继续
               </button>
@@ -712,7 +739,8 @@ export default function StackTowerPage() {
           )}
           <button
             onClick={restart}
-            className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
+            aria-label="重新开始"
+            className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
           >
             <RotateCcw className="w-4 h-4" /> 重新开始
           </button>

@@ -170,6 +170,7 @@ export default function MergeTowerPage() {
   const runningRef = useRef(false);
   const overRef = useRef(false);
   const submittedRef = useRef(false);
+  const startedRef = useRef(false);
 
   const waveQueueRef = useRef<string[]>([]);
   const spawnCdRef = useRef(0);
@@ -429,6 +430,7 @@ export default function MergeTowerPage() {
     setScore(0);
     setResult(null);
     setSelectedSlot(null);
+    startedRef.current = true;
     runningRef.current = true;
     setRunning(true);
   }, []);
@@ -445,10 +447,27 @@ export default function MergeTowerPage() {
     setRunning(true);
   }, []);
 
+  // 键盘：P 暂停/继续
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === "p") {
+        if (overRef.current) return;
+        if (runningRef.current) {
+          pause();
+        } else if (startedRef.current) {
+          resume();
+        }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [pause, resume]);
+
   const restart = useCallback(() => {
     overRef.current = false;
     runningRef.current = false;
     submittedRef.current = false;
+    startedRef.current = false;
     enemiesRef.current = [];
     projectilesRef.current = [];
     towersRef.current = new Map();
@@ -564,7 +583,7 @@ export default function MergeTowerPage() {
         refreshKey={0}
       >
         <div className="flex items-center justify-center h-[400px]">
-          <div className="text-slate-500">加载中...</div>
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-600 border-t-amber-400" />
         </div>
       </GameShell>
     );
@@ -799,6 +818,7 @@ export default function MergeTowerPage() {
               <div className="absolute inset-0 bg-[#09090b]/75 backdrop-blur-sm flex flex-col items-center justify-center animate-overlay-in">
                 <button
                   onClick={fresh ? start : resume}
+                  aria-label={fresh ? "开始游戏" : "继续游戏"}
                   className="inline-flex items-center gap-2 h-12 px-7 text-base font-medium text-white bg-amber-500 hover:bg-amber-600 rounded-xl transition-colors shadow-lg shadow-amber-500/30"
                 >
                   <Play className="w-5 h-5" /> {fresh ? "开始游戏" : "继续游戏"}
@@ -832,6 +852,7 @@ export default function MergeTowerPage() {
                 )}
                 <button
                   onClick={restart}
+                  aria-label="再来一局"
                   className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-amber-500 hover:bg-amber-600 rounded-xl transition-colors shadow-lg shadow-amber-500/30"
                 >
                   <RotateCcw className="w-4 h-4" /> 再来一局
@@ -846,7 +867,8 @@ export default function MergeTowerPage() {
           {running ? (
             <button
               onClick={pause}
-              className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-200 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
+              aria-label="暂停游戏"
+              className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-slate-200 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
             >
               <Pause className="w-4 h-4" /> 暂停
             </button>
@@ -855,7 +877,8 @@ export default function MergeTowerPage() {
             !fresh && (
               <button
                 onClick={resume}
-                className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-amber-500 hover:bg-amber-600 rounded-xl transition-colors"
+                aria-label="继续游戏"
+                className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-white bg-amber-500 hover:bg-amber-600 rounded-xl transition-colors"
               >
                 <Play className="w-4 h-4" /> 继续
               </button>

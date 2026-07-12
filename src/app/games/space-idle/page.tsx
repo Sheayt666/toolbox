@@ -425,7 +425,8 @@ export default function SpaceIdlePage() {
             </div>
             <button
               onClick={() => setOfflineEarnings(null)}
-              className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded bg-[#27272a]"
+              aria-label="收取离线收益"
+              className="text-xs text-slate-400 hover:text-white px-3 py-2 rounded bg-[#27272a]"
             >
               收取
             </button>
@@ -450,6 +451,7 @@ export default function SpaceIdlePage() {
         <div className="relative flex justify-center mb-6 h-40">
           <button
             onClick={clickCore}
+            aria-label="点击能量核心获得能量"
             className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-gradient-to-br from-indigo-500 via-purple-600 to-indigo-800 flex items-center justify-center core-pulse active:core-click border-4 border-indigo-400/30 shadow-2xl shadow-indigo-900/50"
           >
             <span className="text-5xl sm:text-6xl select-none">⚡</span>
@@ -481,6 +483,7 @@ export default function SpaceIdlePage() {
                   key={i}
                   onClick={() => buyUpgrade(i)}
                   disabled={owned || !canAfford}
+                  aria-label={`${up.name} - ${up.desc}${owned ? " 已激活" : canAfford ? "" : " 余额不足"}`}
                   className={`p-2 rounded-lg border text-center transition-all ${
                     owned
                       ? "bg-indigo-500/10 border-indigo-500/30 opacity-60"
@@ -541,6 +544,7 @@ export default function SpaceIdlePage() {
                   key={i}
                   onClick={() => buyPlanet(i)}
                   disabled={!canAfford}
+                  aria-label={`殖民${p.name} - 当前${owned}个 - 价格${p.baseCost === 0 ? "免费" : formatNum(price) + "能量"}`}
                   className={`w-full p-2.5 rounded-lg border flex items-center gap-3 transition-all ${
                     canAfford
                       ? "bg-[#18181b] border-indigo-500/20 hover:border-indigo-500/50 hover:bg-indigo-500/5 cursor-pointer active:scale-[0.98]"
@@ -592,7 +596,8 @@ export default function SpaceIdlePage() {
         {/* Reset button */}
         <button
           onClick={hardReset}
-          className="relative w-full inline-flex items-center justify-center gap-2 h-9 px-4 text-xs font-medium text-slate-500 hover:text-red-400 bg-[#18181b] border border-[#27272a] hover:border-red-500/30 rounded-lg transition-colors"
+          aria-label="重置全部进度"
+          className="relative w-full inline-flex items-center justify-center gap-2 h-11 px-4 text-xs font-medium text-slate-500 hover:text-red-400 bg-[#18181b] border border-[#27272a] hover:border-red-500/30 rounded-lg transition-colors"
         >
           <RotateCcw className="w-3.5 h-3.5" /> 重置全部进度
         </button>

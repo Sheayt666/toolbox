@@ -657,7 +657,14 @@ export default function TerritoryWarPage() {
   // Keyboard controls
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (!runningRef.current || overRef.current) return;
+      // P 键暂停/继续
+      if (e.key.toLowerCase() === "p") {
+        if (!runningRef.current || overRef.current) return;
+        pausedRef.current = !pausedRef.current;
+        setPaused(pausedRef.current);
+        return;
+      }
+      if (!runningRef.current || overRef.current || pausedRef.current) return;
       let dir: { x: number; y: number } | null = null;
       switch (e.key) {
         case "ArrowUp":
@@ -771,7 +778,7 @@ export default function TerritoryWarPage() {
         refreshKey={0}
       >
         <div className="flex items-center justify-center h-[400px]">
-          <div className="text-slate-500">加载中...</div>
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-600 border-t-cyan-400" />
         </div>
       </GameShell>
     );
@@ -812,6 +819,7 @@ export default function TerritoryWarPage() {
             <div className="absolute inset-0 rounded-xl bg-[#09090b]/80 backdrop-blur-sm flex flex-col items-center justify-center animate-overlay-in">
               <button
                 onClick={start}
+                aria-label="开始游戏"
                 className="inline-flex items-center gap-2 h-12 px-7 text-base font-medium text-white bg-cyan-500 hover:bg-cyan-600 rounded-xl transition-colors shadow-lg shadow-cyan-500/30"
               >
                 <Play className="w-5 h-5" /> 开始游戏
@@ -830,6 +838,7 @@ export default function TerritoryWarPage() {
               <h3 className="text-xl font-bold mb-4">已暂停</h3>
               <button
                 onClick={pause}
+                aria-label="继续游戏"
                 className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-cyan-500 hover:bg-cyan-600 rounded-xl transition-colors"
               >
                 <Play className="w-4 h-4" /> 继续
@@ -855,6 +864,7 @@ export default function TerritoryWarPage() {
               )}
               <button
                 onClick={restart}
+                aria-label="再来一局"
                 className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-cyan-500 hover:bg-cyan-600 rounded-xl transition-colors shadow-lg shadow-cyan-500/30"
               >
                 <RotateCcw className="w-4 h-4" /> 再来一局
@@ -868,7 +878,8 @@ export default function TerritoryWarPage() {
           {running && !over ? (
             <button
               onClick={pause}
-              className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
+              aria-label={paused ? "继续游戏" : "暂停游戏"}
+              className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
             >
               {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
               {paused ? "继续" : "暂停"}
@@ -877,7 +888,8 @@ export default function TerritoryWarPage() {
             !over && (
               <button
                 onClick={start}
-                className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-cyan-500 hover:bg-cyan-600 rounded-xl transition-colors shadow-lg shadow-cyan-500/30"
+                aria-label="开始游戏"
+                className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-white bg-cyan-500 hover:bg-cyan-600 rounded-xl transition-colors shadow-lg shadow-cyan-500/30"
               >
                 <Play className="w-4 h-4" /> 开始
               </button>
@@ -885,7 +897,8 @@ export default function TerritoryWarPage() {
           )}
           <button
             onClick={restart}
-            className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
+            aria-label="重新开始"
+            className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
           >
             <RotateCcw className="w-4 h-4" /> 重新开始
           </button>
@@ -897,6 +910,7 @@ export default function TerritoryWarPage() {
             <div />
             <button
               onClick={() => dirQueueRef.current.push({ x: 0, y: -1 })}
+              aria-label="向上移动"
               className="h-12 bg-[#27272a] hover:bg-[#3f3f46] rounded-lg flex items-center justify-center text-slate-300 border border-[#3f3f46] text-xl"
             >
               ↑
@@ -904,18 +918,21 @@ export default function TerritoryWarPage() {
             <div />
             <button
               onClick={() => dirQueueRef.current.push({ x: -1, y: 0 })}
+              aria-label="向左移动"
               className="h-12 bg-[#27272a] hover:bg-[#3f3f46] rounded-lg flex items-center justify-center text-slate-300 border border-[#3f3f46] text-xl"
             >
               ←
             </button>
             <button
               onClick={() => dirQueueRef.current.push({ x: 0, y: 1 })}
+              aria-label="向下移动"
               className="h-12 bg-[#27272a] hover:bg-[#3f3f46] rounded-lg flex items-center justify-center text-slate-300 border border-[#3f3f46] text-xl"
             >
               ↓
             </button>
             <button
               onClick={() => dirQueueRef.current.push({ x: 1, y: 0 })}
+              aria-label="向右移动"
               className="h-12 bg-[#27272a] hover:bg-[#3f3f46] rounded-lg flex items-center justify-center text-slate-300 border border-[#3f3f46] text-xl"
             >
               →

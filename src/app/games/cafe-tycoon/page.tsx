@@ -544,8 +544,8 @@ export default function CafeTycoonPage() {
         iconGradient="from-amber-600 to-yellow-700"
         refreshKey={refreshKey}
       >
-        <div className="flex items-center justify-center min-h-[400px] text-slate-400 text-sm">
-          加载中...
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-600 border-t-amber-500" />
         </div>
       </GameShell>
     );
@@ -657,6 +657,7 @@ export default function CafeTycoonPage() {
                   <button
                     key={m.id}
                     onClick={() => onMachineClick(m.id)}
+                    aria-label={`咖啡机${m.id + 1}${m.ready ? " 咖啡已就绪" : m.brewing ? " 正在制作" : " 空闲"}`}
                     className={`relative w-20 h-24 rounded-lg border-2 transition-all active:scale-95 ${
                       m.ready
                         ? "bg-green-600/30 border-green-500 animate-pulse"
@@ -708,6 +709,7 @@ export default function CafeTycoonPage() {
                     <button
                       key={c.id}
                       onClick={() => onCustomerClick(c.id)}
+                      aria-label={`顾客 订单${coffee.name} ${c.state === "served" ? "已服务" : c.state === "ordered" ? "已下单" : "等待中"}`}
                       className={`relative flex flex-col items-center transition-all active:scale-95 ${
                         c.state === "served" ? "opacity-50" : ""
                       } ${selectedCustomer === c.id ? "ring-2 ring-blue-400 rounded-lg" : ""}`}
@@ -755,6 +757,7 @@ export default function CafeTycoonPage() {
               <div className="absolute inset-0 rounded-xl bg-[#09090b]/85 backdrop-blur-sm flex flex-col items-center justify-center animate-overlay-in">
                 <button
                   onClick={start}
+                  aria-label="开店营业"
                   className="inline-flex items-center gap-2 h-12 px-7 text-base font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-xl transition-colors shadow-lg shadow-amber-600/30"
                 >
                   <Play className="w-5 h-5" /> 开店营业
@@ -786,6 +789,7 @@ export default function CafeTycoonPage() {
                 )}
                 <button
                   onClick={restart}
+                  aria-label="重新开店"
                   className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-xl transition-colors shadow-lg shadow-amber-600/30"
                 >
                   <RotateCcw className="w-4 h-4" /> 重新开店
@@ -805,6 +809,7 @@ export default function CafeTycoonPage() {
                   key={u.id}
                   onClick={() => buyUpgrade(u.id)}
                   disabled={u.level >= u.maxLevel || coins < u.cost}
+                  aria-label={`${u.name} - ${u.desc} - 等级${u.level}/${u.maxLevel}${u.level >= u.maxLevel ? " 已满级" : coins < u.cost ? " 余额不足" : ""}`}
                   className={`p-3 rounded-lg border text-left transition-all active:scale-95 ${
                     u.level >= u.maxLevel
                       ? "bg-[#18181b] border-[#27272a] opacity-50 cursor-not-allowed"
@@ -837,7 +842,8 @@ export default function CafeTycoonPage() {
           {!running && !over && (
             <button
               onClick={start}
-              className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-xl transition-colors shadow-lg shadow-amber-600/30"
+              aria-label="开始游戏"
+              className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-xl transition-colors shadow-lg shadow-amber-600/30"
             >
               <Play className="w-4 h-4" /> 开始
             </button>
@@ -845,7 +851,8 @@ export default function CafeTycoonPage() {
           {running && !over && (
             <button
               onClick={togglePause}
-              className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-[#3f3f46] hover:bg-[#52525b] rounded-xl transition-colors border border-[#52525b]"
+              aria-label={paused ? "继续游戏" : "暂停游戏"}
+              className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-white bg-[#3f3f46] hover:bg-[#52525b] rounded-xl transition-colors border border-[#52525b]"
             >
               {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
               {paused ? "继续" : "暂停"}
@@ -853,7 +860,8 @@ export default function CafeTycoonPage() {
           )}
           <button
             onClick={restart}
-            className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
+            aria-label="重新开始"
+            className="inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
           >
             <RotateCcw className="w-4 h-4" /> 重新开始
           </button>
