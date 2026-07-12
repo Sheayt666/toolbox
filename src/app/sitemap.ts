@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import { tools, categories, popularTags } from "@/lib/tools";
-import { posts } from "@/lib/posts";
+import { blogPosts } from "@/lib/blog-posts";
+import { toolVariants } from "@/lib/tool-variants";
 import { products } from "@/lib/products";
 import { getToolSeoContent } from "@/data/toolSeoContent";
 
@@ -99,11 +100,27 @@ export default function sitemap(): MetadataRoute.Sitemap {
   });
 
   // 博客文章页面
-  const blogUrls = posts.map((post) => ({
+  const blogUrls = blogPosts.map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: new Date(post.date),
+    lastModified: new Date(post.publishDate),
     changeFrequency: "monthly" as const,
     priority: 0.7,
+  }));
+
+  // 工具统计页
+  const statsPage = {
+    url: `${baseUrl}/stats`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.6,
+  };
+
+  // 程序化变体页面
+  const variantUrls = toolVariants.map((variant) => ({
+    url: `${baseUrl}/variants/${variant.toolId}/${variant.variantId}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
   }));
 
   return [
@@ -113,10 +130,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...categoryUrls,
     ...tagUrls,
     blogPage,
+    statsPage,
     productsPage,
     ...productDetailUrls,
     disclaimerPage,
     ...toolUrls,
     ...blogUrls,
+    ...variantUrls,
   ];
 }

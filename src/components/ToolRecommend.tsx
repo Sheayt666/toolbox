@@ -1,6 +1,16 @@
 "use client";
 
-import { Code2, ExternalLink, MessageSquare, Palette, Plus, Sparkles } from "lucide-react";
+import Link from "next/link";
+import {
+  Code2,
+  ExternalLink,
+  MessageSquare,
+  Palette,
+  Sparkles,
+  ArrowRight,
+  type LucideIcon,
+} from "lucide-react";
+import { getNextSteps, type WorkflowStep } from "@/lib/toolWorkflows";
 
 interface RecommendItem {
   id: string;
@@ -62,14 +72,113 @@ const recommendItems: RecommendItem[] = [
 
 interface ToolRecommendProps {
   title?: string;
+  /** When provided, renders an ordered "next step" workflow section above the recommendations. */
+  toolId?: string;
+}
+
+/**
+ * WorkflowStepCard
+ *
+ * Renders a single step in a tool workflow chain. Shows the 1-based step
+ * number so visitors can follow the recommended usage order.
+ */
+function WorkflowStepCard({ stepData }: { stepData: WorkflowStep }) {
+  const { step, tool, current } = stepData;
+  const StepIcon: LucideIcon = tool.icon;
+
+  return (
+    <Link
+      href={`/tools/${tool.id}`}
+      aria-disabled={current}
+      tabIndex={current ? -1 : 0}
+      className={`group relative flex flex-col p-4 rounded-xl border transition-all ${
+        current
+          ? "border-primary-500/40 bg-primary-500/10 cursor-default"
+          : "border-[#27272a] bg-[#18181b] hover:border-primary-500/30 hover:bg-[#1c1c1f]"
+      }`}
+    >
+      {/* Step number badge */}
+      <div className="flex items-center justify-between mb-3">
+        <span
+          className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+            current
+              ? "bg-primary-500 text-white"
+              : "bg-[#27272a] text-slate-400 group-hover:bg-primary-500/20 group-hover:text-primary-400"
+          }`}
+        >
+          {step}
+        </span>
+        {current && (
+          <span className="text-[10px] font-semibold text-primary-400 bg-primary-500/10 px-1.5 py-0.5 rounded">
+            当前
+          </span>
+        )}
+      </div>
+
+      {/* Tool icon + name */}
+      <div className="flex items-center gap-3 mb-2">
+        <div
+          className={`w-9 h-9 rounded-lg bg-gradient-to-br ${tool.color} flex items-center justify-center flex-shrink-0`}
+        >
+          <StepIcon className="w-[18px] h-[18px] text-white" />
+        </div>
+        <div className="min-w-0">
+          <div className="text-sm font-semibold text-white truncate group-hover:text-primary-400 transition-colors">
+            {tool.name}
+          </div>
+          <div className="text-[11px] text-slate-500 truncate">
+            {tool.category}
+          </div>
+        </div>
+      </div>
+
+      <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+        {tool.description}
+      </p>
+
+      {!current && (
+        <div className="flex items-center gap-1 mt-3 text-xs font-medium text-primary-400">
+          前往使用
+          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+        </div>
+      )}
+    </Link>
+  );
 }
 
 export default function ToolRecommend({
   title = "AI 工具推荐",
+  toolId,
 }: ToolRecommendProps) {
+  // Resolve the workflow "next steps" for the current tool (if any).
+  const nextSteps: WorkflowStep[] = toolId ? getNextSteps(toolId, 4) : [];
+
   return (
     <section className="py-10 lg:py-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Workflow chain recommendations ("next step" mode) */}
+        {nextSteps.length > 0 && (
+          <div className="mb-10">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-primary-400" />
+              <h2 className="text-lg font-bold text-white">下一步推荐</h2>
+              <span className="text-xs text-slate-500">按使用顺序串联</span>
+            </div>
+            <p className="text-sm text-slate-400 mb-5">
+              完成当前工具后，你可能还需要以下工具，按推荐顺序使用效率更高
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {nextSteps.map((stepData) => (
+                <WorkflowStepCard
+                  key={stepData.tool.id}
+                  stepData={stepData}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Category / AI recommendations */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 border border-violet-200/50 dark:border-violet-800/30 text-violet-700 dark:text-violet-300 text-sm font-medium mb-4">
             <Sparkles className="w-4 h-4" />

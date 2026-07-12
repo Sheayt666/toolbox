@@ -24,11 +24,13 @@ import {
   Home as HomeIcon,
   Gamepad2,
   Users,
+  Wrench,
   type LucideIcon,
 } from "lucide-react";
 import ToolCard from "@/components/ToolCard";
 import { categories, getPopularTools, getAllTools } from "@/lib/tools";
 import { searchTools } from "@/lib/searchEngine";
+import { useToolHistory } from "@/hooks/useToolHistory";
 
 // 人群画像 / 场景导航
 interface Persona {
@@ -142,6 +144,10 @@ export default function HomeContent() {
   const [activePersona, setActivePersona] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"trending" | "new" | "popular">("trending");
 
+  // User retention: badge count for the "my toolbox" entry.
+  const { favorites, history, hydrated } = useToolHistory();
+  const myToolsCount = favorites.length + history.length;
+
   useEffect(() => {
     setSearchQuery(urlQuery);
   }, [urlQuery]);
@@ -251,6 +257,37 @@ export default function HomeContent() {
                 ))}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* My Toolbox entry - quick access to favorites & history */}
+      <section className="pb-2">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Link
+            href="/my-tools"
+            className="group relative flex items-center gap-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-primary-500/15 via-[#18181b] to-accent-500/10 border border-primary-500/20 hover:border-primary-500/40 transition-all overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full blur-2xl translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+            <div className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center flex-shrink-0">
+              <Wrench className="w-6 h-6 text-white" />
+            </div>
+            <div className="relative flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-semibold text-white group-hover:text-primary-400 transition-colors">
+                  我的工具箱
+                </h3>
+                {hydrated && myToolsCount > 0 && (
+                  <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-bold text-white bg-primary-500 rounded-full">
+                    {myToolsCount}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                收藏常用工具、查看最近使用记录，数据保存在本地浏览器
+              </p>
+            </div>
+            <ChevronRight className="relative w-5 h-5 text-slate-500 group-hover:text-primary-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+          </Link>
         </div>
       </section>
 

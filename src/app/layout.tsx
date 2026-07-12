@@ -1,9 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import MobileBottomNav from "@/components/MobileBottomNav";
+import ChromeWrapper from "@/components/ChromeWrapper";
 import Analytics from "@/components/Analytics";
 import { WebSiteSchema, OrganizationSchema } from "@/components/SEOSchema";
 
@@ -112,10 +110,7 @@ export default function RootLayout({
           description={siteDescription}
           email="2629676609@qq.com"
         />
-        <Header />
-        <main className="flex-1 pb-16 lg:pb-0">{children}</main>
-        <Footer />
-        <MobileBottomNav />
+        <ChromeWrapper>{children}</ChromeWrapper>
         <Analytics />
       </body>
     </html>

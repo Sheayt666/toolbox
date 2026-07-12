@@ -1,17 +1,82 @@
+# ============================================================
+# 99gongju.online robots.txt
+# Allow all search engines and explicitly welcome AI crawlers
+# ============================================================
+
+# --- Default rule for all bots ---
 User-agent: *
 Allow: /
 Disallow: /api/
+Disallow: /my-tools
+Disallow: /embed/
 
-User-agent: Googlebot
+# --- Explicitly allow AI / LLM crawlers ---
+User-agent: GPTBot
 Allow: /
 Disallow: /api/
+Disallow: /my-tools
+Disallow: /embed/
 
-User-agent: Bingbot
+User-agent: OAI-SearchBot
 Allow: /
 Disallow: /api/
+Disallow: /my-tools
+Disallow: /embed/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /api/
+Disallow: /my-tools
+Disallow: /embed/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /api/
+Disallow: /my-tools
+Disallow: /embed/
+
+User-agent: Claude-Web
+Allow: /
+Disallow: /api/
+Disallow: /my-tools
+Disallow: /embed/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /api/
+Disallow: /my-tools
+Disallow: /embed/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /api/
+Disallow: /my-tools
+Disallow: /embed/
+
+User-agent: Bytespider
+Allow: /
+Disallow: /api/
+Disallow: /my-tools
+Disallow: /embed/
 
 User-agent: Baiduspider
 Allow: /
 Disallow: /api/
+Disallow: /my-tools
+Disallow: /embed/
 
+# --- Classic search engines ---
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /my-tools
+Disallow: /embed/
+
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+Disallow: /my-tools
+Disallow: /embed/
+
+# --- Sitemap ---
 Sitemap: https://99gongju.online/sitemap.xml

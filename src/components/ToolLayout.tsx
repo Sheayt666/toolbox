@@ -14,24 +14,27 @@ import {
   Tag,
   ShieldAlert,
   Heart,
+  ArrowRight,
+  Layers,
   Coffee,
   X,
   ZoomIn,
   type LucideIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useLayoutEffect } from "react";
 import { getCategorySlugByName, getPopularTools, getToolsByCategory, getAllTools, getToolTags, getToolBySlug, popularTags } from "@/lib/tools";
 import ToolCard from "./ToolCard";
 import ToolSEOContent from "./ToolSEOContent";
 import { getOrCreateToolSeoContent } from "@/data/toolSeoContent";
-import {
-  BreadcrumbListSchema,
-  SoftwareApplicationSchema,
-  FAQPageSchema,
-  HowToSchema,
-} from "./SEOSchema";
+import { ToolPageSchema } from "./SEOSchema";
 import { getProductsByCategory } from "@/lib/products";
 import PurchaseModal from "./PurchaseModal";
+import { useToolHistory } from "@/hooks/useToolHistory";
+import { getNextSteps } from "@/lib/toolWorkflows";
+
+// useLayoutEffect warns during SSR; use an isomorphic variant.
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 interface ToolLayoutProps {
   children: React.ReactNode;
@@ -54,7 +57,6 @@ export default function ToolLayout({
 }: ToolLayoutProps) {
   const [copied, setCopied] = useState(false);
   const [isPurchaseOpen, setIsPurchaseOpen] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [isRewardOpen, setIsRewardOpen] = useState(false);
 
   const SITE_URL = "https://99gongju.online";
@@ -92,6 +94,37 @@ export default function ToolLayout({
   const currentTool = slug ? getToolBySlug(slug) : undefined;
   const toolTags = currentTool ? getToolTags(currentTool) : [];
 
+  // ===== User retention layer =====
+  const { isFavorite, toggleFavorite, addHistory, hydrated } = useToolHistory();
+
+  // Embed mode: ?embed=1 strips all site chrome and shows only the tool body.
+  // ?nobadge=1 additionally hides the in-page "Powered by" badge (used when the
+  // badge is rendered by the outer /embed/[toolId] wrapper instead).
+  const [isEmbed, setIsEmbed] = useState(false);
+  const [hideBadge, setHideBadge] = useState(false);
+  useIsomorphicLayoutEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    setIsEmbed(params.get("embed") === "1");
+    setHideBadge(params.get("nobadge") === "1");
+  }, []);
+
+  // Persisted favorite state for the current tool.
+  const isFav = hydrated && effectiveToolId ? isFavorite(effectiveToolId) : false;
+  const handleToggleFavorite = () => {
+    if (!effectiveToolId) return;
+    toggleFavorite(effectiveToolId, title);
+  };
+
+  // Record tool usage into localStorage history when the page loads.
+  useEffect(() => {
+    if (!effectiveToolId || !title) return;
+    addHistory(effectiveToolId, title);
+  }, [effectiveToolId, title, addHistory]);
+
+  // Workflow guidance: next steps in the recommended usage sequence.
+  const nextSteps = effectiveToolId ? getNextSteps(effectiveToolId, 4) : [];
+
   const handleShare = async () => {
     if (navigator.share) {
       navigator.share({
@@ -128,6 +161,65 @@ export default function ToolLayout({
     url: toolPageUrl,
   });
 
+  // Consolidated structured-data block (BreadcrumbList + SoftwareApplication +
+  // FAQPage + HowTo). Defaults are filled in by ToolPageSchema so every tool
+  // page always carries complete structured data, even without seoContent.
+  const schemaBlock = effectiveToolId ? (
+    <ToolPageSchema
+      tool={{
+        id: effectiveToolId,
+        name: title,
+        description: seoContent?.metaDescription || description,
+        path: `/tools/${effectiveToolId}`,
+        category,
+        features: seoContent?.features,
+      }}
+      faqs={
+        seoContent
+          ? seoContent.faqs.map((f) => ({ question: f.question, answer: f.answer }))
+          : []
+      }
+      howToSteps={
+        seoContent
+          ? seoContent.howToSteps.map((s) => ({ name: s.step, text: s.description }))
+          : []
+      }
+      breadcrumbs={breadcrumbItems}
+    />
+  ) : null;
+
+  // Embed mode: render a chrome-less version for iframe embedding.
+  if (isEmbed) {
+    return (
+      <>
+        {schemaBlock}
+        <div className="min-h-screen bg-[#09090b] text-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="bg-[#18181b] rounded-2xl border border-[#27272a] overflow-hidden">
+              {children}
+            </div>
+          </div>
+          {/* Powered by badge (hidden when the outer wrapper renders its own) */}
+          {!hideBadge && (
+            <div className="py-4 text-center">
+              <Link
+                href="/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-primary-400 transition-colors"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                Powered by 99gongju.online
+              </Link>
+            </div>
+          )}
+        </div>
+        {/* Hide global site chrome (header/footer/mobile nav) in embed mode */}
+        <style>{`body > header, body > footer, body > nav { display: none !important; }`}</style>
+      </>
+    );
+  }
+
   return (
     <>
       <PurchaseModal
@@ -135,36 +227,7 @@ export default function ToolLayout({
         onClose={() => setIsPurchaseOpen(false)}
       />
 
-      {seoContent && (
-        <>
-          <BreadcrumbListSchema items={breadcrumbItems} />
-          <SoftwareApplicationSchema
-            name={title}
-            description={seoContent.metaDescription || description}
-            url={toolPageUrl}
-            applicationCategory="UtilityApplication"
-            operatingSystem="Web"
-            offers={{ price: "0", priceCurrency: "CNY" }}
-            features={seoContent.features}
-          />
-          <FAQPageSchema
-            faqs={seoContent.faqs.map((f) => ({
-              question: f.question,
-              answer: f.answer,
-            }))}
-          />
-          <HowToSchema
-            name={`${title}使用教程`}
-            description={`如何使用${title}，详细步骤说明`}
-            steps={seoContent.howToSteps.map((s, i) => ({
-              name: s.step,
-              text: s.description,
-              position: i + 1,
-            }))}
-            totalTime={`PT${seoContent.howToSteps.length * 2}M`}
-          />
-        </>
-      )}
+      {schemaBlock}
 
       <div className="min-h-screen bg-[#09090b] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -250,15 +313,16 @@ export default function ToolLayout({
               {/* Action buttons - 99工具 style */}
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setSaved(!saved)}
+                  onClick={handleToggleFavorite}
                   className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-all ${
-                    saved
-                      ? "text-primary-400 bg-primary-500/10 border-primary-500/30"
+                    isFav
+                      ? "text-rose-400 bg-rose-500/10 border-rose-500/30"
                       : "text-slate-400 bg-[#18181b] border-[#27272a] hover:text-white hover:border-[#3f3f46]"
                   }`}
-                  aria-label="收藏"
+                  aria-label={isFav ? "取消收藏" : "收藏"}
+                  title={isFav ? "已收藏到我的工具箱" : "收藏到我的工具箱"}
                 >
-                  <Bookmark className={`w-4 h-4 ${saved ? "fill-current" : ""}`} />
+                  <Heart className={`w-4 h-4 ${isFav ? "fill-current" : ""}`} />
                 </button>
                 <button
                   onClick={handleShare}
@@ -312,6 +376,49 @@ export default function ToolLayout({
               <div className="bg-[#18181b] rounded-2xl border border-[#27272a] overflow-hidden">
                 {children}
               </div>
+
+              {/* Workflow guidance - next steps in the recommended usage sequence */}
+              {nextSteps.length > 0 && (
+                <div className="bg-gradient-to-br from-primary-500/10 via-[#18181b] to-[#18181b] rounded-2xl border border-primary-500/20 p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Layers className="w-4 h-4 text-primary-400" />
+                    <h3 className="text-sm font-semibold text-white">
+                      下一步：你可能还需要
+                    </h3>
+                    <span className="text-xs text-slate-500">工作流引导</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {nextSteps.map((stepData, idx) => {
+                      const StepIcon = stepData.tool.icon;
+                      return (
+                        <Link
+                          key={stepData.tool.id}
+                          href={`/tools/${stepData.tool.id}`}
+                          className="group flex items-center gap-3 p-3 rounded-xl bg-[#18181b] border border-[#27272a] hover:border-primary-500/30 hover:bg-[#1c1c1f] transition-all"
+                        >
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-500/15 text-primary-400 text-xs font-bold">
+                              {idx + 1}
+                            </span>
+                            <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${stepData.tool.color} flex items-center justify-center`}>
+                              <StepIcon className="w-[18px] h-[18px] text-white" />
+                            </div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-white truncate group-hover:text-primary-400 transition-colors">
+                              {stepData.tool.name}
+                            </div>
+                            <div className="text-[11px] text-slate-500 truncate">
+                              {stepData.tool.category}
+                            </div>
+                          </div>
+                          <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-primary-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* 标签云 - SEO内链 */}
               {(toolTags.length > 0 || popularTags.length > 0) && (
