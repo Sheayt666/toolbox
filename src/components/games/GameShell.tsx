@@ -84,14 +84,6 @@ export default function GameShell({
     }
   }, [title, shareScore]);
 
-  if (!mounted) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="text-2xl text-gray-400">加载中...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
       {/* Header */}
