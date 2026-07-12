@@ -720,7 +720,7 @@ export default function SnakeArenaPage() {
     );
 
     // Boost fuel bar (player)
-    if (player.alive) {
+    if (player && player.alive) {
       const bw = 120;
       const bh = 6;
       const bx2 = 10;
