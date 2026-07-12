@@ -817,6 +817,14 @@ export default function BattleRoyalePage() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
+      if (key === "p") {
+        e.preventDefault();
+        if (runningRef.current && !overRef.current) {
+          pausedRef.current = !pausedRef.current;
+          setPaused(pausedRef.current);
+        }
+        return;
+      }
       if (["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d"].includes(key)) {
         e.preventDefault();
         keysRef.current.add(key);

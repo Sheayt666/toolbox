@@ -698,6 +698,18 @@ export default function BlackHolePage() {
     setPaused(pausedRef.current);
   }, []);
 
+  // P 键暂停/继续
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === "p") {
+        e.preventDefault();
+        pause();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [pause]);
+
   const restart = useCallback(() => {
     submittedRef.current = false;
     overRef.current = false;

@@ -554,6 +554,11 @@ export default function RhythmTapPage() {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
+      if (k === "p" && runningRef.current && !overRef.current) {
+        e.preventDefault();
+        togglePause();
+        return;
+      }
       const lane = LANE_KEYS.indexOf(k);
       if (lane >= 0) {
         e.preventDefault();
