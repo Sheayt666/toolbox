@@ -257,7 +257,7 @@ export function getRandomAvatar(): string {
  * ================================================================ */
 
 function getStatsRaw(): UserStats {
-  return lsGet<UserStats>(STORAGE_KEYS.stats, {
+  const raw = lsGet<UserStats>(STORAGE_KEYS.stats, {
     highScores: {},
     dailyStreak: 0,
     maxStreak: 0,
@@ -266,6 +266,15 @@ function getStatsRaw(): UserStats {
     gamesPlayed: {},
     workflowsCompleted: 0,
   });
+  // Backward compatibility: ensure all properties exist for old stored data
+  if (!raw.highScores) raw.highScores = {};
+  if (!raw.gamesPlayed) raw.gamesPlayed = {};
+  if (typeof raw.totalGamesPlayed !== "number") raw.totalGamesPlayed = 0;
+  if (typeof raw.dailyStreak !== "number") raw.dailyStreak = 0;
+  if (typeof raw.maxStreak !== "number") raw.maxStreak = 0;
+  if (typeof raw.workflowsCompleted !== "number") raw.workflowsCompleted = 0;
+  if (typeof raw.lastVisitDate !== "string") raw.lastVisitDate = "";
+  return raw;
 }
 
 export function getStats(): UserStats {
@@ -516,6 +525,8 @@ export function getTodayChallenge(): {
     "2048", "snake", "tetris", "suika-merge", "brick-breaker",
     "doodle-jump", "rhythm-tap", "bubble-shooter", "gem-match",
     "merge-bubbles", "aim-trainer", "typing-test",
+    "parkour-rush", "merge-evolve", "color-pop", "triple-crush",
+    "water-sort", "cell-eater", "stickman-boss", "hex-blocks",
   ];
   const gameNames: Record<string, string> = {
     "2048": "2048", snake: "贪吃蛇", tetris: "俄罗斯方块",
@@ -524,6 +535,10 @@ export function getTodayChallenge(): {
     "bubble-shooter": "泡泡龙", "gem-match": "宝石迷阵",
     "merge-bubbles": "合成泡泡", "aim-trainer": "瞄准训练器",
     "typing-test": "打字速度测试",
+    "parkour-rush": "极速跑酷", "merge-evolve": "进化合成",
+    "color-pop": "色彩爆破", "triple-crush": "消消乐",
+    "water-sort": "水管排序", "cell-eater": "细胞吞噬",
+    "stickman-boss": "火柴人Boss战", "hex-blocks": "六边方块",
   };
 
   const gameIdx = seed % gameIds.length;
