@@ -189,6 +189,8 @@ export default function MergeTowerPage() {
   const [result, setResult] = useState<Result | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [mounted, setMounted] = useState(false);
+  // merge-tower 是 DOM 游戏：敌人/投射物/塔数据存储在 ref 中，
+  // 需要 setTick 强制重渲染以刷新 DOM 位置。仅在游戏运行或用户交互时触发。
   const [, setTick] = useState(0);
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
   const [hoverSlot, setHoverSlot] = useState<number | null>(null);
@@ -386,8 +388,9 @@ export default function MergeTowerPage() {
       last = time;
       if (runningRef.current && !overRef.current) {
         step(dt);
+        // 仅在游戏运行时触发重渲染，避免暂停/结束时每帧无谓重渲染
+        setTick((t) => (t + 1) % 1000000);
       }
-      setTick((t) => (t + 1) % 1000000);
     };
     raf = requestAnimationFrame(loop);
     gameOverRef.current = doGameOver;

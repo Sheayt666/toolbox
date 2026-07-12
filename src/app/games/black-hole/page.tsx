@@ -132,6 +132,7 @@ export default function BlackHolePage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [timeLeft, setTimeLeft] = useState(GAME_TIME);
   const [holeSize, setHoleSize] = useState(15);
+  const [mounted, setMounted] = useState(false);
 
   const spawnParticles = useCallback(
     (x: number, y: number, color: string, count: number) => {
@@ -648,6 +649,11 @@ export default function BlackHolePage() {
     }
   }, []);
 
+  // 客户端挂载守卫，避免 SSR/水合不一致
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Main loop
   useEffect(() => {
     stepRef.current = stepPhysics;
@@ -745,6 +751,14 @@ export default function BlackHolePage() {
     { label: "剩余时间", value: `${timeLeft}s` },
     { label: "黑洞大小", value: Math.round(holeSize) },
   ];
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <GameShell

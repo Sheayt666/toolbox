@@ -141,6 +141,7 @@ export default function SnakeArenaPage() {
   const [result, setResult] = useState<Result | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [alive, setAlive] = useState(0);
+  const [mounted, setMounted] = useState(false);
 
   const spawnParticles = useCallback(
     (x: number, y: number, color: string, count: number) => {
@@ -754,6 +755,11 @@ export default function SnakeArenaPage() {
     }
   }, []);
 
+  // 客户端挂载守卫，避免 SSR/水合不一致
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Main loop
   useEffect(() => {
     stepRef.current = stepPhysics;
@@ -847,6 +853,14 @@ export default function SnakeArenaPage() {
     { label: "存活", value: alive },
     { label: "状态", value: over ? "已结束" : paused ? "暂停" : running ? "进行中" : "待开始" },
   ];
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-lime-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <GameShell
