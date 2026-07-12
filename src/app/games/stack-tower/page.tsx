@@ -86,7 +86,6 @@ export default function StackTowerPage() {
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [, setTick] = useState(0);
 
   const gameOverRef = useRef<() => void>(() => {});
 
@@ -494,7 +493,6 @@ export default function StackTowerPage() {
         cameraRef.current += (Math.min(0, topY() - CANVAS_H * 0.6) - cameraRef.current) * 0.1;
       }
       draw();
-      setTick((x) => (x + 1) % 1000000);
     };
     raf = requestAnimationFrame(loop);
     gameOverRef.current = doGameOver;

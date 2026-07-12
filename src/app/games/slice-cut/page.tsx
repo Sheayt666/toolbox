@@ -112,7 +112,6 @@ export default function SliceCutPage() {
   const [result, setResult] = useState<Result | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [combo, setCombo] = useState(0);
-  const [, setTick] = useState(0);
 
   const gameOverRef = useRef<() => void>(() => {});
 
@@ -530,7 +529,6 @@ export default function SliceCutPage() {
         step(dt);
       }
       draw();
-      setTick((x) => (x + 1) % 1000000);
     };
     raf = requestAnimationFrame(loop);
     gameOverRef.current = doGameOver;
@@ -640,6 +638,18 @@ export default function SliceCutPage() {
   const onPointerEnd = useCallback(() => {
     lastSlicePtRef.current = null;
   }, []);
+
+  // 键盘：P 暂停 / 继续
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === "p") {
+        if (runningRef.current) pause();
+        else if (!overRef.current) resume();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [pause, resume]);
 
   const stats: GameStat[] = [
     { label: "分数", value: score },

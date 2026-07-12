@@ -114,6 +114,41 @@ const AI_COLORS = [
 
 let nextBulletId = 1;
 
+interface DPadButtonProps {
+  label: string;
+  ariaLabel: string;
+  onPress: () => void;
+  onRelease: () => void;
+}
+
+function DPadButton({ label, ariaLabel, onPress, onRelease }: DPadButtonProps) {
+  return (
+    <button
+      type="button"
+      aria-label={ariaLabel}
+      onContextMenu={(e) => e.preventDefault()}
+      onTouchStart={(e) => {
+        e.preventDefault();
+        onPress();
+      }}
+      onTouchEnd={(e) => {
+        e.preventDefault();
+        onRelease();
+      }}
+      onTouchCancel={onRelease}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        onPress();
+      }}
+      onMouseUp={onRelease}
+      onMouseLeave={onRelease}
+      className="select-none touch-none flex items-center justify-center w-16 h-16 rounded-xl bg-[#27272a] border border-[#3f3f46] text-[#8b5cf6] text-2xl font-bold active:bg-[#8b5cf6] active:text-white active:border-[#8b5cf6] transition-colors shadow-md"
+    >
+      {label}
+    </button>
+  );
+}
+
 export default function BattleRoyalePage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const entitiesRef = useRef<Entity[]>([]);
@@ -156,6 +191,7 @@ export default function BattleRoyalePage() {
   const [aliveCount, setAliveCount] = useState(0);
   const [killCount, setKillCount] = useState(0);
   const [hp, setHp] = useState(PLAYER_HP);
+  const [mounted, setMounted] = useState(false);
 
   const spawnParticles = useCallback(
     (x: number, y: number, color: string, count: number) => {
@@ -739,6 +775,11 @@ export default function BattleRoyalePage() {
     return () => cancelAnimationFrame(raf);
   }, [stepPhysics, draw, doGameOver]);
 
+  // Mount detection (client-side only)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Load best score
   useEffect(() => {
     try {
@@ -817,6 +858,14 @@ export default function BattleRoyalePage() {
       y: (clientY - rect.top) * scaleY,
     };
   }, []);
+
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-slate-500 text-sm animate-pulse">加载中...</div>
+      </div>
+    );
+  }
 
   const stats: GameStat[] = [
     { label: "分数", value: score },
@@ -937,6 +986,44 @@ export default function BattleRoyalePage() {
               </button>
             </div>
           )}
+        </div>
+
+        {/* Mobile D-pad controls */}
+        <div className="md:hidden mt-5 flex flex-col items-center select-none">
+          <p className="text-xs text-slate-500 mb-2">移动控制</p>
+          <div className="grid grid-cols-3 grid-rows-3 gap-2">
+            <span />
+            <DPadButton
+              label="↑"
+              ariaLabel="向上移动"
+              onPress={() => keysRef.current.add("w")}
+              onRelease={() => keysRef.current.delete("w")}
+            />
+            <span />
+            <DPadButton
+              label="←"
+              ariaLabel="向左移动"
+              onPress={() => keysRef.current.add("a")}
+              onRelease={() => keysRef.current.delete("a")}
+            />
+            <span className="flex items-center justify-center w-16 h-16">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#3f3f46]" />
+            </span>
+            <DPadButton
+              label="→"
+              ariaLabel="向右移动"
+              onPress={() => keysRef.current.add("d")}
+              onRelease={() => keysRef.current.delete("d")}
+            />
+            <span />
+            <DPadButton
+              label="↓"
+              ariaLabel="向下移动"
+              onPress={() => keysRef.current.add("s")}
+              onRelease={() => keysRef.current.delete("s")}
+            />
+            <span />
+          </div>
         </div>
 
         {/* Controls */}

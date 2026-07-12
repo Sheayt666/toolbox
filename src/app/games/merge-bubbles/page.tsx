@@ -131,6 +131,7 @@ export default function MergeBubblesPage() {
   const nextTierRef = useRef(1);
   const cooldownRef = useRef(0);
   const overflowTimerRef = useRef(0);
+  const mergeChainTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const stepRef = useRef<(dt: number) => void>(() => {});
   const drawRef = useRef<() => void>(() => {});
@@ -186,6 +187,8 @@ export default function MergeBubblesPage() {
   };
 
   const initGame = useCallback(() => {
+    mergeChainTimersRef.current.forEach((id) => clearTimeout(id));
+    mergeChainTimersRef.current = [];
     gridRef.current.clear();
     flyingRef.current = [];
     floatingRef.current = [];
@@ -325,7 +328,8 @@ export default function MergeBubblesPage() {
         }
 
         // Recursively check for new merges
-        setTimeout(() => mergeChain(keeper), 50);
+        const mergeTid = setTimeout(() => mergeChain(keeper), 50);
+        mergeChainTimersRef.current.push(mergeTid);
       }
     },
     [findNeighbors, spawnParticles],
@@ -722,7 +726,11 @@ export default function MergeBubblesPage() {
       drawRef.current();
     };
     raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      mergeChainTimersRef.current.forEach((id) => clearTimeout(id));
+      mergeChainTimersRef.current = [];
+    };
   }, [stepPhysics, draw, doGameOver]);
 
   // Load best score

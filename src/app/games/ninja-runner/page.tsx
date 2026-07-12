@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Zap, RotateCcw, Play } from "lucide-react";
+import { Zap, RotateCcw, Play, Pause } from "lucide-react";
 import GameShell, { type GameStat } from "@/components/games/GameShell";
 import { submitScore } from "@/lib/gamification";
 
@@ -87,6 +87,7 @@ export default function NinjaRunnerPage() {
   const inputRef = useRef({ jump: false, slide: false });
   const runningRef = useRef(false);
   const overRef = useRef(false);
+  const pausedRef = useRef(false);
   const submittedRef = useRef(false);
   const bestRef = useRef(0);
   const animFrameRef = useRef(0);
@@ -106,6 +107,7 @@ export default function NinjaRunnerPage() {
   const [lives, setLives] = useState(3);
   const [coins, setCoins] = useState(0);
   const [invincible, setInvincible] = useState(false);
+  const [paused, setPaused] = useState(false);
 
   /* ----- 初始化背景元素 ----- */
   const initBackground = useCallback(() => {
@@ -700,7 +702,12 @@ export default function NinjaRunnerPage() {
     }
 
     if (player.hitTimer > 0) player.hitTimer--;
-    if (player.invincible > 0) player.invincible--;
+    if (player.invincible > 0) {
+      player.invincible--;
+      if (player.invincible === 0) {
+        setInvincible(false);
+      }
+    }
 
     // 更新障碍物
     for (const obs of obstaclesRef.current) {
@@ -764,7 +771,6 @@ export default function NinjaRunnerPage() {
           player.invincible = 300;
           setInvincible(true);
           addParticles(c.x, c.y, "#06b6d4", 20);
-          setTimeout(() => setInvincible(false), 5000);
         }
       }
     }
@@ -791,7 +797,7 @@ export default function NinjaRunnerPage() {
       raf = requestAnimationFrame(loop);
       const dt = Math.min((time - last) / 16.67, 2);
       last = time;
-      if (runningRef.current && !overRef.current) {
+      if (runningRef.current && !overRef.current && !pausedRef.current) {
         for (let i = 0; i < dt; i++) {
           update();
         }
@@ -817,6 +823,13 @@ export default function NinjaRunnerPage() {
     }
   }, [initBackground]);
 
+  /* ----- 暂停/继续 ----- */
+  const togglePause = useCallback(() => {
+    if (!runningRef.current || overRef.current) return;
+    pausedRef.current = !pausedRef.current;
+    setPaused(pausedRef.current);
+  }, []);
+
   /* ----- 开始游戏 ----- */
   const start = useCallback(() => {
     playerRef.current = {
@@ -841,12 +854,14 @@ export default function NinjaRunnerPage() {
     collectibleTimerRef.current = 100;
     overRef.current = false;
     submittedRef.current = false;
+    pausedRef.current = false;
     setScore(0);
     setCoins(0);
     setLives(3);
     setInvincible(false);
     setOver(false);
     setResult(null);
+    setPaused(false);
     runningRef.current = true;
     setRunning(true);
   }, []);
@@ -866,13 +881,16 @@ export default function NinjaRunnerPage() {
       } else if (k === "arrowdown" || k === "s") {
         inputRef.current.slide = true;
         e.preventDefault();
+      } else if (k === "p") {
+        togglePause();
+        e.preventDefault();
       } else if (k === "enter") {
         if (!runningRef.current) start();
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [start]);
+  }, [start, togglePause]);
 
   /* ----- 触摸控制 ----- */
   const onTouchStart = (e: React.TouchEvent) => {
@@ -897,6 +915,40 @@ export default function NinjaRunnerPage() {
     { label: "生命", value: `${lives}/3` },
     { label: "最高记录", value: best },
   ];
+
+  if (!mounted) {
+    return (
+      <GameShell
+        gameId={GAME_ID}
+        title="忍者跑酷"
+        description="操控忍者飞奔穿越障碍！跳跃躲避尖刺，滑铲穿过低栏，跨过缺口。收集金币和手里剑，手里剑可获得短暂无敌！"
+        instructions={`键盘控制：
+  空格 / ↑ / W = 跳跃（可二段跳）
+  ↓ / S = 滑铲
+移动端：点击屏幕上半部分跳跃，下半部分滑铲
+
+障碍类型：
+  红色尖刺 = 跳跃越过
+  橙色低栏 = 滑铲穿过
+  黑色缺口 = 跳跃跨越
+
+收集品：
+  金币 = 每个加10分
+  手里剑 = 5秒无敌状态
+
+速度会随距离逐渐加快，每次受伤失去1条命，3条命用完游戏结束。
+分数 = 距离/10 + 金币×10`}
+        icon={Zap}
+        iconEmoji="🥷"
+        iconGradient="from-red-500 to-rose-600"
+        stats={stats}
+        shareScore={score}
+        refreshKey={refreshKey}
+      >
+        <div className="flex items-center justify-center h-[400px] text-slate-500">加载中...</div>
+      </GameShell>
+    );
+  }
 
   return (
     <GameShell
@@ -953,6 +1005,19 @@ export default function NinjaRunnerPage() {
             </div>
           )}
 
+          {/* 暂停覆盖层 */}
+          {paused && running && !over && (
+            <div className="absolute inset-0 rounded-xl bg-[#09090b]/80 backdrop-blur-sm flex flex-col items-center justify-center animate-overlay-in">
+              <h3 className="text-2xl font-bold text-white mb-4">已暂停</h3>
+              <button
+                onClick={togglePause}
+                className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl transition-colors shadow-lg shadow-red-500/30"
+              >
+                <Play className="w-4 h-4" /> 继续
+              </button>
+            </div>
+          )}
+
           {/* 游戏结束覆盖层 */}
           {over && (
             <div className="absolute inset-0 rounded-xl bg-[#09090b]/90 backdrop-blur-md flex flex-col items-center justify-center p-4 text-center animate-overlay-in">
@@ -1006,7 +1071,7 @@ export default function NinjaRunnerPage() {
           </button>
         </div>
 
-        {/* 开始/重开按钮 */}
+        {/* 开始/暂停/重开按钮 */}
         <div className="flex items-center gap-3 mt-3">
           {!running && !over && (
             <button
@@ -1014,6 +1079,15 @@ export default function NinjaRunnerPage() {
               className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl transition-colors shadow-lg shadow-red-500/30"
             >
               <Play className="w-4 h-4" /> 开始
+            </button>
+          )}
+          {running && !over && (
+            <button
+              onClick={togglePause}
+              className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
+            >
+              {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+              {paused ? "继续" : "暂停"}
             </button>
           )}
           <button

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Swords, RotateCcw, Play } from "lucide-react";
+import { Swords, RotateCcw, Play, Pause } from "lucide-react";
 import GameShell, { type GameStat } from "@/components/games/GameShell";
 import { submitScore } from "@/lib/gamification";
 
@@ -142,6 +142,8 @@ export default function StickmanBattlePage() {
   const comboTimerRef = useRef(0);
   const waveTransitionRef = useRef(0);
   const specialCooldownRef = useRef(0);
+  const pausedRef = useRef(false);
+  const waveMsgTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const [mounted, setMounted] = useState(false);
   const [score, setScore] = useState(0);
@@ -155,6 +157,7 @@ export default function StickmanBattlePage() {
   const [combo, setCombo] = useState(0);
   const [specialCd, setSpecialCd] = useState(0);
   const [waveMsg, setWaveMsg] = useState<string | null>(null);
+  const [paused, setPaused] = useState(false);
 
   /* ----- 绘制 ----- */
   const draw = useCallback(() => {
@@ -732,7 +735,8 @@ export default function StickmanBattlePage() {
         spawnWave(waveRef.current);
         waveTransitionRef.current = 90;
         setWaveMsg(`第 ${waveRef.current} 波`);
-        setTimeout(() => setWaveMsg(null), 2000);
+        const waveTid = setTimeout(() => setWaveMsg(null), 2000);
+        waveMsgTimersRef.current.push(waveTid);
       }
     }
 
@@ -860,7 +864,7 @@ export default function StickmanBattlePage() {
       raf = requestAnimationFrame(loop);
       const dt = Math.min((time - last) / 16.67, 2);
       last = time;
-      if (runningRef.current && !overRef.current) {
+      if (runningRef.current && !overRef.current && !pausedRef.current) {
         for (let i = 0; i < dt; i++) {
           update();
         }
@@ -868,7 +872,11 @@ export default function StickmanBattlePage() {
       draw();
     };
     raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      waveMsgTimersRef.current.forEach((id) => clearTimeout(id));
+      waveMsgTimersRef.current = [];
+    };
   }, [update, draw]);
 
   /* ----- mounted 初始化 ----- */
@@ -885,6 +893,13 @@ export default function StickmanBattlePage() {
     }
   }, []);
 
+  /* ----- 暂停/继续 ----- */
+  const togglePause = useCallback(() => {
+    if (!runningRef.current || overRef.current) return;
+    pausedRef.current = !pausedRef.current;
+    setPaused(pausedRef.current);
+  }, []);
+
   /* ----- 开始游戏 ----- */
   const start = useCallback(() => {
     playerRef.current = makePlayer();
@@ -898,6 +913,9 @@ export default function StickmanBattlePage() {
     overRef.current = false;
     submittedRef.current = false;
     waveTransitionRef.current = 0;
+    waveMsgTimersRef.current.forEach((id) => clearTimeout(id));
+    waveMsgTimersRef.current = [];
+    pausedRef.current = false;
     setScore(0);
     setCombo(0);
     setWave(1);
@@ -905,11 +923,13 @@ export default function StickmanBattlePage() {
     setSpecialCd(0);
     setOver(false);
     setResult(null);
+    setPaused(false);
     runningRef.current = true;
     setRunning(true);
     spawnWave(1);
     setWaveMsg("第 1 波");
-    setTimeout(() => setWaveMsg(null), 2000);
+    const startTid = setTimeout(() => setWaveMsg(null), 2000);
+    waveMsgTimersRef.current.push(startTid);
   }, []);
 
   /* ----- 重新开始 ----- */
@@ -939,6 +959,9 @@ export default function StickmanBattlePage() {
       } else if (k === "l") {
         inputRef.current.special = true;
         e.preventDefault();
+      } else if (k === "p") {
+        togglePause();
+        e.preventDefault();
       } else if (k === "enter") {
         if (!runningRef.current) start();
       }
@@ -959,7 +982,7 @@ export default function StickmanBattlePage() {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
     };
-  }, [start]);
+  }, [start, togglePause]);
 
   /* ----- 移动端按钮控制 ----- */
   const holdBtn = (key: "left" | "right" | "jump") => ({
@@ -989,6 +1012,35 @@ export default function StickmanBattlePage() {
     { label: "连击", value: combo > 0 ? `x${combo}` : "—" },
     { label: "最高记录", value: best },
   ];
+
+  if (!mounted) {
+    return (
+      <GameShell
+        gameId={GAME_ID}
+        title="火柴人对战"
+        description="控制火柴人战士击败一波波敌人！拳打、脚踢、特殊技能，连击越多分数越高。10波挑战，每波敌人更强！"
+        instructions={`键盘控制：
+  A/D 或 ← → = 左右移动
+  W / 空格 / ↑ = 跳跃
+  J = 出拳（快速，低伤害）
+  K = 踢腿（中速，中伤害）
+  L = 特殊技能（高伤害，有冷却）
+攻击技巧：
+  连续命中敌人可触发连击，连击越高分数奖励越多
+  敌人有时会格挡，注意变换攻击方式
+  特殊技能有3秒冷却，可击退敌人并造成大伤害
+共10波，每波敌人数量和血量递增，通关有额外奖励！`}
+        icon={Swords}
+        iconEmoji="🥋"
+        iconGradient="from-slate-500 to-gray-700"
+        stats={stats}
+        shareScore={score}
+        refreshKey={refreshKey}
+      >
+        <div className="flex items-center justify-center h-[400px] text-slate-500">加载中...</div>
+      </GameShell>
+    );
+  }
 
   return (
     <GameShell
@@ -1043,6 +1095,19 @@ export default function StickmanBattlePage() {
               <p className="mt-4 text-xs text-slate-400 text-center px-4 leading-relaxed">
                 A/D 移动 · W 跳跃 · J 拳 · K 踢 · L 特殊
               </p>
+            </div>
+          )}
+
+          {/* 暂停覆盖层 */}
+          {paused && running && !over && (
+            <div className="absolute inset-0 rounded-xl bg-[#09090b]/80 backdrop-blur-sm flex flex-col items-center justify-center animate-overlay-in">
+              <h3 className="text-2xl font-bold text-white mb-4">已暂停</h3>
+              <button
+                onClick={togglePause}
+                className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-slate-600 hover:bg-slate-700 rounded-xl transition-colors shadow-lg shadow-slate-500/30"
+              >
+                <Play className="w-4 h-4" /> 继续
+              </button>
             </div>
           )}
 
@@ -1130,7 +1195,7 @@ export default function StickmanBattlePage() {
             </button>
           </div>
 
-          {/* 开始/重开按钮 */}
+          {/* 开始/暂停/重开按钮 */}
           <div className="flex items-center gap-3 mt-2">
             {!running && !over && (
               <button
@@ -1138,6 +1203,15 @@ export default function StickmanBattlePage() {
                 className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-slate-600 hover:bg-slate-700 rounded-xl transition-colors shadow-lg shadow-slate-500/30"
               >
                 <Play className="w-4 h-4" /> 开始
+              </button>
+            )}
+            {running && !over && (
+              <button
+                onClick={togglePause}
+                className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
+              >
+                {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                {paused ? "继续" : "暂停"}
               </button>
             )}
             <button

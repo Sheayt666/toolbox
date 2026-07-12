@@ -397,6 +397,7 @@ export default function BlackHolePage() {
     const objs = objsRef.current;
     const particles = particlesRef.current;
     const player = holes[0];
+    if (!player) return;
 
     // Camera follows player
     let camX = player.x;

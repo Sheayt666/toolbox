@@ -102,7 +102,6 @@ export default function RagdollLaunchPage() {
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [, setTick] = useState(0);
 
   const gameOverRef = useRef<() => void>(() => {});
 
@@ -638,7 +637,6 @@ export default function RagdollLaunchPage() {
         step(dt);
       }
       draw();
-      setTick((x) => (x + 1) % 1000000);
     };
     raf = requestAnimationFrame(loop);
     gameOverRef.current = doGameOver;
