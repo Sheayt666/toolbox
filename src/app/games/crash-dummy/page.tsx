@@ -546,8 +546,14 @@ export default function CrashDummyPage() {
   /* ---- game loop ---- */
   useEffect(() => {
     if (phase !== "playing") return;
-    const ctx = ctxRef.current;
-    if (!ctx) return;
+    let ctx = ctxRef.current;
+    if (!ctx) {
+      const cv = canvasRef.current;
+      if (!cv) return;
+      ctx = cv.getContext("2d");
+      if (!ctx) return;
+      ctxRef.current = ctx;
+    }
 
     const loop = (ts: number) => {
       if (!lastTimeRef.current) lastTimeRef.current = ts;
