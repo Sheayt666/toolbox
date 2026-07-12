@@ -176,6 +176,9 @@ export default function BattleRoyalePage() {
     phase: 0,
   });
   const survivalTimeRef = useRef(0);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
+  const lastAliveSyncedRef = useRef(-1);
+  const lastHpSyncedRef = useRef(-1);
 
   const stepRef = useRef<(dt: number) => void>(() => {});
   const drawRef = useRef<() => void>(() => {});
@@ -196,6 +199,10 @@ export default function BattleRoyalePage() {
   const spawnParticles = useCallback(
     (x: number, y: number, color: string, count: number) => {
       const particles = particlesRef.current;
+      // 粒子上限，防止 GC 压力
+      if (particles.length > 300) {
+        particles.splice(0, particles.length - 300);
+      }
       for (let i = 0; i < count; i++) {
         const ang = Math.random() * Math.PI * 2;
         const spd = 1 + Math.random() * 4;
@@ -545,11 +552,19 @@ export default function BattleRoyalePage() {
       // Count alive
       let alive = 0;
       for (const e of entities) if (e.alive) alive++;
-      setAliveCount(alive);
+      // 仅在变化时更新，避免每帧触发 React 重渲染
+      if (alive !== lastAliveSyncedRef.current) {
+        lastAliveSyncedRef.current = alive;
+        setAliveCount(alive);
+      }
 
       // Update player HP display
       if (player.alive) {
-        setHp(Math.max(0, Math.round(player.hp)));
+        const hpRounded = Math.max(0, Math.round(player.hp));
+        if (hpRounded !== lastHpSyncedRef.current) {
+          lastHpSyncedRef.current = hpRounded;
+          setHp(hpRounded);
+        }
       }
 
       // Score = kills * 50 + survival time
@@ -578,8 +593,13 @@ export default function BattleRoyalePage() {
   const draw = useCallback(() => {
     const cv = canvasRef.current;
     if (!cv) return;
-    const ctx = cv.getContext("2d");
-    if (!ctx) return;
+    // 缓存 getContext 结果，避免每帧重新获取
+    let ctx = ctxRef.current;
+    if (!ctx) {
+      ctx = cv.getContext("2d");
+      if (!ctx) return;
+      ctxRef.current = ctx;
+    }
 
     animFrameRef.current++;
     const t = animFrameRef.current;

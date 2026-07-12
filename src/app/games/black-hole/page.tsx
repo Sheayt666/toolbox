@@ -117,6 +117,7 @@ export default function BlackHolePage() {
   const mouseRef = useRef<Vec>({ x: CANVAS_W / 2, y: CANVAS_H / 2 });
   const timeLeftRef = useRef(GAME_TIME);
   const timeLeftSyncedRef = useRef(GAME_TIME);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
 
   const stepRef = useRef<(dt: number) => void>(() => {});
   const drawRef = useRef<() => void>(() => {});
@@ -135,6 +136,10 @@ export default function BlackHolePage() {
   const spawnParticles = useCallback(
     (x: number, y: number, color: string, count: number) => {
       const particles = particlesRef.current;
+      // 粒子上限，防止 GC 压力
+      if (particles.length > 300) {
+        particles.splice(0, particles.length - 300);
+      }
       for (let i = 0; i < count; i++) {
         const ang = Math.random() * Math.PI * 2;
         const spd = 1 + Math.random() * 3;
@@ -328,8 +333,10 @@ export default function BlackHolePage() {
         }
       }
 
-      // Remove eaten objects
-      objsRef.current = objs.filter((o) => !o.eaten);
+      // Remove eaten objects — 原地删除避免每帧 filter 创建新数组（GC 压力）
+      for (let i = objs.length - 1; i >= 0; i--) {
+        if (objs[i].eaten) objs.splice(i, 1);
+      }
 
       // Respawn some objects to keep the map populated
       if (objsRef.current.length < 250) {
@@ -387,8 +394,13 @@ export default function BlackHolePage() {
   const draw = useCallback(() => {
     const cv = canvasRef.current;
     if (!cv) return;
-    const ctx = cv.getContext("2d");
-    if (!ctx) return;
+    // 缓存 getContext 结果，避免每帧重新获取
+    let ctx = ctxRef.current;
+    if (!ctx) {
+      ctx = cv.getContext("2d");
+      if (!ctx) return;
+      ctxRef.current = ctx;
+    }
 
     animFrameRef.current++;
     const t = animFrameRef.current;

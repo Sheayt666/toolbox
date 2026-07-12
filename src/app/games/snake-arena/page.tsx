@@ -126,6 +126,8 @@ export default function SnakeArenaPage() {
   const animFrameRef = useRef(0);
   const mouseRef = useRef<Vec>({ x: CANVAS_W / 2, y: CANVAS_H / 2 });
   const boostingRef = useRef(false);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
+  const lastAliveSyncedRef = useRef(-1);
 
   const stepRef = useRef<(dt: number) => void>(() => {});
   const drawRef = useRef<() => void>(() => {});
@@ -143,6 +145,10 @@ export default function SnakeArenaPage() {
   const spawnParticles = useCallback(
     (x: number, y: number, color: string, count: number) => {
       const particles = particlesRef.current;
+      // 粒子上限，防止 GC 压力
+      if (particles.length > 300) {
+        particles.splice(0, particles.length - 300);
+      }
       for (let i = 0; i < count; i++) {
         const ang = Math.random() * Math.PI * 2;
         const spd = 1 + Math.random() * 3;
@@ -528,7 +534,11 @@ export default function SnakeArenaPage() {
       // Alive count
       let aliveCount = 0;
       for (const s of snakes) if (s.alive) aliveCount++;
-      setAlive(aliveCount);
+      // 仅在变化时更新，避免每帧触发 React 重渲染
+      if (aliveCount !== lastAliveSyncedRef.current) {
+        lastAliveSyncedRef.current = aliveCount;
+        setAlive(aliveCount);
+      }
 
       // Check player death
       if (!player.alive) {
@@ -541,8 +551,13 @@ export default function SnakeArenaPage() {
   const draw = useCallback(() => {
     const cv = canvasRef.current;
     if (!cv) return;
-    const ctx = cv.getContext("2d");
-    if (!ctx) return;
+    // 缓存 getContext 结果，避免每帧重新获取
+    let ctx = ctxRef.current;
+    if (!ctx) {
+      ctx = cv.getContext("2d");
+      if (!ctx) return;
+      ctxRef.current = ctx;
+    }
 
     animFrameRef.current++;
     const t = animFrameRef.current;

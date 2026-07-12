@@ -347,6 +347,7 @@ export default function BubbleShooterPage() {
   const handleSnapRef = useRef<(sb: { x: number; y: number; vx: number; vy: number; color: number }) => void>(() => {});
   const [nextBubble, setNextBubble] = useState(0);
   const [paused, setPaused] = useState(false);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
 
   /* ===== init game (mounted) ===== */
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -372,8 +373,13 @@ export default function BubbleShooterPage() {
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    // 缓存 getContext 结果，避免每帧重新获取
+    let ctx = ctxRef.current;
+    if (!ctx) {
+      ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctxRef.current = ctx;
+    }
 
     // Background
     ctx.clearRect(0, 0, W, H);
@@ -532,11 +538,12 @@ export default function BubbleShooterPage() {
         }
       }
 
-      // Clean up old pop animations
+      // Clean up old pop animations — 原地删除避免每帧 filter 创建新数组
       const now = Date.now();
-      popAnimsRef.current = popAnimsRef.current.filter(
-        (p) => now - p.id < 300
-      );
+      const pops = popAnimsRef.current;
+      for (let i = pops.length - 1; i >= 0; i--) {
+        if (now - pops[i].id >= 300) pops.splice(i, 1);
+      }
 
       draw();
       animRef.current = requestAnimationFrame(loop);

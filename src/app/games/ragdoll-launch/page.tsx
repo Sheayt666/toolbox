@@ -94,6 +94,7 @@ export default function RagdollLaunchPage() {
   const restTimerRef = useRef(0);
   const betweenTimerRef = useRef(0);
   const animFrameRef = useRef(0);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
 
   const [score, setScore] = useState(0);
   const [shots, setShots] = useState(TOTAL_SHOTS);
@@ -107,6 +108,11 @@ export default function RagdollLaunchPage() {
 
   const spawnParticles = useCallback(
     (x: number, y: number, color: string, n: number, spd = 4) => {
+      const particles = particlesRef.current;
+      // 粒子上限，防止 GC 压力
+      if (particles.length > 200) {
+        particles.splice(0, particles.length - 200);
+      }
       for (let i = 0; i < n; i++) {
         const a = Math.random() * Math.PI * 2;
         const s = Math.random() * spd + 1;
@@ -342,23 +348,30 @@ export default function RagdollLaunchPage() {
         if (t.hitCd > 0) t.hitCd -= steps;
         t.pulse += 0.05 * steps;
       }
-      // 粒子
-      for (const p of particlesRef.current) {
+      // 粒子 — 原地删除避免每帧 filter 创建新数组
+      const particles = particlesRef.current;
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
         p.vy += 0.2 * steps;
         p.x += p.vx * steps;
         p.y += p.vy * steps;
         p.life -= steps;
+        if (p.life <= 0) particles.splice(i, 1);
       }
-      particlesRef.current = particlesRef.current.filter((p) => p.life > 0);
-      // 浮字
-      for (const f of floatsRef.current) {
+      // 浮字 — 原地删除
+      const floats = floatsRef.current;
+      for (let i = floats.length - 1; i >= 0; i--) {
+        const f = floats[i];
         f.y -= 0.6 * steps;
         f.life -= steps;
+        if (f.life <= 0) floats.splice(i, 1);
       }
-      floatsRef.current = floatsRef.current.filter((f) => f.life > 0);
-      // 拖尾衰减
-      for (const tr of trailRef.current) tr.life -= steps;
-      trailRef.current = trailRef.current.filter((tr) => tr.life > 0);
+      // 拖尾衰减 — 原地删除
+      const trail = trailRef.current;
+      for (let i = trail.length - 1; i >= 0; i--) {
+        trail[i].life -= steps;
+        if (trail[i].life <= 0) trail.splice(i, 1);
+      }
       // 间隔
       if (betweenTimerRef.current > 0) betweenTimerRef.current -= steps;
     },
@@ -378,8 +391,13 @@ export default function RagdollLaunchPage() {
   const draw = useCallback(() => {
     const cv = canvasRef.current;
     if (!cv) return;
-    const ctx = cv.getContext("2d");
-    if (!ctx) return;
+    // 缓存 getContext 结果，避免每帧重新获取
+    let ctx = ctxRef.current;
+    if (!ctx) {
+      ctx = cv.getContext("2d");
+      if (!ctx) return;
+      ctxRef.current = ctx;
+    }
     animFrameRef.current++;
     const t = animFrameRef.current;
 

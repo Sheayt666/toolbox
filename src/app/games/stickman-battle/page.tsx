@@ -144,6 +144,9 @@ export default function StickmanBattlePage() {
   const specialCooldownRef = useRef(0);
   const pausedRef = useRef(false);
   const waveMsgTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
+  const lastHpSyncedRef = useRef(-1);
+  const lastSpecialCdSyncedRef = useRef(-1);
 
   const [mounted, setMounted] = useState(false);
   const [score, setScore] = useState(0);
@@ -163,8 +166,13 @@ export default function StickmanBattlePage() {
   const draw = useCallback(() => {
     const cv = canvasRef.current;
     if (!cv) return;
-    const ctx = cv.getContext("2d");
-    if (!ctx) return;
+    // 缓存 getContext 结果，避免每帧重新获取
+    let ctx = ctxRef.current;
+    if (!ctx) {
+      ctx = cv.getContext("2d");
+      if (!ctx) return;
+      ctxRef.current = ctx;
+    }
     animFrameRef.current++;
 
     // 背景
@@ -605,12 +613,14 @@ export default function StickmanBattlePage() {
     if (waveTransitionRef.current > 0) {
       waveTransitionRef.current--;
       // 仍更新特效
-      for (const e of effectsRef.current) {
+      const effects = effectsRef.current;
+      for (let i = effects.length - 1; i >= 0; i--) {
+        const e = effects[i];
         e.life--;
         e.x += e.vx;
         e.y += e.vy;
+        if (e.life <= 0) effects.splice(i, 1);
       }
-      effectsRef.current = effectsRef.current.filter((e) => e.life > 0);
       return;
     }
 
@@ -672,30 +682,34 @@ export default function StickmanBattlePage() {
     // 更新玩家
     updateFighter(player);
 
-    // 更新敌人
-    const aliveEnemies = enemiesRef.current.filter((e) => !e.dead);
-    for (const enemy of aliveEnemies) {
+    // 更新敌人（原地遍历避免 filter 创建新数组）
+    const allEnemies = enemiesRef.current;
+    for (const enemy of allEnemies) {
+      if (enemy.dead) continue;
       updateEnemyAI(enemy, player);
       updateFighter(enemy);
     }
 
     // 攻击命中检测
     if (player.attackType && player.attackTimer > 0 && !player.attackHit) {
-      checkAttackHit(player, enemiesRef.current);
+      checkAttackHit(player, allEnemies);
     }
-    for (const enemy of aliveEnemies) {
+    for (const enemy of allEnemies) {
+      if (enemy.dead) continue;
       if (enemy.attackType && enemy.attackTimer > 0 && !enemy.attackHit) {
         checkAttackHit(enemy, [player]);
       }
     }
 
-    // 更新特效
-    for (const e of effectsRef.current) {
+    // 更新特效 — 原地删除避免每帧 filter 创建新数组（GC 压力）
+    const effects = effectsRef.current;
+    for (let i = effects.length - 1; i >= 0; i--) {
+      const e = effects[i];
       e.life--;
       e.x += e.vx;
       e.y += e.vy;
+      if (e.life <= 0) effects.splice(i, 1);
     }
-    effectsRef.current = effectsRef.current.filter((e) => e.life > 0);
 
     // 连击计时
     if (comboTimerRef.current > 0) {
@@ -709,21 +723,34 @@ export default function StickmanBattlePage() {
     // 特殊技能冷却
     if (specialCooldownRef.current > 0) {
       specialCooldownRef.current--;
-      setSpecialCd(Math.ceil(specialCooldownRef.current / 60));
-    }
-
-    // 清理死亡敌人
-    for (const e of enemiesRef.current) {
-      if (e.dead) {
-        e.deathTimer++;
+      const cdSec = Math.ceil(specialCooldownRef.current / 60);
+      // 仅在变化时更新，避免每帧触发 React 重渲染
+      if (cdSec !== lastSpecialCdSyncedRef.current) {
+        lastSpecialCdSyncedRef.current = cdSec;
+        setSpecialCd(cdSec);
       }
     }
-    enemiesRef.current = enemiesRef.current.filter(
-      (e) => !e.dead || e.deathTimer < 60,
-    );
 
-    // 检查波次完成
-    if (enemiesRef.current.filter((e) => !e.dead).length === 0 && !overRef.current) {
+    // 清理死亡敌人 — 原地删除避免每帧 filter 创建新数组
+    const enemiesArr = enemiesRef.current;
+    for (let i = enemiesArr.length - 1; i >= 0; i--) {
+      if (enemiesArr[i].dead) {
+        enemiesArr[i].deathTimer++;
+        if (enemiesArr[i].deathTimer >= 60) {
+          enemiesArr.splice(i, 1);
+        }
+      }
+    }
+
+    // 检查波次完成 — 用循环代替 filter 避免创建新数组
+    let aliveEnemyCount = 0;
+    for (const e of enemiesRef.current) {
+      if (!e.dead) {
+        aliveEnemyCount++;
+        break;
+      }
+    }
+    if (aliveEnemyCount === 0 && !overRef.current) {
       if (waveRef.current >= MAX_WAVES) {
         // 通关
         scoreRef.current += 500;
@@ -745,8 +772,12 @@ export default function StickmanBattlePage() {
       doGameOver(false);
     }
 
-    // 更新 UI
-    setHp(Math.max(0, Math.ceil(player.hp)));
+    // 更新 UI — 仅在变化时更新
+    const hpRounded = Math.max(0, Math.ceil(player.hp));
+    if (hpRounded !== lastHpSyncedRef.current) {
+      lastHpSyncedRef.current = hpRounded;
+      setHp(hpRounded);
+    }
   }, []);
 
   /* ----- 更新战士物理 ----- */

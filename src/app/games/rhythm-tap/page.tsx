@@ -153,6 +153,7 @@ export default function RhythmTapPage() {
   const progressRef = useRef(0);
   const pausedRef = useRef(false);
   const pauseStartRef = useRef(0);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
 
   // UI 状态
   const [score, setScore] = useState(0);
@@ -252,8 +253,13 @@ export default function RhythmTapPage() {
   const draw = useCallback(() => {
     const cv = canvasRef.current;
     if (!cv) return;
-    const ctx = cv.getContext("2d");
-    if (!ctx) return;
+    // 缓存 getContext 结果，避免每帧重新获取
+    let ctx = ctxRef.current;
+    if (!ctx) {
+      ctx = cv.getContext("2d");
+      if (!ctx) return;
+      ctxRef.current = ctx;
+    }
     animFrameRef.current++;
 
     const elapsed = runningRef.current
@@ -352,10 +358,13 @@ export default function RhythmTapPage() {
       ctx.restore();
     }
 
-    // 命中特效文字
+    // 命中特效文字 — 原地删除避免每帧 filter 创建新数组
     const now = elapsed;
-    hitEffectsRef.current = hitEffectsRef.current.filter((e) => now - e.time < 600);
-    for (const e of hitEffectsRef.current) {
+    const effects = hitEffectsRef.current;
+    for (let i = effects.length - 1; i >= 0; i--) {
+      if (now - effects[i].time >= 600) effects.splice(i, 1);
+    }
+    for (const e of effects) {
       const age = (now - e.time) / 600;
       const alpha = 1 - age;
       const offsetY = age * 30;

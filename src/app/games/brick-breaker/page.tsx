@@ -144,6 +144,7 @@ export default function BrickBreakerPage() {
   const submittedRef = useRef(false);
   const animFrameRef = useRef(0);
   const flashRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
 
   const stepRef = useRef<(dt: number) => void>(() => {});
   const drawRef = useRef<() => void>(() => {});
@@ -382,30 +383,34 @@ export default function BrickBreakerPage() {
         }
       }
 
-      // 移除掉落的球
-      ballsRef.current = ballsRef.current.filter((b) => b.x > -9000);
+      // 移除掉落的球 — 原地删除避免每帧 filter 创建新数组
+      const balls = ballsRef.current;
+      for (let i = balls.length - 1; i >= 0; i--) {
+        if (balls[i].x <= -9000) balls.splice(i, 1);
+      }
       if (ballsRef.current.length === 0) {
         loseLifeRef.current();
       }
 
-      // 道具下落 + 接取
-      for (const p of powerUpsRef.current) {
+      // 道具下落 + 接取 — 原地删除
+      const powerUps = powerUpsRef.current;
+      for (let i = powerUps.length - 1; i >= 0; i--) {
+        const p = powerUps[i];
         p.y += p.vy * dt;
-      }
-      powerUpsRef.current = powerUpsRef.current.filter((p) => {
-        if (p.y > CANVAS_H) return false;
-        // 被挡板接住
-        if (
+        let remove = false;
+        if (p.y > CANVAS_H) {
+          remove = true;
+        } else if (
           p.y + 8 >= PADDLE_Y &&
           p.y <= PADDLE_Y + PADDLE_H &&
           p.x >= paddleXRef.current &&
           p.x <= paddleXRef.current + pw
         ) {
           applyPowerUp(p.kind);
-          return false;
+          remove = true;
         }
-        return true;
-      });
+        if (remove) powerUps.splice(i, 1);
+      }
 
       // 关卡通关判定
       if (bricksRef.current.every((b) => !b.alive)) {
@@ -468,8 +473,13 @@ export default function BrickBreakerPage() {
   const draw = useCallback(() => {
     const cv = canvasRef.current;
     if (!cv) return;
-    const ctx = cv.getContext("2d");
-    if (!ctx) return;
+    // 缓存 getContext 结果，避免每帧重新获取
+    let ctx = ctxRef.current;
+    if (!ctx) {
+      ctx = cv.getContext("2d");
+      if (!ctx) return;
+      ctxRef.current = ctx;
+    }
     animFrameRef.current++;
     const t = animFrameRef.current;
     const now = performance.now();

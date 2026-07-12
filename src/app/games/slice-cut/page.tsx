@@ -102,6 +102,7 @@ export default function SliceCutPage() {
   const overRef = useRef(false);
   const submittedRef = useRef(false);
   const animFrameRef = useRef(0);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
 
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
@@ -116,6 +117,11 @@ export default function SliceCutPage() {
   const gameOverRef = useRef<() => void>(() => {});
 
   const spawnParticles = useCallback((x: number, y: number, color: string, n: number, spd = 5) => {
+    const particles = particlesRef.current;
+    // 粒子上限，防止 GC 压力
+    if (particles.length > 200) {
+      particles.splice(0, particles.length - 200);
+    }
     for (let i = 0; i < n; i++) {
       const a = Math.random() * Math.PI * 2;
       const s = Math.random() * spd + 1;
@@ -284,8 +290,9 @@ export default function SliceCutPage() {
       spawnTimerRef.current = 42 + Math.floor(Math.random() * 36) - Math.min(20, Math.floor(elapsedRef.current / 4));
     }
 
-    // 水果物理
-    for (const f of fruitsRef.current) {
+    // 水果物理 — 原地删除避免每帧 filter 创建新数组
+    const fruits = fruitsRef.current;
+    for (const f of fruits) {
       if (f.dead) continue;
       f.vy += GRAVITY;
       f.x += f.vx;
@@ -302,23 +309,29 @@ export default function SliceCutPage() {
         f.dead = true;
       }
     }
-    fruitsRef.current = fruitsRef.current.filter((f) => !f.dead);
+    for (let i = fruits.length - 1; i >= 0; i--) {
+      if (fruits[i].dead) fruits.splice(i, 1);
+    }
 
-    // 粒子
-    for (const p of particlesRef.current) {
+    // 粒子 — 原地删除
+    const particles = particlesRef.current;
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
       p.vy += 0.25;
       p.x += p.vx;
       p.y += p.vy;
       p.life -= 1;
+      if (p.life <= 0) particles.splice(i, 1);
     }
-    particlesRef.current = particlesRef.current.filter((p) => p.life > 0);
 
-    // 浮字
-    for (const ft of floatsRef.current) {
+    // 浮字 — 原地删除
+    const floats = floatsRef.current;
+    for (let i = floats.length - 1; i >= 0; i--) {
+      const ft = floats[i];
       ft.y -= 0.7;
       ft.life -= 1;
+      if (ft.life <= 0) floats.splice(i, 1);
     }
-    floatsRef.current = floatsRef.current.filter((ft) => ft.life > 0);
 
     // 连击计时
     if (comboTimerRef.current > 0) {
@@ -329,9 +342,12 @@ export default function SliceCutPage() {
       }
     }
 
-    // 切片轨迹老化
+    // 切片轨迹老化 — 原地删除
     const now = performance.now();
-    sliceRef.current = sliceRef.current.filter((p) => now - p.t < 220);
+    const slice = sliceRef.current;
+    for (let i = slice.length - 1; i >= 0; i--) {
+      if (now - slice[i].t >= 220) slice.splice(i, 1);
+    }
   }, [launchFruit, loseLife]);
 
   const step = useCallback(
@@ -361,8 +377,13 @@ export default function SliceCutPage() {
   const draw = useCallback(() => {
     const cv = canvasRef.current;
     if (!cv) return;
-    const ctx = cv.getContext("2d");
-    if (!ctx) return;
+    // 缓存 getContext 结果，避免每帧重新获取
+    let ctx = ctxRef.current;
+    if (!ctx) {
+      ctx = cv.getContext("2d");
+      if (!ctx) return;
+      ctxRef.current = ctx;
+    }
     animFrameRef.current++;
     const t = animFrameRef.current;
     const now = performance.now();

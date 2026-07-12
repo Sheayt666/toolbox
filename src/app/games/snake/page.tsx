@@ -64,6 +64,7 @@ export default function SnakePage() {
   const speedRef = useRef(BASE_SPEED);
   const submittedRef = useRef(false);
   const animFrameRef = useRef<number>(0);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
 
   const [score, setScore] = useState(3);
   const [best, setBest] = useState(3);
@@ -86,8 +87,13 @@ export default function SnakePage() {
   const draw = useCallback(() => {
     const cv = canvasRef.current;
     if (!cv) return;
-    const ctx = cv.getContext("2d");
-    if (!ctx) return;
+    // 缓存 getContext 结果，避免每帧重新获取
+    let ctx = ctxRef.current;
+    if (!ctx) {
+      ctx = cv.getContext("2d");
+      if (!ctx) return;
+      ctxRef.current = ctx;
+    }
 
     // 背景
     ctx.fillStyle = "#09090b";

@@ -84,6 +84,7 @@ export default function TetrisPage() {
   const dropAccRef = useRef(0);
   const dropIntervalRef = useRef(800);
   const animFrameRef = useRef(0);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
 
   const tickRef = useRef<() => void>(() => {});
   const drawRef = useRef<() => void>(() => {});
@@ -327,8 +328,13 @@ export default function TetrisPage() {
   const draw = useCallback(() => {
     const cv = canvasRef.current;
     if (!cv) return;
-    const ctx = cv.getContext("2d");
-    if (!ctx) return;
+    // 缓存 getContext 结果，避免每帧重新获取
+    let ctx = ctxRef.current;
+    if (!ctx) {
+      ctx = cv.getContext("2d");
+      if (!ctx) return;
+      ctxRef.current = ctx;
+    }
     animFrameRef.current++;
 
     // 背景

@@ -93,6 +93,7 @@ export default function SuikaMergePage() {
   const overflowTimerRef = useRef(0);
   const popupRef = useRef<MergePopup | null>(null);
   const animFrameRef = useRef(0);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
 
   // 函数引用，避免 rAF 闭包陈旧
   const stepRef = useRef<(dt: number) => void>(() => {});
@@ -226,7 +227,10 @@ export default function SuikaMergePage() {
         }
         if (toAdd.length) fruits.push(...toAdd);
         if (mergedSet.size) {
-          fruitsRef.current = fruits.filter((f) => !f.merged);
+          // 原地删除已合并的水果，避免 filter 创建新数组（GC 压力）
+          for (let i = fruits.length - 1; i >= 0; i--) {
+            if (fruits[i].merged) fruits.splice(i, 1);
+          }
         }
       }
 
@@ -262,8 +266,13 @@ export default function SuikaMergePage() {
   const draw = useCallback(() => {
     const cv = canvasRef.current;
     if (!cv) return;
-    const ctx = cv.getContext("2d");
-    if (!ctx) return;
+    // 缓存 getContext 结果，避免每帧重新获取
+    let ctx = ctxRef.current;
+    if (!ctx) {
+      ctx = cv.getContext("2d");
+      if (!ctx) return;
+      ctxRef.current = ctx;
+    }
 
     animFrameRef.current++;
     const t = animFrameRef.current;

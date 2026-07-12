@@ -151,6 +151,7 @@ export default function DoodleJumpPage() {
   const bestRef = useRef(0);
   const animFrameRef = useRef(0);
   const starsRef = useRef<{ x: number; y: number; r: number; tw: number }[]>([]);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
 
   // UI 状态
   const [score, setScore] = useState(0);
@@ -166,8 +167,13 @@ export default function DoodleJumpPage() {
   const draw = useCallback(() => {
     const cv = canvasRef.current;
     if (!cv) return;
-    const ctx = cv.getContext("2d");
-    if (!ctx) return;
+    // 缓存 getContext 结果，避免每帧重新获取
+    let ctx = ctxRef.current;
+    if (!ctx) {
+      ctx = cv.getContext("2d");
+      if (!ctx) return;
+      ctxRef.current = ctx;
+    }
     animFrameRef.current++;
 
     // 背景渐变
@@ -514,10 +520,11 @@ export default function DoodleJumpPage() {
       platformsRef.current.push(makePlatform(highestY, -cam));
     }
 
-    // 移除屏幕下方的平台
-    platformsRef.current = platformsRef.current.filter(
-      (p) => p.y < cam + H + 60,
-    );
+    // 移除屏幕下方的平台 — 原地删除避免每帧 filter 创建新数组
+    const platforms = platformsRef.current;
+    for (let i = platforms.length - 1; i >= 0; i--) {
+      if (platforms[i].y >= cam + H + 60) platforms.splice(i, 1);
+    }
 
     // 游戏结束：掉出屏幕底部
     if (player.y - cam > H + 20) {

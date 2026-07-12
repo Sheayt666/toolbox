@@ -96,6 +96,8 @@ export default function NinjaRunnerPage() {
   const bgOffsetRef = useRef(0);
   const mountainsRef = useRef<{ x: number; h: number; w: number }[]>([]);
   const treesRef = useRef<{ x: number; h: number }[]>([]);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
+  const lastScoreSyncedRef = useRef(-1);
 
   const [mounted, setMounted] = useState(false);
   const [score, setScore] = useState(0);
@@ -163,8 +165,13 @@ export default function NinjaRunnerPage() {
 
   /* ----- 添加粒子 ----- */
   const addParticles = useCallback((x: number, y: number, color: string, count: number) => {
+    const particles = particlesRef.current;
+    // 粒子上限，防止 GC 压力
+    if (particles.length > 200) {
+      particles.splice(0, particles.length - 200);
+    }
     for (let i = 0; i < count; i++) {
-      particlesRef.current.push({
+      particles.push({
         x,
         y,
         vx: (Math.random() - 0.5) * 6,
@@ -180,8 +187,13 @@ export default function NinjaRunnerPage() {
   const draw = useCallback(() => {
     const cv = canvasRef.current;
     if (!cv) return;
-    const ctx = cv.getContext("2d");
-    if (!ctx) return;
+    // 缓存 getContext 结果，避免每帧重新获取
+    let ctx = ctxRef.current;
+    if (!ctx) {
+      ctx = cv.getContext("2d");
+      if (!ctx) return;
+      ctxRef.current = ctx;
+    }
     animFrameRef.current++;
 
     // 天空渐变
@@ -709,17 +721,23 @@ export default function NinjaRunnerPage() {
       }
     }
 
-    // 更新障碍物
-    for (const obs of obstaclesRef.current) {
-      obs.x -= speed;
+    // 更新障碍物 — 原地删除避免每帧 filter 创建新数组
+    const obstacles = obstaclesRef.current;
+    for (let i = 0; i < obstacles.length; i++) {
+      obstacles[i].x -= speed;
     }
-    obstaclesRef.current = obstaclesRef.current.filter((o) => o.x > -100);
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+      if (obstacles[i].x <= -100) obstacles.splice(i, 1);
+    }
 
-    // 更新收集品
-    for (const c of collectiblesRef.current) {
-      c.x -= speed;
+    // 更新收集品 — 原地删除
+    const collectibles = collectiblesRef.current;
+    for (let i = 0; i < collectibles.length; i++) {
+      collectibles[i].x -= speed;
     }
-    collectiblesRef.current = collectiblesRef.current.filter((c) => c.x > -50 && !c.collected);
+    for (let i = collectibles.length - 1; i >= 0; i--) {
+      if (collectibles[i].x <= -50 || collectibles[i].collected) collectibles.splice(i, 1);
+    }
 
     // 生成障碍物
     spawnTimerRef.current -= speed;
@@ -775,18 +793,23 @@ export default function NinjaRunnerPage() {
       }
     }
 
-    // 更新粒子
-    for (const p of particlesRef.current) {
+    // 更新粒子 — 原地删除避免每帧 filter 创建新数组
+    const particles = particlesRef.current;
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
       p.x += p.vx;
       p.y += p.vy;
       p.vy += 0.2;
       p.life--;
+      if (p.life <= 0) particles.splice(i, 1);
     }
-    particlesRef.current = particlesRef.current.filter((p) => p.life > 0);
 
-    // 更新分数
+    // 更新分数 — 仅在变化时更新
     const newScore = Math.floor(distanceRef.current / 10) + coinsRef.current * 10;
-    setScore(newScore);
+    if (newScore !== lastScoreSyncedRef.current) {
+      lastScoreSyncedRef.current = newScore;
+      setScore(newScore);
+    }
   }, [spawnObstacle, spawnCollectible, addParticles, doGameOver]);
 
   /* ----- 主循环 ----- */
