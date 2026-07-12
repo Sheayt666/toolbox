@@ -686,8 +686,14 @@ export default function ZombieDefensePage() {
   /*  Render                                                           */
   /* ---------------------------------------------------------------- */
   const render = useCallback((gs: GameState) => {
-    const ctx = ctxRef.current;
-    if (!ctx) return;
+    let ctx = ctxRef.current;
+    if (!ctx) {
+      const cv = canvasRef.current;
+      if (!cv) return;
+      ctx = cv.getContext("2d");
+      if (!ctx) return;
+      ctxRef.current = ctx;
+    }
 
     const weapon = WEAPONS[gs.weaponIndex];
 
@@ -1042,12 +1048,13 @@ export default function ZombieDefensePage() {
   /*  Canvas setup                                                     */
   /* ---------------------------------------------------------------- */
   useEffect(() => {
+    if (!mounted || phase === "loading") return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctxRef.current = ctx;
-  }, [mounted]);
+  }, [mounted, phase]);
 
   /* ---------------------------------------------------------------- */
   /*  HUD sync interval                                                */
@@ -1133,7 +1140,7 @@ export default function ZombieDefensePage() {
       canvas.removeEventListener("mousedown", onMouseDown);
       window.removeEventListener("mouseup", onMouseUp);
     };
-  }, [placeBarricade]);
+  }, [placeBarricade, phase]);
 
   /* ---------------------------------------------------------------- */
   /*  Touch controls (virtual joystick)                                */
@@ -1196,7 +1203,7 @@ export default function ZombieDefensePage() {
       canvas.removeEventListener("touchend", onTouchEnd);
       canvas.removeEventListener("touchcancel", onTouchEnd);
     };
-  }, []);
+  }, [phase]);
 
   /* ---------------------------------------------------------------- */
   /*  Build barricade button (mobile)                                  */
