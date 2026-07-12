@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Brain, RotateCcw } from "lucide-react";
+import { Brain, RotateCcw, Trophy } from "lucide-react";
 import GameShell, { type GameStat } from "@/components/games/GameShell";
 import { submitScore } from "@/lib/gamification";
 
@@ -43,7 +43,11 @@ interface Result {
 }
 
 export default function MemoryMatchPage() {
-  const [cards, setCards] = useState<Card[]>(() => makeCards());
+  // ---- Hydration-safe initialization ----
+  // NEVER call makeCards() (which uses Math.random) during initial render.
+  // Start with an empty array and populate in useEffect after mount.
+  const [mounted, setMounted] = useState(false);
+  const [cards, setCards] = useState<Card[]>([]);
   const [flipped, setFlipped] = useState<number[]>([]);
   const [moves, setMoves] = useState(0);
   const [seconds, setSeconds] = useState(0);
@@ -52,11 +56,25 @@ export default function MemoryMatchPage() {
   const [locked, setLocked] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [bestScore, setBestScore] = useState<number | null>(null);
+  const [scoreAnim, setScoreAnim] = useState(0);
 
   const movesRef = useRef(0);
   const secondsRef = useRef(0);
   const matchedRef = useRef(0);
   const submittedRef = useRef(false);
+
+  // Mount: generate cards and load best score
+  useEffect(() => {
+    setMounted(true);
+    setCards(makeCards());
+    try {
+      const stats = JSON.parse(localStorage.getItem("gm_stats") || "{}");
+      if (stats.highScores?.[GAME_ID]) setBestScore(stats.highScores[GAME_ID]);
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const finish = useCallback(() => {
     if (submittedRef.current) return;
@@ -74,10 +92,12 @@ export default function MemoryMatchPage() {
       moves: movesRef.current,
       seconds: secondsRef.current,
     });
+    setBestScore((prev) => (prev === null ? score : Math.max(prev, score)));
     setRefreshKey((k) => k + 1);
+    setScoreAnim((n) => n + 1);
   }, []);
 
-  // 计时器
+  // Timer
   useEffect(() => {
     if (!started || finished) return;
     const id = window.setInterval(() => {
@@ -103,9 +123,10 @@ export default function MemoryMatchPage() {
     if (newFlipped.length === 2) {
       movesRef.current += 1;
       setMoves(movesRef.current);
+      setScoreAnim((n) => n + 1);
       const [a, b] = newFlipped;
       if (cards[a].emoji === cards[b].emoji) {
-        // 匹配成功
+        // Match
         matchedRef.current += 1;
         setCards((cs) =>
           cs.map((c, idx) =>
@@ -114,10 +135,10 @@ export default function MemoryMatchPage() {
         );
         setFlipped([]);
         if (matchedRef.current === EMOJIS.length) {
-          finish();
+          window.setTimeout(() => finish(), 600);
         }
       } else {
-        // 不匹配，延迟翻回
+        // No match - flip back after delay
         setLocked(true);
         window.setTimeout(() => {
           setCards((cs) =>
@@ -127,7 +148,7 @@ export default function MemoryMatchPage() {
           );
           setFlipped([]);
           setLocked(false);
-        }, 800);
+        }, 900);
       }
     }
   };
@@ -146,6 +167,32 @@ export default function MemoryMatchPage() {
     setLocked(false);
     setResult(null);
   };
+
+  // Loading state before mount (prevents hydration mismatch)
+  if (!mounted || cards.length === 0) {
+    return (
+      <GameShell
+        gameId={GAME_ID}
+        title="记忆翻牌"
+        description="4×4 网格共 8 对 emoji 卡片，翻牌找出全部配对，步数和时间越少分数越高"
+        instructions="点击卡片将其翻开，每次最多翻开两张。"
+        icon={Brain}
+        stats={[
+          { label: "步数", value: 0 },
+          { label: "用时", value: "0s" },
+          { label: "已配对", value: `0/${EMOJIS.length}` },
+          { label: "游戏状态", value: "加载中" },
+        ]}
+        shareScore={0}
+        refreshKey={0}
+      >
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="w-10 h-10 border-2 border-[#8b5cf6] border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-sm text-slate-400">正在洗牌...</p>
+        </div>
+      </GameShell>
+    );
+  }
 
   const matchedCount = cards.filter((c) => c.matched).length / 2;
 
@@ -171,30 +218,64 @@ export default function MemoryMatchPage() {
       refreshKey={refreshKey}
     >
       <div className="flex flex-col items-center">
-        <div className="relative w-full max-w-[400px]">
-          <div className="grid grid-cols-4 gap-2.5">
-            {cards.map((c, i) => (
-              <button
-                key={c.id}
-                onClick={() => handleClick(i)}
-                className={`aspect-square rounded-lg text-3xl sm:text-4xl flex items-center justify-center transition-all duration-300 ${
-                  c.flipped || c.matched
-                    ? "bg-[#27272a] border border-[#8b5cf6]/20"
-                    : "bg-[#8b5cf6]/10 border border-transparent hover:bg-[#8b5cf6]/20"
-                } ${c.matched ? "opacity-40 scale-95" : ""}`}
-                aria-label={c.flipped || c.matched ? c.emoji : "未翻开卡片"}
-              >
-                {c.flipped || c.matched ? c.emoji : "?"}
-              </button>
-            ))}
+        {/* Best score badge */}
+        {bestScore !== null && !finished && (
+          <div className="flex items-center gap-2 mb-4 bg-[#8b5cf6]/10 border border-[#8b5cf6]/25 rounded-lg px-3 py-1.5">
+            <Trophy className="w-3.5 h-3.5 text-amber-400" />
+            <span className="text-xs text-slate-400">最佳：</span>
+            <span className="text-xs font-bold text-[#c084fc]">{bestScore}</span>
+          </div>
+        )}
+
+        <div className="relative w-full max-w-[420px]">
+          <div className="grid grid-cols-4 gap-2.5 sm:gap-3">
+            {cards.map((c, i) => {
+              const isUp = c.flipped || c.matched;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => handleClick(i)}
+                  className={`card-3d aspect-square min-h-[60px] sm:min-h-[80px] ${isUp ? "flipped" : ""}`}
+                  aria-label={isUp ? c.emoji : "未翻开卡片"}
+                >
+                  <div className="card-3d-inner">
+                    {/* Front (back of card, shown when face down) */}
+                    <div
+                      className={`card-3d-face cursor-pointer border ${
+                        c.matched
+                          ? "border-[#8b5cf6]/40 bg-[#8b5cf6]/15"
+                          : "border-transparent bg-gradient-to-br from-[#8b5cf6]/15 to-[#6d28d9]/10 hover:from-[#8b5cf6]/25 hover:to-[#6d28d9]/20"
+                      } transition-colors`}
+                    >
+                      <span className="text-2xl sm:text-3xl opacity-30 select-none">?</span>
+                    </div>
+                    {/* Back (front of card, shown when flipped) */}
+                    <div
+                      className={`card-3d-face card-3d-back border ${
+                        c.matched
+                          ? "border-[#8b5cf6]/50 bg-[#8b5cf6]/20 glow-matched"
+                          : "border-[#8b5cf6]/20 bg-[#27272a]"
+                      }`}
+                    >
+                      <span className={`text-3xl sm:text-4xl select-none ${c.matched ? "scale-110" : ""} transition-transform`}>
+                        {c.emoji}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
 
+          {/* Result overlay */}
           {finished && result && (
-            <div className="absolute inset-0 rounded-xl bg-[#09090b]/85 backdrop-blur-sm flex flex-col items-center justify-center p-4 text-center">
-              <div className="text-4xl mb-2">🧠</div>
-              <h3 className="text-xl font-bold mb-1">通关完成</h3>
+            <div className="absolute inset-0 rounded-xl bg-[#09090b]/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center animate-bounce-in">
+              <div className="text-5xl mb-3">🧠</div>
+              <h3 className="text-xl font-bold mb-2">通关完成</h3>
               <p className="text-sm text-slate-400 mb-1">最终分数</p>
-              <p className="text-3xl font-bold text-[#a78bfa] mb-1">{result.score}</p>
+              <p key={scoreAnim} className="text-4xl font-bold text-[#c084fc] mb-2 animate-score-pop">
+                {result.score}
+              </p>
               <p className="text-xs text-slate-500 mb-3">
                 {result.moves} 步 / {result.seconds} 秒
               </p>
@@ -203,7 +284,7 @@ export default function MemoryMatchPage() {
               </p>
               <button
                 onClick={restart}
-                className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors"
+                className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors active:scale-95"
               >
                 <RotateCcw className="w-4 h-4" /> 再来一局
               </button>
@@ -214,7 +295,7 @@ export default function MemoryMatchPage() {
         {!finished && (
           <button
             onClick={restart}
-            className="mt-5 inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
+            className="mt-5 inline-flex items-center gap-2 h-11 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors active:scale-95"
           >
             <RotateCcw className="w-4 h-4" /> 重新开始
           </button>

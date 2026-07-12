@@ -1,18 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
-import { Grid3x3, RefreshCw, Trophy, Share2, ArrowLeft, Home, Brain, Zap } from "lucide-react";
-import {
-  submitScore,
-  getLeaderboard,
-  createDiss,
-  type LeaderboardEntry,
-} from "@/lib/gamification";
+import { Grid3x3, RefreshCw, Brain, Zap, Sparkles, RotateCcw } from "lucide-react";
+import GameShell, { type GameStat } from "@/components/games/GameShell";
+import { submitScore } from "@/lib/gamification";
 
 /* ============ 常量 ============ */
 type Player = "X" | "O" | null;
-type Difficulty = "easy" | "hard";
+type Difficulty = "easy" | "medium" | "hard";
 type GameResult = "playing" | "win" | "lose" | "draw";
 
 const WIN_LINES: number[][] = [
@@ -27,6 +22,7 @@ const WIN_LINES: number[][] = [
 ];
 
 const GAME_ID = "tic-tac-toe";
+const STATS_KEY = "gm_ttt_stats";
 
 /* ============ 游戏逻辑 ============ */
 
@@ -80,7 +76,7 @@ function minimax(
 
 function getBestMove(board: Player[]): number {
   let bestScore = -Infinity;
-  let bestMove = -1;
+  let bestMoves: number[] = [];
   for (let i = 0; i < 9; i++) {
     if (!board[i]) {
       board[i] = "O";
@@ -88,11 +84,14 @@ function getBestMove(board: Player[]): number {
       board[i] = null;
       if (score > bestScore) {
         bestScore = score;
-        bestMove = i;
+        bestMoves = [i];
+      } else if (score === bestScore) {
+        bestMoves.push(i);
       }
     }
   }
-  return bestMove;
+  // 从最优走法中随机选一个，增加变化性
+  return bestMoves[Math.floor(Math.random() * bestMoves.length)];
 }
 
 function getRandomMove(board: Player[]): number {
@@ -103,7 +102,31 @@ function getRandomMove(board: Player[]): number {
   return available[Math.floor(Math.random() * available.length)];
 }
 
+// 中等难度：50% 最优 + 50% 随机
+function getMediumMove(board: Player[]): number {
+  return Math.random() < 0.5 ? getBestMove(board) : getRandomMove(board);
+}
+
 /* ============ 组件 ============ */
+
+interface SavedStats {
+  wins: number;
+  losses: number;
+  draws: number;
+  bestScore: number;
+}
+
+interface Result {
+  rank: number;
+  total: number;
+  beatPercent: number;
+}
+
+const DIFFICULTY_CONFIG: Record<Difficulty, { label: string; icon: typeof Zap; color: string; desc: string }> = {
+  easy: { label: "简单", icon: Zap, color: "from-[#22c55e] to-[#16a34a]", desc: "AI 随机下棋，适合新手" },
+  medium: { label: "中等", icon: Sparkles, color: "from-[#f59e0b] to-[#d97706]", desc: "AI 半智半随机，有挑战性" },
+  hard: { label: "困难", icon: Brain, color: "from-[#8b5cf6] to-[#6d28d9]", desc: "Minimax 算法，不可战胜" },
+};
 
 export default function TicTacToePage() {
   const [board, setBoard] = useState<Player[]>(Array(9).fill(null));
@@ -111,17 +134,21 @@ export default function TicTacToePage() {
   const [result, setResult] = useState<GameResult>("playing");
   const [winLine, setWinLine] = useState<number[] | null>(null);
   const [isAiTurn, setIsAiTurn] = useState(false);
-  const [stats, setStats] = useState({ wins: 0, losses: 0, draws: 0 });
-  const [bestScore, setBestScore] = useState<number | null>(null);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [lastMove, setLastMove] = useState<number | null>(null);
+  const [stats, setStats] = useState<SavedStats>(() => {
+    if (typeof window === "undefined") return { wins: 0, losses: 0, draws: 0, bestScore: 0 };
+    try {
+      const raw = localStorage.getItem(STATS_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {
+      // ignore
+    }
+    return { wins: 0, losses: 0, draws: 0, bestScore: 0 };
+  });
   const [submitted, setSubmitted] = useState(false);
-  const [shareMsg, setShareMsg] = useState<string | null>(null);
-
-  useEffect(() => {
-    setLeaderboard(getLeaderboard(GAME_ID));
-    const statsRaw = JSON.parse(localStorage.getItem("gm_stats") || "{}");
-    if (statsRaw.highScores?.[GAME_ID]) setBestScore(statsRaw.highScores[GAME_ID]);
-  }, []);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [resultData, setResultData] = useState<Result | null>(null);
+  const [showResultOverlay, setShowResultOverlay] = useState(false);
 
   const reset = useCallback(() => {
     setBoard(Array(9).fill(null));
@@ -129,6 +156,9 @@ export default function TicTacToePage() {
     setWinLine(null);
     setIsAiTurn(false);
     setSubmitted(false);
+    setLastMove(null);
+    setShowResultOverlay(false);
+    setResultData(null);
   }, []);
 
   const handleEnd = useCallback(
@@ -136,24 +166,38 @@ export default function TicTacToePage() {
       setResult(newResult);
       setWinLine(line);
       setIsAiTurn(false);
+
+      let score = 0;
+      if (newResult === "win") score = difficulty === "hard" ? 100 : difficulty === "medium" ? 70 : 50;
+      else if (newResult === "draw") score = difficulty === "hard" ? 30 : difficulty === "medium" ? 20 : 15;
+      else score = 5;
+
       setStats((prev) => {
-        const next = { ...prev };
-        if (newResult === "win") next.wins++;
-        else if (newResult === "lose") next.losses++;
-        else if (newResult === "draw") next.draws++;
+        const next: SavedStats = {
+          wins: prev.wins + (newResult === "win" ? 1 : 0),
+          losses: prev.losses + (newResult === "lose" ? 1 : 0),
+          draws: prev.draws + (newResult === "draw" ? 1 : 0),
+          bestScore: Math.max(prev.bestScore, score),
+        };
+        try {
+          localStorage.setItem(STATS_KEY, JSON.stringify(next));
+        } catch {
+          // ignore
+        }
         return next;
       });
+
       // 提交分数
       if (!submitted) {
-        let score = 0;
-        if (newResult === "win") score = difficulty === "hard" ? 100 : 50;
-        else if (newResult === "draw") score = difficulty === "hard" ? 30 : 15;
-        else score = 5;
-        submitScore(GAME_ID, score, `${difficulty === "hard" ? "困难" : "简单"}模式 ${newResult === "win" ? "胜" : newResult === "draw" ? "平" : "负"}`);
-        setBestScore((prev) => (prev === null ? score : Math.max(prev, score)));
-        setLeaderboard(getLeaderboard(GAME_ID));
+        const detail = `${DIFFICULTY_CONFIG[difficulty].label}模式 ${newResult === "win" ? "胜" : newResult === "draw" ? "平" : "负"}`;
+        const r = submitScore(GAME_ID, score, detail);
+        setResultData(r);
+        setRefreshKey((k) => k + 1);
         setSubmitted(true);
       }
+
+      // 延迟显示结果覆盖层，让落子动画完成
+      setTimeout(() => setShowResultOverlay(true), 500);
     },
     [difficulty, submitted],
   );
@@ -168,11 +212,17 @@ export default function TicTacToePage() {
         handleEnd("draw", null);
         return;
       }
-      const move = difficulty === "hard" ? getBestMove([...board]) : getRandomMove(board);
-      if (move < 0) return;
+      const move =
+        difficulty === "hard"
+          ? getBestMove([...board])
+          : difficulty === "medium"
+            ? getMediumMove([...board])
+            : getRandomMove(board);
+      if (move < 0 || move === undefined) return;
       const newBoard = [...board];
       newBoard[move] = "O";
       setBoard(newBoard);
+      setLastMove(move);
       const { winner: w, line } = checkWinner(newBoard);
       if (w === "O") {
         handleEnd("lose", line);
@@ -180,7 +230,7 @@ export default function TicTacToePage() {
         handleEnd("draw", null);
       }
       setIsAiTurn(false);
-    }, 400);
+    }, 500);
     return () => clearTimeout(timer);
   }, [isAiTurn, board, result, difficulty, handleEnd]);
 
@@ -189,6 +239,7 @@ export default function TicTacToePage() {
     const newBoard = [...board];
     newBoard[index] = "X";
     setBoard(newBoard);
+    setLastMove(index);
     const { winner, line } = checkWinner(newBoard);
     if (winner === "X") {
       handleEnd("win", line);
@@ -201,195 +252,183 @@ export default function TicTacToePage() {
     setIsAiTurn(true);
   };
 
-  const handleShare = () => {
-    const score = bestScore ?? 0;
-    const r = createDiss(GAME_ID, score, "排行榜上的各位");
-    setShareMsg(r.message);
-    setTimeout(() => setShareMsg(null), 4000);
+  const switchDifficulty = (d: Difficulty) => {
+    if (d === difficulty) return;
+    setDifficulty(d);
+    reset();
   };
 
   const totalGames = stats.wins + stats.losses + stats.draws;
+  const winRate = totalGames > 0 ? Math.round((stats.wins / totalGames) * 100) : 0;
+
+  const statsDisplay: GameStat[] = [
+    { label: "胜场", value: stats.wins },
+    { label: "平局", value: stats.draws },
+    { label: "负场", value: stats.losses },
+    { label: "胜率", value: `${winRate}%` },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100">
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        {/* 顶部导航 */}
-        <div className="flex items-center justify-between mb-6">
-          <Link href="/games" className="inline-flex items-center gap-2 text-zinc-400 hover:text-[#8b5cf6] transition-colors text-sm">
-            <ArrowLeft className="w-4 h-4" />
-            返回游戏大厅
-          </Link>
-          <Link href="/" className="inline-flex items-center gap-2 text-zinc-400 hover:text-[#8b5cf6] transition-colors text-sm">
-            <Home className="w-4 h-4" />
-            首页
-          </Link>
-        </div>
-
-        {/* 标题 */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8b5cf6] to-[#6d28d9] mb-4 shadow-lg shadow-[#8b5cf6]/30">
-            <Grid3x3 className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold mb-2">井字棋 AI 对战</h1>
-          <p className="text-zinc-400 text-sm max-w-md mx-auto">
-            你是 X，AI 是 O。困难模式使用 Minimax 算法，不可战胜，最多只能打平。简单模式 AI 随机下棋。
-          </p>
-        </div>
-
+    <GameShell
+      gameId={GAME_ID}
+      title="井字棋 AI 对战"
+      description="与 AI 对战的经典井字棋，三种难度可选，困难模式使用 Minimax 算法不可战胜"
+      instructions={`你是 X，AI 是 O。点击空格落子，三连即胜。
+简单模式：AI 随机下棋，适合新手练手。
+中等模式：AI 50% 最优 + 50% 随机，有一定挑战。
+困难模式：AI 使用 Minimax 算法，不可战胜，最多只能打平。
+你的胜负记录和最佳分数会自动保存在本地。`}
+      icon={Grid3x3}
+      stats={statsDisplay}
+      shareScore={stats.bestScore}
+      refreshKey={refreshKey}
+    >
+      <div className="flex flex-col items-center">
         {/* 难度选择 */}
-        <div className="flex items-center justify-center gap-3 mb-6">
-          <button
-            onClick={() => { setDifficulty("easy"); reset(); }}
-            className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-all ${
-              difficulty === "easy"
-                ? "bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] text-white"
-                : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:border-[#8b5cf6]"
-            }`}
-          >
-            <Zap className="w-4 h-4" />
-            简单（随机）
-          </button>
-          <button
-            onClick={() => { setDifficulty("hard"); reset(); }}
-            className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-all ${
-              difficulty === "hard"
-                ? "bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] text-white"
-                : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:border-[#8b5cf6]"
-            }`}
-          >
-            <Brain className="w-4 h-4" />
-            困难（Minimax）
-          </button>
+        <div className="flex items-center justify-center gap-2 mb-6 flex-wrap">
+          {(Object.keys(DIFFICULTY_CONFIG) as Difficulty[]).map((d) => {
+            const cfg = DIFFICULTY_CONFIG[d];
+            const Icon = cfg.icon;
+            const isActive = difficulty === d;
+            return (
+              <button
+                key={d}
+                onClick={() => switchDifficulty(d)}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
+                  isActive
+                    ? `bg-gradient-to-r ${cfg.color} text-white shadow-lg`
+                    : "bg-[#09090b] border border-[#27272a] text-slate-400 hover:border-[#8b5cf6] hover:text-slate-200"
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {cfg.label}
+              </button>
+            );
+          })}
         </div>
 
-        {/* 统计 */}
-        <div className="flex items-center justify-center gap-4 mb-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 text-center">
-            <p className="text-xs text-zinc-500">胜</p>
-            <p className="text-lg font-bold text-green-400">{stats.wins}</p>
-          </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 text-center">
-            <p className="text-xs text-zinc-500">平</p>
-            <p className="text-lg font-bold text-yellow-400">{stats.draws}</p>
-          </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 text-center">
-            <p className="text-xs text-zinc-500">负</p>
-            <p className="text-lg font-bold text-red-400">{stats.losses}</p>
-          </div>
+        {/* 当前难度说明 + AI 思考状态 */}
+        <div className="flex items-center justify-center gap-2 mb-4 h-6">
+          {isAiTurn ? (
+            <div className="flex items-center gap-2 text-sm text-[#c4b5fd]">
+              <div className="flex gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#c4b5fd] animate-ai-thinking" style={{ animationDelay: "0ms" }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#c4b5fd] animate-ai-thinking" style={{ animationDelay: "150ms" }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#c4b5fd] animate-ai-thinking" style={{ animationDelay: "300ms" }} />
+              </div>
+              AI 思考中...
+            </div>
+          ) : (
+            <p className="text-xs text-slate-500">{DIFFICULTY_CONFIG[difficulty].desc}</p>
+          )}
         </div>
 
         {/* 棋盘 */}
-        <div className="flex justify-center mb-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 shadow-xl">
-            <div className="grid grid-cols-3 gap-2">
+        <div className="relative">
+          <div className="bg-[#09090b] border border-[#27272a] rounded-xl p-3 sm:p-4 shadow-xl shadow-[#8b5cf6]/10">
+            <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
               {board.map((cell, i) => {
                 const isWinCell = winLine?.includes(i);
+                const isLastMove = lastMove === i;
                 return (
                   <button
                     key={i}
                     onClick={() => handleClick(i)}
                     disabled={!!cell || result !== "playing" || isAiTurn}
-                    className={`w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center rounded-xl text-4xl font-bold transition-all ${
+                    className={`w-[88px] h-[88px] sm:w-24 sm:h-24 flex items-center justify-center rounded-xl text-4xl sm:text-5xl font-bold transition-all duration-200 ${
                       isWinCell
-                        ? "bg-[#8b5cf6]/30 border border-[#8b5cf6]"
+                        ? "animate-win-glow border border-[#8b5cf6]"
                         : cell
-                          ? "bg-zinc-800/60"
-                          : "bg-zinc-800/40 hover:bg-[#8b5cf6]/20 active:scale-95"
+                          ? "bg-[#18181b] border border-[#27272a]"
+                          : "bg-[#18181b]/60 border border-[#27272a]/50 hover:bg-[#8b5cf6]/15 hover:border-[#8b5cf6]/50 active:scale-95"
                     } ${!cell && result === "playing" && !isAiTurn ? "cursor-pointer" : "cursor-default"}`}
                   >
-                    {cell === "X" && <span className="text-[#8b5cf6]">✕</span>}
-                    {cell === "O" && <span className="text-zinc-300">○</span>}
+                    {cell === "X" && (
+                      <span
+                        key={`x-${i}-${isLastMove ? "new" : "old"}`}
+                        className={`text-[#a78bfa] ${isLastMove ? "animate-piece-drop" : ""} drop-shadow-lg`}
+                        style={{ filter: "drop-shadow(0 0 8px rgba(167,139,250,0.5))" }}
+                      >
+                        ✕
+                      </span>
+                    )}
+                    {cell === "O" && (
+                      <span
+                        key={`o-${i}-${isLastMove ? "new" : "old"}`}
+                        className={`text-slate-300 ${isLastMove ? "animate-piece-drop" : ""} drop-shadow-lg`}
+                        style={{ filter: "drop-shadow(0 0 8px rgba(255,255,255,0.2))" }}
+                      >
+                        ○
+                      </span>
+                    )}
                   </button>
                 );
               })}
             </div>
           </div>
-        </div>
 
-        {/* 结果 */}
-        {result !== "playing" && (
-          <div className="text-center mb-6">
-            <div
-              className={`inline-block rounded-xl px-6 py-3 ${
-                result === "win"
-                  ? "bg-green-500/10 border border-green-500/30"
-                  : result === "lose"
-                    ? "bg-red-500/10 border border-red-500/30"
-                    : "bg-yellow-500/10 border border-yellow-500/30"
-              }`}
-            >
-              <p
-                className={`font-bold text-lg ${
-                  result === "win" ? "text-green-400" : result === "lose" ? "text-red-400" : "text-yellow-400"
+          {/* 结果覆盖层 */}
+          {showResultOverlay && result !== "playing" && (
+            <div className="absolute inset-0 rounded-xl bg-[#09090b]/90 backdrop-blur-md flex flex-col items-center justify-center p-4 text-center animate-overlay-in">
+              <div className="text-5xl mb-3">
+                {result === "win" ? "🎉" : result === "lose" ? "🤖" : "🤝"}
+              </div>
+              <h3
+                className={`text-2xl font-bold mb-2 ${
+                  result === "win"
+                    ? "text-[#22c55e]"
+                    : result === "lose"
+                      ? "text-red-400"
+                      : "text-yellow-400"
                 }`}
               >
-                {result === "win" ? "🎉 你赢了！" : result === "lose" ? "🤖 AI 获胜" : "🤝 平局！"}
-                {result === "win" && difficulty === "hard" && " 简直不可思议！"}
-              </p>
+                {result === "win" ? "你赢了！" : result === "lose" ? "AI 获胜" : "平局！"}
+              </h3>
+              {result === "win" && difficulty === "hard" && (
+                <p className="text-xs text-[#22c55e] mb-2 font-medium">简直不可思议！</p>
+              )}
+              {resultData && (
+                <p className="text-xs text-slate-400 mb-3 bg-[#27272a]/60 rounded-lg px-3 py-2">
+                  排名第 <span className="text-[#c4b5fd] font-bold">{resultData.rank}</span>/{resultData.total}
+                  ，超越 <span className="text-[#c4b5fd] font-bold">{resultData.beatPercent}%</span> 玩家
+                </p>
+              )}
+              <div className="flex gap-3">
+                <button
+                  onClick={reset}
+                  className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors shadow-lg shadow-[#8b5cf6]/30"
+                >
+                  <RotateCcw className="w-4 h-4" /> 再来一局
+                </button>
+              </div>
             </div>
+          )}
+        </div>
+
+        {/* 详细统计 */}
+        <div className="mt-6 grid grid-cols-3 gap-3 w-full max-w-xs">
+          <div className="bg-[#09090b] border border-[#27272a] rounded-xl px-3 py-2.5 text-center">
+            <p className="text-xs text-slate-500 mb-1">胜</p>
+            <p className="text-xl font-bold text-[#22c55e]">{stats.wins}</p>
           </div>
-        )}
+          <div className="bg-[#09090b] border border-[#27272a] rounded-xl px-3 py-2.5 text-center">
+            <p className="text-xs text-slate-500 mb-1">平</p>
+            <p className="text-xl font-bold text-yellow-400">{stats.draws}</p>
+          </div>
+          <div className="bg-[#09090b] border border-[#27272a] rounded-xl px-3 py-2.5 text-center">
+            <p className="text-xs text-slate-500 mb-1">负</p>
+            <p className="text-xl font-bold text-red-400">{stats.losses}</p>
+          </div>
+        </div>
 
         {/* 重开按钮 */}
-        <div className="flex justify-center mb-8">
-          <button
-            onClick={reset}
-            className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-xl px-6 py-2.5 hover:border-[#8b5cf6] transition-colors text-sm font-medium"
-          >
-            <RefreshCw className="w-4 h-4 text-[#8b5cf6]" />
-            重新开始
-          </button>
-        </div>
-
-        {/* 分数 + 分享 */}
-        <div className="grid sm:grid-cols-2 gap-4 mb-8">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center gap-3">
-            <Trophy className="w-6 h-6 text-yellow-500" />
-            <div>
-              <p className="text-xs text-zinc-500">最佳分数 / 总场次</p>
-              <p className="text-xl font-bold">{bestScore ?? "—"} <span className="text-sm text-zinc-500">/ {totalGames}</span></p>
-            </div>
-          </div>
-          <button
-            onClick={handleShare}
-            className="bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl p-4 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity text-white font-medium"
-          >
-            <Share2 className="w-5 h-5" />
-            分享挑战
-          </button>
-        </div>
-
-        {shareMsg && (
-          <div className="mb-6 bg-[#8b5cf6]/10 border border-[#8b5cf6]/30 rounded-xl p-3 text-center text-sm text-[#c4b5fd]">
-            {shareMsg}
-          </div>
-        )}
-
-        {/* 排行榜 */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <Trophy className="w-5 h-5 text-[#8b5cf6]" />
-            <h2 className="font-bold text-lg">排行榜</h2>
-          </div>
-          <div className="space-y-2">
-            {leaderboard.slice(0, 10).map((entry, i) => (
-              <div
-                key={i}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2 ${
-                  entry.name.includes("(你)") ? "bg-[#8b5cf6]/10 border border-[#8b5cf6]/30" : "bg-zinc-800/40"
-                }`}
-              >
-                <span className={`w-7 text-center font-bold ${i === 0 ? "text-yellow-400" : i === 1 ? "text-zinc-300" : i === 2 ? "text-amber-600" : "text-zinc-500"}`}>
-                  {i + 1}
-                </span>
-                <span className="text-xl">{entry.avatar}</span>
-                <span className="flex-1 text-sm truncate">{entry.name}</span>
-                <span className="font-mono font-bold text-[#8b5cf6]">{entry.score}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        <button
+          onClick={reset}
+          className="mt-5 inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
+        >
+          <RefreshCw className="w-4 h-4 text-[#a78bfa]" /> 重新开始
+        </button>
       </div>
-    </div>
+    </GameShell>
   );
 }

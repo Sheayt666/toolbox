@@ -353,6 +353,88 @@ a {
 }
 
 /* ============================================
+   Game Animations - 2048 / Snake / Tic-Tac-Toe
+   ============================================ */
+@keyframes tile-spawn {
+  0% { opacity: 0; transform: scale(0); }
+  60% { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-tile-spawn {
+  animation: tile-spawn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes tile-merge {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25); box-shadow: 0 0 20px rgba(168, 85, 247, 0.6); }
+  100% { transform: scale(1); }
+}
+.animate-tile-merge {
+  animation: tile-merge 0.25s ease-out forwards;
+}
+
+@keyframes score-pop {
+  0% { opacity: 0; transform: translateY(8px) scale(0.8); }
+  30% { opacity: 1; transform: translateY(-4px) scale(1.1); }
+  100% { opacity: 0; transform: translateY(-24px) scale(1); }
+}
+.animate-score-pop {
+  animation: score-pop 0.8s ease-out forwards;
+}
+
+@keyframes piece-drop {
+  0% { opacity: 0; transform: translateY(-24px) scale(0.5); }
+  60% { opacity: 1; transform: translateY(4px) scale(1.1); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-piece-drop {
+  animation: piece-drop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes win-cell-glow {
+  0%, 100% { box-shadow: 0 0 12px rgba(168, 85, 247, 0.5); background-color: rgba(168, 85, 247, 0.2); }
+  50% { box-shadow: 0 0 24px rgba(168, 85, 247, 0.9); background-color: rgba(168, 85, 247, 0.4); }
+}
+.animate-win-glow {
+  animation: win-cell-glow 0.8s ease-in-out infinite;
+}
+
+@keyframes overlay-in {
+  0% { opacity: 0; transform: scale(0.92); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-overlay-in {
+  animation: overlay-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes ai-thinking {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+.animate-ai-thinking {
+  animation: ai-thinking 1s ease-in-out infinite;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(168, 85, 247, 0.4)); }
+  50% { filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.8)); }
+}
+.animate-glow-pulse {
+  animation: glow-pulse 1.5s ease-in-out infinite;
+}
+
+/* ============================================
    Stagger animation delays
    ============================================ */
 .stagger-1 { animation-delay: 30ms; }
@@ -448,4 +530,155 @@ html {
 
 .input-99工具::placeholder {
   color: #71717a;
+}
+
+/* ============================================
+   Game Animations - 3D Flip, Glow, Pop, etc.
+   ============================================ */
+
+/* 3D Card Flip (Memory Match) */
+.card-3d {
+  perspective: 800px;
+}
+.card-3d-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+.card-3d.flipped .card-3d-inner {
+  transform: rotateY(180deg);
+}
+.card-3d-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 0.75rem;
+}
+.card-3d-back {
+  transform: rotateY(180deg);
+}
+
+/* Glow pulse for matched cards */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(168, 85, 247, 0.3); }
+  50% { box-shadow: 0 0 24px rgba(168, 85, 247, 0.6); }
+}
+.glow-matched {
+  animation: glow-pulse 1.5s ease-in-out infinite;
+}
+
+/* Flag pop (Minesweeper) */
+@keyframes flag-pop {
+  0% { transform: scale(0) rotate(-30deg); }
+  50% { transform: scale(1.25) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+.animate-flag-pop {
+  animation: flag-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Cell reveal flip (Minesweeper) */
+@keyframes cell-flip {
+  0% { transform: rotateX(-90deg); opacity: 0; }
+  100% { transform: rotateX(0deg); opacity: 1; }
+}
+.animate-cell-flip {
+  animation: cell-flip 0.3s ease-out forwards;
+}
+
+/* Score pop */
+@keyframes score-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+.animate-score-pop {
+  animation: score-pop 0.4s ease-out;
+}
+
+/* Level transition (Color Guess) */
+@keyframes level-in {
+  0% { opacity: 0; transform: scale(0.92) translateY(8px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-level-in {
+  animation: level-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Shake for wrong answer */
+@keyframes shake-x {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+.animate-shake {
+  animation: shake-x 0.4s ease-in-out;
+}
+
+/* Bounce in */
+@keyframes bounce-in {
+  0% { opacity: 0; transform: scale(0.3); }
+  50% { opacity: 1; transform: scale(1.05); }
+  70% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+.animate-bounce-in {
+  animation: bounce-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Countdown pulse */
+@keyframes countdown-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.animate-countdown-pulse {
+  animation: countdown-pulse 1s ease-in-out infinite;
+}
+
+/* Progress bar shimmer */
+@keyframes progress-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.progress-shimmer {
+  background: linear-gradient(90deg, #8b5cf6, #c084fc, #8b5cf6);
+  background-size: 200% 100%;
+  animation: progress-shimmer 1.5s linear infinite;
+}
+
+/* Correct flash */
+@keyframes correct-flash {
+  0% { background-color: rgba(34, 197, 94, 0); }
+  30% { background-color: rgba(34, 197, 94, 0.25); }
+  100% { background-color: rgba(34, 197, 94, 0); }
+}
+.animate-correct-flash {
+  animation: correct-flash 0.6s ease-out;
+}
+
+/* Wrong flash */
+@keyframes wrong-flash {
+  0% { background-color: rgba(239, 68, 68, 0); }
+  30% { background-color: rgba(239, 68, 68, 0.25); }
+  100% { background-color: rgba(239, 68, 68, 0); }
+}
+.animate-wrong-flash {
+  animation: wrong-flash 0.6s ease-out;
+}
+
+/* 3D pop for number reveal */
+@keyframes number-reveal {
+  0% { opacity: 0; transform: scale(0.5) rotateY(90deg); }
+  100% { opacity: 1; transform: scale(1) rotateY(0deg); }
+}
+.animate-number-reveal {
+  animation: number-reveal 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Worm, RotateCcw, Play, Pause } from "lucide-react";
+import { Worm, RotateCcw, Play, Pause, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import GameShell, { type GameStat } from "@/components/games/GameShell";
 import { submitScore } from "@/lib/gamification";
 
@@ -11,6 +11,7 @@ const ROWS = 20;
 const CELL = 16; // 画布逻辑分辨率 320×320
 const BASE_SPEED = 160;
 const MIN_SPEED = 70;
+const BEST_SCORE_KEY = "gm_snake_best_score";
 
 type Pt = { x: number; y: number };
 
@@ -58,59 +59,134 @@ export default function SnakePage() {
   const snakeRef = useRef<Pt[]>(initialSnake());
   const dirRef = useRef<Pt>({ x: 1, y: 0 });
   const nextDirRef = useRef<Pt>({ x: 1, y: 0 });
-  // 初始用一个不与初始蛇身重叠的固定位置，挂载后在 effect 中随机化（避免渲染期读取 ref）
   const foodRef = useRef<Pt>({ x: 14, y: 10 });
   const loopRef = useRef<number | null>(null);
   const speedRef = useRef(BASE_SPEED);
   const submittedRef = useRef(false);
+  const animFrameRef = useRef<number>(0);
 
   const [score, setScore] = useState(3);
-  const [best, setBest] = useState(3);
+  const [best, setBest] = useState<number>(() => {
+    if (typeof window === "undefined") return 3;
+    try {
+      return parseInt(localStorage.getItem(BEST_SCORE_KEY) || "3", 10) || 3;
+    } catch {
+      return 3;
+    }
+  });
   const [over, setOver] = useState(false);
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [scorePopups, setScorePopups] = useState<{ id: number; value: number }[]>([]);
+  const [currentSpeed, setCurrentSpeed] = useState(BASE_SPEED);
+  const popupIdRef = useRef(0);
+
+  const triggerScorePopup = useCallback((value: number) => {
+    const id = popupIdRef.current++;
+    setScorePopups((prev) => [...prev, { id, value }]);
+    setTimeout(() => {
+      setScorePopups((prev) => prev.filter((p) => p.id !== id));
+    }, 800);
+  }, []);
 
   const draw = useCallback(() => {
     const cv = canvasRef.current;
     if (!cv) return;
     const ctx = cv.getContext("2d");
     if (!ctx) return;
+
+    // 背景
     ctx.fillStyle = "#09090b";
     ctx.fillRect(0, 0, cv.width, cv.height);
-    // 网格线
-    ctx.strokeStyle = "rgba(39,39,42,0.5)";
-    ctx.lineWidth = 1;
+
+    // 网格点阵（更精致）
+    ctx.fillStyle = "rgba(39,39,42,0.6)";
     for (let i = 0; i <= COLS; i++) {
-      ctx.beginPath();
-      ctx.moveTo(i * CELL, 0);
-      ctx.lineTo(i * CELL, ROWS * CELL);
-      ctx.stroke();
+      for (let j = 0; j <= ROWS; j++) {
+        ctx.fillRect(i * CELL - 0.5, j * CELL - 0.5, 1, 1);
+      }
     }
-    for (let j = 0; j <= ROWS; j++) {
-      ctx.beginPath();
-      ctx.moveTo(0, j * CELL);
-      ctx.lineTo(COLS * CELL, j * CELL);
-      ctx.stroke();
-    }
-    // 食物
+
+    // 食物 — 脉动发光
     const f = foodRef.current;
-    ctx.fillStyle = "#8b5cf6";
-    ctx.shadowColor = "#8b5cf6";
-    ctx.shadowBlur = 8;
+    const pulse = 0.5 + 0.5 * Math.sin(animFrameRef.current * 0.08);
+    const fx = f.x * CELL + CELL / 2;
+    const fy = f.y * CELL + CELL / 2;
+
+    // 食物外光晕
+    const glowRadius = CELL / 2 + 4 + pulse * 3;
+    const grad = ctx.createRadialGradient(fx, fy, 0, fx, fy, glowRadius);
+    grad.addColorStop(0, "rgba(168,85,247,0.5)");
+    grad.addColorStop(0.5, "rgba(168,85,247,0.2)");
+    grad.addColorStop(1, "rgba(168,85,247,0)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(fx - glowRadius, fy - glowRadius, glowRadius * 2, glowRadius * 2);
+
+    // 食物本体
+    ctx.fillStyle = "#c084fc";
+    ctx.shadowColor = "#a855f7";
+    ctx.shadowBlur = 10 + pulse * 6;
     ctx.beginPath();
-    ctx.arc(f.x * CELL + CELL / 2, f.y * CELL + CELL / 2, CELL / 2 - 2, 0, Math.PI * 2);
+    ctx.arc(fx, fy, CELL / 2 - 2 + pulse * 1.5, 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowBlur = 0;
-    // 蛇身
+
+    // 食物高光
+    ctx.fillStyle = "rgba(255,255,255,0.4)";
+    ctx.beginPath();
+    ctx.arc(fx - 2, fy - 2, 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 蛇身 — 渐变 + 圆角
     const snake = snakeRef.current;
     snake.forEach((s, i) => {
-      const t = i / snake.length;
-      ctx.fillStyle = i === 0 ? "#a78bfa" : `rgba(139,92,246,${1 - t * 0.6})`;
-      roundRect(ctx, s.x * CELL + 1, s.y * CELL + 1, CELL - 2, CELL - 2, 4);
-      ctx.fill();
+      const t = i / Math.max(snake.length - 1, 1);
+      if (i === 0) {
+        // 蛇头 — 更亮 + 眼睛
+        ctx.fillStyle = "#c4b5fd";
+        ctx.shadowColor = "#8b5cf6";
+        ctx.shadowBlur = 8;
+        roundRect(ctx, s.x * CELL + 1, s.y * CELL + 1, CELL - 2, CELL - 2, 5);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // 眼睛
+        const dir = dirRef.current;
+        const eyeOffsetX = dir.x * 3;
+        const eyeOffsetY = dir.y * 3;
+        const eye1x = s.x * CELL + CELL / 2 + eyeOffsetX + (dir.x === 0 ? -3 : 0);
+        const eye1y = s.y * CELL + CELL / 2 + eyeOffsetY + (dir.y === 0 ? -3 : 0);
+        const eye2x = s.x * CELL + CELL / 2 + eyeOffsetX + (dir.x === 0 ? 3 : 0);
+        const eye2y = s.y * CELL + CELL / 2 + eyeOffsetY + (dir.y === 0 ? 3 : 0);
+        ctx.fillStyle = "#09090b";
+        ctx.beginPath();
+        ctx.arc(eye1x, eye1y, 2, 0, Math.PI * 2);
+        ctx.arc(eye2x, eye2y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        // 蛇身 — 从亮紫到暗紫渐变
+        const r = Math.round(168 - t * 60);
+        const g = Math.round(85 - t * 40);
+        const b = Math.round(247 - t * 80);
+        ctx.fillStyle = `rgba(${r},${g},${b},${1 - t * 0.4})`;
+        roundRect(ctx, s.x * CELL + 1.5, s.y * CELL + 1.5, CELL - 3, CELL - 3, 4);
+        ctx.fill();
+      }
     });
   }, []);
+
+  // 动画帧循环（用于食物脉动效果，独立于游戏逻辑）
+  useEffect(() => {
+    let raf: number;
+    const animate = () => {
+      animFrameRef.current++;
+      if (canvasRef.current) draw();
+      raf = requestAnimationFrame(animate);
+    };
+    raf = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(raf);
+  }, [draw]);
 
   const finish = useCallback(() => {
     if (submittedRef.current) return;
@@ -119,7 +195,16 @@ export default function SnakePage() {
     const r = submitScore(GAME_ID, len, `长度 ${len}`);
     setResult(r);
     setRefreshKey((k) => k + 1);
-  }, []);
+    // 保存最高分到 localStorage
+    if (len > best) {
+      setBest(len);
+      try {
+        localStorage.setItem(BEST_SCORE_KEY, String(len));
+      } catch {
+        // ignore
+      }
+    }
+  }, [best]);
 
   const gameOver = useCallback(() => {
     setOver(true);
@@ -158,10 +243,11 @@ export default function SnakePage() {
       setScore(len);
       setBest((b) => Math.max(b, len));
       speedRef.current = Math.max(MIN_SPEED, BASE_SPEED - (len - 3) * 5);
+      setCurrentSpeed(speedRef.current);
+      triggerScorePopup(1);
     }
-    draw();
     loopRef.current = window.setTimeout(() => tickRef.current(), speedRef.current);
-  }, [draw, gameOver]);
+  }, [gameOver, triggerScorePopup]);
   useEffect(() => {
     tickRef.current = tick;
   }, [tick]);
@@ -192,14 +278,19 @@ export default function SnakePage() {
     nextDirRef.current = { x: 1, y: 0 };
     foodRef.current = randFood(s);
     speedRef.current = BASE_SPEED;
+    setCurrentSpeed(BASE_SPEED);
     submittedRef.current = false;
     setScore(3);
     setBest(3);
     setOver(false);
     setResult(null);
     setRunning(false);
-    draw();
-  }, [draw]);
+  }, []);
+
+  // 初始化食物位置
+  useEffect(() => {
+    foodRef.current = randFood(snakeRef.current);
+  }, []);
 
   const setDir = useCallback((dx: number, dy: number) => {
     // 禁止 180 度反向
@@ -237,12 +328,6 @@ export default function SnakePage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [running, over, start, pause, setDir]);
 
-  // 初始绘制 + 随机化食物位置
-  useEffect(() => {
-    foodRef.current = randFood(snakeRef.current);
-    draw();
-  }, [draw]);
-
   // 卸载清理
   useEffect(() => {
     return () => {
@@ -272,6 +357,7 @@ export default function SnakePage() {
   const stats: GameStat[] = [
     { label: "当前长度", value: score },
     { label: "最高记录", value: best },
+    { label: "当前速度", value: running ? `${Math.round(1000 / currentSpeed)} fps` : "—" },
     { label: "游戏状态", value: over ? "已结束" : running ? "进行中" : "待开始" },
   ];
 
@@ -280,15 +366,29 @@ export default function SnakePage() {
       gameId={GAME_ID}
       title="贪吃蛇"
       description="经典贪吃蛇游戏，吃食物变长，蛇越长速度越快，撞墙或撞到自己即结束"
-      instructions={`使用键盘方向键或 W A S D 控制方向，空格键暂停/继续，移动端可在画布上滑动。
+      instructions={`使用键盘方向键或 W A S D 控制方向，空格键暂停/继续。
+移动端可在画布上滑动或使用下方方向按钮控制。
 吃到紫色食物蛇身变长，速度会随长度增加而提升。
-撞到墙壁或自己的身体游戏结束，蛇的长度即为你的分数。`}
+撞到墙壁或自己的身体游戏结束，蛇的长度即为你的分数。
+你的最高长度记录会自动保存在本地。`}
       icon={Worm}
       stats={stats}
       shareScore={score}
       refreshKey={refreshKey}
     >
       <div className="flex flex-col items-center">
+        {/* 分数弹出动画层 */}
+        <div className="relative h-8 mb-2">
+          {scorePopups.map((p) => (
+            <div
+              key={p.id}
+              className="absolute left-1/2 -translate-x-1/2 top-0 pointer-events-none animate-score-pop text-lg font-bold text-[#c4b5fd]"
+            >
+              +1 长度
+            </div>
+          ))}
+        </div>
+
         <div className="relative">
           <canvas
             ref={canvasRef}
@@ -296,35 +396,52 @@ export default function SnakePage() {
             height={ROWS * CELL}
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
-            className="w-full max-w-[360px] aspect-square rounded-xl border border-[#27272a] touch-none"
+            className="w-full max-w-[360px] aspect-square rounded-xl border border-[#27272a] touch-none shadow-lg shadow-[#8b5cf6]/10"
           />
 
-          {!running && !over && (
-            <div className="absolute inset-0 rounded-xl bg-[#09090b]/70 backdrop-blur-sm flex flex-col items-center justify-center">
-              <button
-                onClick={start}
-                className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors"
-              >
-                <Play className="w-4 h-4" /> 开始游戏
-              </button>
-              <p className="mt-3 text-xs text-slate-400">方向键 / WASD / 滑动控制</p>
+          {/* 暂停覆盖层 */}
+          {running && (
+            <div
+              className="absolute top-3 right-3 px-3 py-1.5 rounded-lg bg-[#09090b]/80 backdrop-blur-sm border border-[#27272a] text-xs text-slate-400 pointer-events-none animate-pulse-soft"
+            >
+              运行中
             </div>
           )}
 
+          {/* 待开始覆盖层 */}
+          {!running && !over && (
+            <div className="absolute inset-0 rounded-xl bg-[#09090b]/75 backdrop-blur-sm flex flex-col items-center justify-center animate-overlay-in">
+              <button
+                onClick={start}
+                className="inline-flex items-center gap-2 h-12 px-7 text-base font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors shadow-lg shadow-[#8b5cf6]/30"
+              >
+                <Play className="w-5 h-5" /> 开始游戏
+              </button>
+              <p className="mt-4 text-xs text-slate-400 text-center px-4">
+                方向键 / WASD / 滑动 / 按钮
+              </p>
+            </div>
+          )}
+
+          {/* 游戏结束覆盖层 */}
           {over && (
-            <div className="absolute inset-0 rounded-xl bg-[#09090b]/85 backdrop-blur-sm flex flex-col items-center justify-center p-4 text-center">
-              <div className="text-4xl mb-2">🐍</div>
-              <h3 className="text-xl font-bold mb-1">游戏结束</h3>
+            <div className="absolute inset-0 rounded-xl bg-[#09090b]/90 backdrop-blur-md flex flex-col items-center justify-center p-4 text-center animate-overlay-in">
+              <div className="text-5xl mb-3">🐍</div>
+              <h3 className="text-2xl font-bold mb-2">游戏结束</h3>
               <p className="text-sm text-slate-400 mb-1">最终长度</p>
-              <p className="text-3xl font-bold text-[#a78bfa] mb-3">{score}</p>
+              <p className="text-4xl font-bold text-[#a78bfa] mb-1">{score}</p>
+              <p className="text-xs text-slate-500 mb-3">
+                {score >= best ? "新纪录！" : `最高记录: ${best}`}
+              </p>
               {result && (
-                <p className="text-xs text-slate-400 mb-4">
-                  排名第 {result.rank}/{result.total}，超越了 {result.beatPercent}% 的玩家
+                <p className="text-xs text-slate-400 mb-4 bg-[#27272a]/60 rounded-lg px-3 py-2">
+                  排名第 <span className="text-[#c4b5fd] font-bold">{result.rank}</span>/{result.total}
+                  ，超越了 <span className="text-[#c4b5fd] font-bold">{result.beatPercent}%</span> 的玩家
                 </p>
               )}
               <button
                 onClick={restart}
-                className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors"
+                className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors shadow-lg shadow-[#8b5cf6]/30"
               >
                 <RotateCcw className="w-4 h-4" /> 再来一局
               </button>
@@ -332,30 +449,64 @@ export default function SnakePage() {
           )}
         </div>
 
-        <div className="mt-5 flex items-center gap-3">
-          {running ? (
+        {/* 控制按钮区 */}
+        <div className="mt-5 flex flex-col items-center gap-4">
+          {/* 移动端方向按钮 */}
+          <div className="grid grid-cols-3 gap-2 sm:hidden w-48">
+            <div />
             <button
-              onClick={pause}
-              className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
+              onClick={() => setDir(0, -1)}
+              className="h-12 rounded-xl bg-[#27272a] text-white flex items-center justify-center active:bg-[#8b5cf6] active:scale-95 transition-all border border-[#3f3f46]"
             >
-              <Pause className="w-4 h-4" /> 暂停
+              <ChevronUp className="w-6 h-6" />
             </button>
-          ) : (
-            !over && (
+            <div />
+            <button
+              onClick={() => setDir(-1, 0)}
+              className="h-12 rounded-xl bg-[#27272a] text-white flex items-center justify-center active:bg-[#8b5cf6] active:scale-95 transition-all border border-[#3f3f46]"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              onClick={() => setDir(0, 1)}
+              className="h-12 rounded-xl bg-[#27272a] text-white flex items-center justify-center active:bg-[#8b5cf6] active:scale-95 transition-all border border-[#3f3f46]"
+            >
+              <ChevronDown className="w-6 h-6" />
+            </button>
+            <button
+              onClick={() => setDir(1, 0)}
+              className="h-12 rounded-xl bg-[#27272a] text-white flex items-center justify-center active:bg-[#8b5cf6] active:scale-95 transition-all border border-[#3f3f46]"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* 开始/暂停/重开按钮 */}
+          <div className="flex items-center gap-3">
+            {running ? (
               <button
-                onClick={start}
-                className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors"
+                onClick={pause}
+                className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
               >
-                <Play className="w-4 h-4" /> 开始
+                <Pause className="w-4 h-4" /> 暂停
               </button>
-            )
-          )}
-          <button
-            onClick={restart}
-            className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
-          >
-            <RotateCcw className="w-4 h-4" /> 重新开始
-          </button>
+            ) : (
+              !over && (
+                <button
+                  onClick={start}
+                  className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors shadow-lg shadow-[#8b5cf6]/30"
+                >
+                  <Play className="w-4 h-4" /> 开始
+                </button>
+              )
+            )}
+            <button
+              onClick={restart}
+              className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
+            >
+              <RotateCcw className="w-4 h-4" /> 重新开始
+            </button>
+          </div>
         </div>
       </div>
     </GameShell>

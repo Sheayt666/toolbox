@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { Brain, Trophy, Share2, ArrowLeft, Home, RefreshCw, Eye, EyeOff } from "lucide-react";
+import { Brain, Trophy, Share2, ArrowLeft, Home, RefreshCw, Eye, EyeOff, Check, X } from "lucide-react";
 import {
   submitScore,
   getLeaderboard,
@@ -13,9 +13,9 @@ import {
 const GAME_ID = "number-memory";
 const START_LENGTH = 3;
 const MAX_LENGTH = 20;
-const SHOW_DURATION = 3000; // 3 秒
+const SHOW_DURATION = 3000; // 3 seconds
 
-type Phase = "ready" | "showing" | "input" | "correct" | "over";
+type Phase = "ready" | "showing" | "input" | "correct" | "wrong" | "over";
 
 function generateNumber(length: number): string {
   let s = "";
@@ -38,19 +38,27 @@ export default function NumberMemoryPage() {
   const [submitted, setSubmitted] = useState(false);
   const [showCountdown, setShowCountdown] = useState(0);
   const [finalScore, setFinalScore] = useState(0);
+  const [scoreAnim, setScoreAnim] = useState(0);
+  const [progressPercent, setProgressPercent] = useState(100);
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     setLeaderboard(getLeaderboard(GAME_ID));
-    const statsRaw = JSON.parse(localStorage.getItem("gm_stats") || "{}");
-    if (statsRaw.highScores?.[GAME_ID]) setBestScore(statsRaw.highScores[GAME_ID]);
+    try {
+      const statsRaw = JSON.parse(localStorage.getItem("gm_stats") || "{}");
+      if (statsRaw.highScores?.[GAME_ID]) setBestScore(statsRaw.highScores[GAME_ID]);
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   const clearTimers = useCallback(() => {
     if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
     if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
+    if (progressRef.current) { clearInterval(progressRef.current); progressRef.current = null; }
   }, []);
 
   const startRound = useCallback((len: number) => {
@@ -58,7 +66,8 @@ export default function NumberMemoryPage() {
     setTarget(num);
     setInput("");
     setPhase("showing");
-    // 倒计时显示
+
+    // Countdown timer (seconds)
     let remaining = Math.ceil(SHOW_DURATION / 1000);
     setShowCountdown(remaining);
     countdownRef.current = setInterval(() => {
@@ -69,9 +78,24 @@ export default function NumberMemoryPage() {
         countdownRef.current = null;
       }
     }, 1000);
+
+    // Smooth progress bar animation (updates every 50ms)
+    const startTime = Date.now();
+    setProgressPercent(100);
+    progressRef.current = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const pct = Math.max(0, 100 - (elapsed / SHOW_DURATION) * 100);
+      setProgressPercent(pct);
+      if (pct <= 0 && progressRef.current) {
+        clearInterval(progressRef.current);
+        progressRef.current = null;
+      }
+    }, 50);
+
     timerRef.current = setTimeout(() => {
       setPhase("input");
       setShowCountdown(0);
+      setProgressPercent(0);
       setTimeout(() => inputRef.current?.focus(), 100);
     }, SHOW_DURATION);
   }, []);
@@ -86,10 +110,10 @@ export default function NumberMemoryPage() {
   const handleSubmit = useCallback(() => {
     if (phase !== "input") return;
     if (input === target) {
-      // 答对
+      // Correct
       setPhase("correct");
+      setScoreAnim((n) => n + 1);
       if (length >= MAX_LENGTH) {
-        // 达到上限，游戏结束（满分）
         setFinalScore(length);
         if (!submitted) {
           submitScore(GAME_ID, length, `记忆 ${length} 位`);
@@ -97,34 +121,37 @@ export default function NumberMemoryPage() {
           setLeaderboard(getLeaderboard(GAME_ID));
           setSubmitted(true);
         }
-        setPhase("over");
+        setTimeout(() => setPhase("over"), 1500);
         return;
       }
-      // 下一轮
+      // Next round
       setTimeout(() => {
         const nextLen = length + 1;
         setLength(nextLen);
         startRound(nextLen);
-      }, 1200);
+      }, 1300);
     } else {
-      // 答错
-      setPhase("over");
-      // 分数 = 上一次成功记忆的位数；若第一轮就失败则为 0
-      const score = length > START_LENGTH ? length - 1 : 0;
-      setFinalScore(score);
-      if (!submitted && score > 0) {
-        submitScore(GAME_ID, score, `记忆 ${score} 位`);
-        setBestScore((prev) => (prev === null ? score : Math.max(prev, score)));
-        setLeaderboard(getLeaderboard(GAME_ID));
-        setSubmitted(true);
-      } else if (!submitted) {
-        submitScore(GAME_ID, 0, "未通过");
-        setSubmitted(true);
-      }
+      // Wrong
+      setPhase("wrong");
+      setTimeout(() => {
+        setPhase("over");
+        const score = length > START_LENGTH ? length - 1 : 0;
+        setFinalScore(score);
+        if (!submitted && score > 0) {
+          submitScore(GAME_ID, score, `记忆 ${score} 位`);
+          setBestScore((prev) => (prev === null ? score : Math.max(prev, score)));
+          setLeaderboard(getLeaderboard(GAME_ID));
+          setScoreAnim((n) => n + 1);
+          setSubmitted(true);
+        } else if (!submitted) {
+          submitScore(GAME_ID, 0, "未通过");
+          setSubmitted(true);
+        }
+      }, 1200);
     }
   }, [phase, input, target, length, submitted, startRound]);
 
-  // 回车提交
+  // Enter key to submit
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Enter" && phase === "input") {
@@ -172,36 +199,76 @@ export default function NumberMemoryPage() {
 
         {/* 关卡显示 */}
         {phase !== "ready" && (
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-2 flex items-center gap-2">
+          <div className="flex items-center justify-center gap-3 sm:gap-4 mb-6 flex-wrap">
+            <div className="bg-[#18181b] border border-[#27272a] rounded-xl px-5 py-2.5 flex items-center gap-2 min-h-[44px]">
               <span className="text-sm text-zinc-500">当前位数</span>
-              <span className="font-mono text-xl font-bold text-[#8b5cf6]">{length}</span>
+              <span key={length} className="font-mono text-xl font-bold text-[#c084fc] animate-score-pop">{length}</span>
               <span className="text-sm text-zinc-500">/ {MAX_LENGTH}</span>
+            </div>
+            {bestScore !== null && (
+              <div className="flex items-center gap-2 bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5">
+                <Trophy className="w-4 h-4 text-amber-400" />
+                <span className="text-sm text-zinc-500">最佳：</span>
+                <span key={scoreAnim} className="text-sm font-bold text-[#c084fc] animate-score-pop">{bestScore}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 倒计时进度条 */}
+        {phase === "showing" && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-zinc-500">记忆倒计时</span>
+              <span className={`font-mono text-sm font-bold text-[#c084fc] ${showCountdown <= 1 ? "animate-countdown-pulse" : ""}`}>
+                {showCountdown}s
+              </span>
+            </div>
+            <div className="h-3 bg-[#18181b] border border-[#27272a] rounded-full overflow-hidden">
+              <div
+                className="h-full progress-shimmer rounded-full"
+                style={{
+                  width: `${progressPercent}%`,
+                  transition: "width 50ms linear",
+                }}
+              />
             </div>
           </div>
         )}
 
         {/* 游戏区域 */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 mb-6 min-h-[200px] flex flex-col items-center justify-center">
+        <div className={`bg-[#18181b] border border-[#27272a] rounded-xl p-8 mb-6 min-h-[240px] flex flex-col items-center justify-center ${
+          phase === "wrong" ? "animate-wrong-flash" : ""
+        } ${phase === "correct" ? "animate-correct-flash" : ""}`}>
           {phase === "ready" && (
-            <button
-              onClick={startGame}
-              className="bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl px-8 py-3 text-white font-bold text-lg hover:opacity-90 transition-opacity shadow-lg shadow-[#8b5cf6]/30"
-            >
-              开始挑战
-            </button>
+            <div className="text-center">
+              <div className="flex justify-center gap-2 mb-6">
+                {[3, 7, 1, 9].map((n, i) => (
+                  <span
+                    key={i}
+                    className="text-4xl font-mono font-bold text-[#8b5cf6]/30 animate-float"
+                    style={{ animationDelay: `${i * 0.2}s` }}
+                  >
+                    {n}
+                  </span>
+                ))}
+              </div>
+              <button
+                onClick={startGame}
+                className="bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl px-8 py-3.5 text-white font-bold text-lg hover:opacity-90 transition-opacity shadow-lg shadow-[#8b5cf6]/30 active:scale-95 min-h-[44px]"
+              >
+                开始挑战
+              </button>
+            </div>
           )}
 
           {phase === "showing" && (
             <div className="text-center">
-              <div className="flex items-center gap-2 text-[#8b5cf6] mb-4">
+              <div className="flex items-center gap-2 text-[#c084fc] mb-6 justify-center">
                 <Eye className="w-5 h-5" />
-                <span className="text-sm">记住这串数字</span>
-                {showCountdown > 0 && (
-                  <span className="font-mono text-sm text-zinc-500">({showCountdown}s)</span>
-                )}
+                <span className="text-sm font-medium">记住这串数字</span>
               </div>
-              <p className="font-mono text-4xl sm:text-5xl font-bold tracking-[0.2em] text-zinc-100 break-all">
+              <p key={target} className="font-mono text-4xl sm:text-6xl font-bold tracking-[0.15em] sm:tracking-[0.25em] text-zinc-100 break-all animate-number-reveal">
                 {target}
               </p>
             </div>
@@ -209,9 +276,9 @@ export default function NumberMemoryPage() {
 
           {phase === "input" && (
             <div className="text-center w-full max-w-md">
-              <div className="flex items-center gap-2 text-[#8b5cf6] mb-4 justify-center">
+              <div className="flex items-center gap-2 text-[#c084fc] mb-4 justify-center">
                 <EyeOff className="w-5 h-5" />
-                <span className="text-sm">输入你记住的数字（{length} 位）</span>
+                <span className="text-sm font-medium">输入你记住的数字（{length} 位）</span>
               </div>
               <input
                 ref={inputRef}
@@ -222,12 +289,12 @@ export default function NumberMemoryPage() {
                 onChange={(e) => setInput(e.target.value.replace(/[^0-9]/g, ""))}
                 onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }}
                 maxLength={length}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-center font-mono text-2xl font-bold text-zinc-100 focus:border-[#8b5cf6] focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/30"
+                className="w-full bg-[#09090b] border border-[#27272a] rounded-xl px-4 py-4 text-center font-mono text-3xl font-bold text-zinc-100 focus:border-[#8b5cf6] focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/30 transition-all min-h-[44px]"
                 placeholder="••••••"
               />
               <button
                 onClick={handleSubmit}
-                className="mt-4 bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl px-6 py-2 text-white font-medium hover:opacity-90 transition-opacity"
+                className="mt-4 bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl px-8 py-3 text-white font-medium hover:opacity-90 transition-opacity active:scale-95 min-h-[44px]"
               >
                 提交
               </button>
@@ -235,28 +302,42 @@ export default function NumberMemoryPage() {
           )}
 
           {phase === "correct" && (
-            <div className="text-center">
-              <p className="text-green-400 font-bold text-2xl mb-2">✓ 正确！</p>
+            <div className="text-center animate-bounce-in">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20 border border-green-500/40 mb-4">
+                <Check className="w-8 h-8 text-green-400" />
+              </div>
+              <p className="text-green-400 font-bold text-2xl mb-2">正确！</p>
               <p className="text-zinc-400 text-sm">正确答案：{target}</p>
-              <p className="text-[#8b5cf6] text-sm mt-2">进入下一轮...</p>
+              <p className="text-[#c084fc] text-sm mt-3 animate-countdown-pulse">进入下一轮...</p>
+            </div>
+          )}
+
+          {phase === "wrong" && (
+            <div className="text-center animate-shake">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20 border border-red-500/40 mb-4">
+                <X className="w-8 h-8 text-red-400" />
+              </div>
+              <p className="text-red-400 font-bold text-2xl mb-2">答错了</p>
+              <p className="text-zinc-400 text-sm">正确答案：<span className="font-mono text-zinc-200">{target}</span></p>
+              <p className="text-zinc-400 text-sm">你的输入：<span className="font-mono text-red-400">{input}</span></p>
             </div>
           )}
 
           {phase === "over" && (
-            <div className="text-center">
+            <div className="text-center animate-bounce-in">
               {finalScore > 0 ? (
                 <>
-                  <p className="text-red-400 font-bold text-2xl mb-2">✗ 答错了</p>
-                  <p className="text-zinc-400 text-sm mb-1">正确答案：<span className="font-mono text-zinc-200">{target}</span></p>
-                  <p className="text-zinc-400 text-sm">你的输入：<span className="font-mono text-red-400">{input}</span></p>
-                  <p className="text-green-400 text-sm mt-3">你成功记忆了 {finalScore} 位数字</p>
+                  <div className="text-5xl mb-3">🧠</div>
+                  <p className="text-zinc-300 font-bold text-xl mb-2">挑战结束</p>
+                  <p className="text-green-400 text-sm mb-1">你成功记忆了 <span key={scoreAnim} className="font-bold text-2xl text-[#c084fc] animate-score-pop">{finalScore}</span> 位数字</p>
+                  <p className="text-zinc-500 text-xs mb-4">正确答案：<span className="font-mono">{target}</span></p>
                 </>
               ) : (
-                <p className="text-red-400 font-bold text-2xl mb-2">再接再厉！</p>
+                <p className="text-red-400 font-bold text-2xl mb-4">再接再厉！</p>
               )}
               <button
                 onClick={startGame}
-                className="mt-4 inline-flex items-center gap-2 bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl px-6 py-2 text-white font-medium hover:opacity-90 transition-opacity"
+                className="mt-2 inline-flex items-center gap-2 bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl px-6 py-3 text-white font-medium hover:opacity-90 transition-opacity active:scale-95 min-h-[44px]"
               >
                 <RefreshCw className="w-4 h-4" />
                 再来一次
@@ -265,12 +346,16 @@ export default function NumberMemoryPage() {
           )}
         </div>
 
-        {/* 进度条 */}
+        {/* 进度条 - 总体进度 */}
         {phase !== "ready" && phase !== "over" && (
           <div className="mb-6">
-            <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-zinc-500">总进度</span>
+              <span className="text-xs text-zinc-500 font-mono">{length} / {MAX_LENGTH}</span>
+            </div>
+            <div className="h-2 bg-[#18181b] border border-[#27272a] rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-full transition-all duration-500"
+                className="h-full bg-gradient-to-r from-[#8b5cf6] to-[#c084fc] rounded-full transition-all duration-500"
                 style={{ width: `${(length / MAX_LENGTH) * 100}%` }}
               />
             </div>
@@ -279,16 +364,16 @@ export default function NumberMemoryPage() {
 
         {/* 分数 + 分享 */}
         <div className="grid sm:grid-cols-2 gap-4 mb-8">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center gap-3">
+          <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-4 flex items-center gap-3">
             <Trophy className="w-6 h-6 text-yellow-500" />
             <div>
               <p className="text-xs text-zinc-500">最佳记忆位数</p>
-              <p className="text-xl font-bold">{bestScore ?? "—"} <span className="text-sm text-zinc-500">位</span></p>
+              <p key={scoreAnim} className="text-xl font-bold animate-score-pop">{bestScore ?? "—"} <span className="text-sm text-zinc-500">位</span></p>
             </div>
           </div>
           <button
             onClick={handleShare}
-            className="bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl p-4 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity text-white font-medium"
+            className="bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl p-4 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity text-white font-medium min-h-[44px]"
           >
             <Share2 className="w-5 h-5" />
             分享挑战
@@ -302,7 +387,7 @@ export default function NumberMemoryPage() {
         )}
 
         {/* 排行榜 */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+        <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-5">
           <div className="flex items-center gap-2 mb-4">
             <Trophy className="w-5 h-5 text-[#8b5cf6]" />
             <h2 className="font-bold text-lg">排行榜</h2>
@@ -312,7 +397,7 @@ export default function NumberMemoryPage() {
               <div
                 key={i}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2 ${
-                  entry.name.includes("(你)") ? "bg-[#8b5cf6]/10 border border-[#8b5cf6]/30" : "bg-zinc-800/40"
+                  entry.name.includes("(你)") ? "bg-[#8b5cf6]/10 border border-[#8b5cf6]/30" : "bg-[#09090b]/60"
                 }`}
               >
                 <span className={`w-7 text-center font-bold ${i === 0 ? "text-yellow-400" : i === 1 ? "text-zinc-300" : i === 2 ? "text-amber-600" : "text-zinc-500"}`}>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Gamepad2, RotateCcw } from "lucide-react";
+import { Gamepad2, RotateCcw, Trophy } from "lucide-react";
 import GameShell, { type GameStat } from "@/components/games/GameShell";
 import { submitScore } from "@/lib/gamification";
 
@@ -10,6 +10,9 @@ type Dir = "up" | "down" | "left" | "right";
 
 const SIZE = 4;
 const GAME_ID = "2048";
+const BEST_SCORE_KEY = "gm_2048_best_score";
+
+/* ============ 确定性辅助函数 ============ */
 
 function emptyGrid(): Grid {
   return Array.from({ length: SIZE }, () => Array<number>(SIZE).fill(0));
@@ -17,46 +20,73 @@ function emptyGrid(): Grid {
 function cloneGrid(g: Grid): Grid {
   return g.map((r) => r.slice());
 }
-function addRandom(g: Grid): Grid {
+function addRandom(g: Grid): [number, number] | null {
   const empties: [number, number][] = [];
   for (let r = 0; r < SIZE; r++)
     for (let c = 0; c < SIZE; c++) if (g[r][c] === 0) empties.push([r, c]);
-  if (empties.length === 0) return g;
+  if (empties.length === 0) return null;
   const [r, c] = empties[Math.floor(Math.random() * empties.length)];
   g[r][c] = Math.random() < 0.9 ? 2 : 4;
-  return g;
+  return [r, c];
 }
-function slideRow(row: number[]): { row: number[]; gained: number } {
+function slideRow(row: number[]): { row: number[]; gained: number; merges: number[] } {
   const nz = row.filter((v) => v !== 0);
   const merged: number[] = [];
+  const mergeFlags: number[] = [];
   let gained = 0;
   for (let i = 0; i < nz.length; i++) {
     if (i + 1 < nz.length && nz[i] === nz[i + 1]) {
       const v = nz[i] * 2;
       merged.push(v);
+      mergeFlags.push(merged.length - 1);
       gained += v;
       i++;
     } else {
       merged.push(nz[i]);
+      mergeFlags.push(-1);
     }
   }
   while (merged.length < SIZE) merged.push(0);
-  return { row: merged, gained };
+  return { row: merged, gained, merges: mergeFlags };
 }
 function transpose(g: Grid): Grid {
   const res = emptyGrid();
   for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) res[c][r] = g[r][c];
   return res;
 }
-function move(g: Grid, dir: Dir) {
+
+interface MoveResult {
+  grid: Grid;
+  gained: number;
+  moved: boolean;
+  spawned: [number, number] | null;
+  mergedCells: Set<string>;
+}
+
+function move(g: Grid, dir: Dir): MoveResult {
   const work = cloneGrid(g);
   const tr = dir === "up" || dir === "down" ? transpose(work) : work;
   const arr =
     dir === "right" || dir === "down" ? tr.map((r) => r.slice().reverse()) : tr;
   let gained = 0;
-  const slid = arr.map((r) => {
-    const { row, gained: gg } = slideRow(r);
+  const mergedCells = new Set<string>();
+  const slid = arr.map((r, rowIdx) => {
+    const { row, gained: gg, merges } = slideRow(r);
     gained += gg;
+    // Track merged cell positions in final grid coordinates
+    merges.forEach((flag, colIdx) => {
+      if (flag >= 0) {
+        let actualCol = colIdx;
+        let actualRow = rowIdx;
+        if (dir === "right" || dir === "down") actualCol = SIZE - 1 - colIdx;
+        if (dir === "up" || dir === "down") {
+          const tmp = actualRow;
+          actualRow = actualCol;
+          actualCol = tmp;
+        }
+        mergedCells.add(`${actualRow},${actualCol}`);
+      }
+    });
     return row;
   });
   const inv1 =
@@ -65,7 +95,9 @@ function move(g: Grid, dir: Dir) {
   let moved = false;
   for (let r = 0; r < SIZE && !moved; r++)
     for (let c = 0; c < SIZE && !moved; c++) if (res[r][c] !== g[r][c]) moved = true;
-  return { grid: res, gained, moved };
+  if (!moved) return { grid: g, gained: 0, moved: false, spawned: null, mergedCells: new Set() };
+  const spawned = addRandom(res);
+  return { grid: res, gained, moved: true, spawned, mergedCells };
 }
 function isGameOver(g: Grid): boolean {
   for (let r = 0; r < SIZE; r++)
@@ -89,19 +121,25 @@ function newGrid(): Grid {
 }
 
 const TILE_STYLES: Record<number, string> = {
-  0: "bg-[#27272a]/60 text-transparent",
-  2: "bg-[#3f3f46] text-slate-100",
-  4: "bg-[#52525b] text-slate-100",
-  8: "bg-[#8b5cf6] text-white",
-  16: "bg-[#7c3aed] text-white",
-  32: "bg-[#6d28d9] text-white",
-  64: "bg-[#a855f7] text-white",
-  128: "bg-[#c084fc] text-white",
-  256: "bg-[#d8b4fe] text-[#3b0764]",
-  512: "bg-[#f59e0b] text-white",
-  1024: "bg-[#fb923c] text-white",
-  2048: "bg-[#22c55e] text-white",
+  0: "bg-[#27272a]/50",
+  2: "bg-gradient-to-br from-[#3f3f46] to-[#52525b] text-slate-100",
+  4: "bg-gradient-to-br from-[#52525b] to-[#71717a] text-slate-100",
+  8: "bg-gradient-to-br from-[#8b5cf6] to-[#7c3aed] text-white",
+  16: "bg-gradient-to-br from-[#7c3aed] to-[#6d28d9] text-white",
+  32: "bg-gradient-to-br from-[#a855f7] to-[#9333ea] text-white",
+  64: "bg-gradient-to-br from-[#c084fc] to-[#a855f7] text-white",
+  128: "bg-gradient-to-br from-[#d8b4fe] to-[#c084fc] text-[#3b0764]",
+  256: "bg-gradient-to-br from-[#e9d5ff] to-[#d8b4fe] text-[#3b0764]",
+  512: "bg-gradient-to-br from-[#f59e0b] to-[#d97706] text-white",
+  1024: "bg-gradient-to-br from-[#fb923c] to-[#ea580c] text-white",
+  2048: "bg-gradient-to-br from-[#22c55e] to-[#16a34a] text-white",
 };
+
+function tileFontSize(v: number): string {
+  if (v >= 1024) return "text-xl sm:text-2xl";
+  if (v >= 128) return "text-2xl sm:text-3xl";
+  return "text-3xl sm:text-4xl";
+}
 
 interface Result {
   rank: number;
@@ -110,16 +148,50 @@ interface Result {
 }
 
 export default function Game2048Page() {
-  const [grid, setGrid] = useState<Grid>(() => newGrid());
-  const gridRef = useRef<Grid>(grid);
+  // === 水合修复：mounted 模式 ===
+  const [mounted, setMounted] = useState(false);
+  const [grid, setGrid] = useState<Grid>(emptyGrid);
+  const gridRef = useRef<Grid>(emptyGrid());
   const scoreRef = useRef(0);
   const submittedRef = useRef(false);
 
   const [score, setScore] = useState(0);
-  const [best, setBest] = useState(() => maxTile(grid));
+  const [bestScore, setBestScore] = useState<number>(() => {
+    if (typeof window === "undefined") return 0;
+    try {
+      return parseInt(localStorage.getItem(BEST_SCORE_KEY) || "0", 10) || 0;
+    } catch {
+      return 0;
+    }
+  });
+  const [bestTile, setBestTile] = useState(0);
   const [over, setOver] = useState(false);
+  const [won, setWon] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [scorePopups, setScorePopups] = useState<{ id: number; value: number }[]>([]);
+  const [spawnedCells, setSpawnedCells] = useState<Set<string>>(new Set());
+  const [mergedCells, setMergedCells] = useState<Set<string>>(new Set());
+  const popupIdRef = useRef(0);
+
+  // 挂载后初始化游戏（mounted 模式修复水合错误 #418）
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    const g = newGrid();
+    gridRef.current = g;
+    setGrid(g.map((r) => r.slice()));
+    setBestTile(maxTile(g));
+    setMounted(true);
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  const triggerScorePopup = useCallback((value: number) => {
+    const id = popupIdRef.current++;
+    setScorePopups((prev) => [...prev, { id, value }]);
+    setTimeout(() => {
+      setScorePopups((prev) => prev.filter((p) => p.id !== id));
+    }, 800);
+  }, []);
 
   const finish = useCallback((g: Grid) => {
     if (submittedRef.current) return;
@@ -128,50 +200,81 @@ export default function Game2048Page() {
     const r = submitScore(GAME_ID, scoreRef.current, `最高方块 ${mt}`);
     setResult(r);
     setRefreshKey((k) => k + 1);
-  }, []);
+    // 保存最高分到 localStorage
+    if (scoreRef.current > bestScore) {
+      setBestScore(scoreRef.current);
+      try {
+        localStorage.setItem(BEST_SCORE_KEY, String(scoreRef.current));
+      } catch {
+        // ignore
+      }
+    }
+  }, [bestScore]);
 
   const doMove = useCallback(
     (dir: Dir) => {
-      if (submittedRef.current) return;
-      const { grid: ng, gained, moved } = move(gridRef.current, dir);
-      if (!moved) return;
-      addRandom(ng);
-      gridRef.current = ng;
-      setGrid(ng.map((r) => r.slice()));
-      if (gained > 0) {
-        scoreRef.current += gained;
+      if (submittedRef.current || !mounted) return;
+      const res = move(gridRef.current, dir);
+      if (!res.moved) return;
+      gridRef.current = res.grid;
+      setGrid(res.grid.map((r) => r.slice()));
+
+      // 设置动画状态
+      const newSpawned = new Set<string>();
+      if (res.spawned) newSpawned.add(`${res.spawned[0]},${res.spawned[1]}`);
+      setSpawnedCells(newSpawned);
+      setMergedCells(res.mergedCells);
+
+      // 清除动画标记
+      setTimeout(() => {
+        setSpawnedCells(new Set());
+        setMergedCells(new Set());
+      }, 260);
+
+      if (res.gained > 0) {
+        scoreRef.current += res.gained;
         setScore(scoreRef.current);
+        triggerScorePopup(res.gained);
       }
-      const mt = maxTile(ng);
-      setBest((b) => Math.max(b, mt));
-      if (isGameOver(ng)) {
+      const mt = maxTile(res.grid);
+      setBestTile((b) => Math.max(b, mt));
+      if (mt >= 2048 && !won) setWon(true);
+      if (isGameOver(res.grid)) {
         setOver(true);
-        finish(ng);
+        finish(res.grid);
       }
     },
-    [finish],
+    [finish, mounted, won, triggerScorePopup],
   );
 
-  const restart = () => {
+  const restart = useCallback(() => {
     const g = newGrid();
     gridRef.current = g;
     scoreRef.current = 0;
     submittedRef.current = false;
-    setGrid(g);
+    setGrid(g.map((r) => r.slice()));
     setScore(0);
-    setBest(maxTile(g));
+    setBestTile(maxTile(g));
     setOver(false);
+    setWon(false);
     setResult(null);
-  };
+    setSpawnedCells(new Set());
+    setMergedCells(new Set());
+  }, []);
 
   // 键盘控制
   useEffect(() => {
+    if (!mounted) return;
     const onKey = (e: KeyboardEvent) => {
       const map: Record<string, Dir> = {
         ArrowUp: "up",
         ArrowDown: "down",
         ArrowLeft: "left",
         ArrowRight: "right",
+        w: "up", W: "up",
+        s: "down", S: "down",
+        a: "left", A: "left",
+        d: "right", D: "right",
       };
       const dir = map[e.key];
       if (dir) {
@@ -181,7 +284,7 @@ export default function Game2048Page() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [doMove]);
+  }, [doMove, mounted]);
 
   // 触屏滑动
   const touchStart = useRef<{ x: number; y: number } | null>(null);
@@ -204,55 +307,134 @@ export default function Game2048Page() {
 
   const stats: GameStat[] = [
     { label: "当前分数", value: score },
-    { label: "最高方块", value: best },
-    { label: "游戏状态", value: over ? "已结束" : "进行中" },
+    { label: "最高方块", value: bestTile },
+    { label: "历史最高分", value: bestScore },
+    { label: "游戏状态", value: over ? "已结束" : won ? "已胜利" : "进行中" },
   ];
+
+  // === 加载状态（水合修复） ===
+  if (!mounted) {
+    return (
+      <GameShell
+        gameId={GAME_ID}
+        title="2048"
+        description="经典 4×4 数字合并游戏，滑动方块合成更大的数字，挑战 2048 甚至更高"
+        instructions="加载中..."
+        icon={Gamepad2}
+        stats={[
+          { label: "当前分数", value: 0 },
+          { label: "最高方块", value: 0 },
+          { label: "历史最高分", value: 0 },
+          { label: "游戏状态", value: "加载中" },
+        ]}
+        shareScore={0}
+        refreshKey={0}
+      >
+        <div className="flex items-center justify-center py-20">
+          <div className="w-10 h-10 border-2 border-[#8b5cf6] border-t-transparent rounded-full animate-spin" />
+        </div>
+      </GameShell>
+    );
+  }
 
   return (
     <GameShell
       gameId={GAME_ID}
       title="2048"
       description="经典 4×4 数字合并游戏，滑动方块合成更大的数字，挑战 2048 甚至更高"
-      instructions={`使用键盘方向键 ↑ ↓ ← → 或在屏幕上滑动来移动所有方块。
+      instructions={`使用键盘方向键 ↑ ↓ ← → 或 WASD，也可在屏幕上滑动来移动所有方块。
 两个相同的数字相撞时会合并为它们的和，同时获得相应分数。
 每次有效移动后会随机出现一个新方块（2 或 4）。
-当所有格子被填满且无法再合并时游戏结束，分数将自动提交到排行榜。`}
+当所有格子被填满且无法再合并时游戏结束，分数将自动提交到排行榜。
+你的历史最高分会自动保存在本地。`}
       icon={Gamepad2}
       stats={stats}
       shareScore={score}
       refreshKey={refreshKey}
     >
       <div className="flex flex-col items-center">
+        {/* 分数弹出动画层 */}
+        <div className="relative">
+          {scorePopups.map((p) => (
+            <div
+              key={p.id}
+              className="absolute left-1/2 -translate-x-1/2 -top-2 z-20 pointer-events-none animate-score-pop text-2xl font-bold text-[#c4b5fd]"
+            >
+              +{p.value}
+            </div>
+          ))}
+        </div>
+
         <div
           className="relative touch-none select-none"
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
         >
-          <div className="grid grid-cols-4 gap-2.5 bg-[#09090b] p-2.5 rounded-xl">
-            {grid.flat().map((v, i) => (
-              <div
-                key={i}
-                className={`w-16 h-16 sm:w-20 sm:h-20 rounded-lg flex items-center justify-center text-2xl sm:text-3xl font-bold transition-all duration-150 ${TILE_STYLES[v] ?? "bg-[#22c55e] text-white"}`}
-              >
-                {v !== 0 ? v : ""}
-              </div>
-            ))}
+          <div className="grid grid-cols-4 gap-2.5 bg-[#09090b] p-2.5 sm:p-3 rounded-xl border border-[#27272a]">
+            {grid.flat().map((v, i) => {
+              const row = Math.floor(i / SIZE);
+              const col = i % SIZE;
+              const key = `${row},${col}`;
+              const isSpawned = spawnedCells.has(key);
+              const isMerged = mergedCells.has(key);
+              const animClass = isSpawned
+                ? "animate-tile-spawn"
+                : isMerged
+                  ? "animate-tile-merge"
+                  : "";
+              return (
+                <div
+                  key={i}
+                  className={`w-[68px] h-[68px] sm:w-20 sm:h-20 rounded-lg flex items-center justify-center font-bold transition-colors duration-150 ${TILE_STYLES[v] ?? "bg-gradient-to-br from-[#22c55e] to-[#16a34a] text-white"} ${animClass} ${v >= 128 ? "shadow-lg shadow-[#8b5cf6]/20" : ""}`}
+                >
+                  <span className={`${tileFontSize(v)} ${v !== 0 ? "opacity-100" : "opacity-0"}`}>
+                    {v !== 0 ? v : ""}
+                  </span>
+                </div>
+              );
+            })}
           </div>
 
+          {/* 胜利覆盖层 */}
+          {won && !over && (
+            <div className="absolute inset-0 rounded-xl bg-[#09090b]/80 backdrop-blur-sm flex flex-col items-center justify-center p-4 text-center animate-overlay-in">
+              <Trophy className="w-12 h-12 text-[#22c55e] mb-3 animate-glow-pulse" />
+              <h3 className="text-2xl font-bold mb-1 text-[#22c55e]">达成 2048!</h3>
+              <p className="text-sm text-slate-400 mb-4">你赢了！可以继续挑战更高分数</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setWon(false)}
+                  className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-[#22c55e] hover:bg-[#16a34a] rounded-xl transition-colors"
+                >
+                  继续游戏
+                </button>
+                <button
+                  onClick={restart}
+                  className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
+                >
+                  <RotateCcw className="w-4 h-4" /> 重新开始
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 游戏结束覆盖层 */}
           {over && (
-            <div className="absolute inset-0 rounded-xl bg-[#09090b]/85 backdrop-blur-sm flex flex-col items-center justify-center p-4 text-center">
-              <div className="text-4xl mb-2">🎮</div>
-              <h3 className="text-xl font-bold mb-1">游戏结束</h3>
+            <div className="absolute inset-0 rounded-xl bg-[#09090b]/90 backdrop-blur-md flex flex-col items-center justify-center p-4 text-center animate-overlay-in">
+              <div className="text-5xl mb-3">🎮</div>
+              <h3 className="text-2xl font-bold mb-2">游戏结束</h3>
               <p className="text-sm text-slate-400 mb-1">最终分数</p>
-              <p className="text-3xl font-bold text-[#a78bfa] mb-3">{score}</p>
+              <p className="text-4xl font-bold text-[#a78bfa] mb-1">{score}</p>
+              <p className="text-xs text-slate-500 mb-3">最高方块: {bestTile}</p>
               {result && (
-                <p className="text-xs text-slate-400 mb-4">
-                  排名第 {result.rank}/{result.total}，超越了 {result.beatPercent}% 的玩家
+                <p className="text-xs text-slate-400 mb-4 bg-[#27272a]/60 rounded-lg px-3 py-2">
+                  排名第 <span className="text-[#c4b5fd] font-bold">{result.rank}</span>/{result.total}
+                  ，超越了 <span className="text-[#c4b5fd] font-bold">{result.beatPercent}%</span> 的玩家
                 </p>
               )}
               <button
                 onClick={restart}
-                className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors"
+                className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-colors shadow-lg shadow-[#8b5cf6]/30"
               >
                 <RotateCcw className="w-4 h-4" /> 再来一局
               </button>
@@ -261,30 +443,30 @@ export default function Game2048Page() {
         </div>
 
         {/* 移动端方向按钮 */}
-        <div className="mt-5 grid grid-cols-3 gap-2 sm:hidden w-44">
+        <div className="mt-6 grid grid-cols-3 gap-2 sm:hidden w-48">
           <div />
           <button
             onClick={() => doMove("up")}
-            className="h-11 rounded-lg bg-[#27272a] text-white text-lg active:bg-[#8b5cf6]"
+            className="h-12 rounded-xl bg-[#27272a] text-white text-xl font-bold active:bg-[#8b5cf6] active:scale-95 transition-all border border-[#3f3f46]"
           >
             ↑
           </button>
           <div />
           <button
             onClick={() => doMove("left")}
-            className="h-11 rounded-lg bg-[#27272a] text-white text-lg active:bg-[#8b5cf6]"
+            className="h-12 rounded-xl bg-[#27272a] text-white text-xl font-bold active:bg-[#8b5cf6] active:scale-95 transition-all border border-[#3f3f46]"
           >
             ←
           </button>
           <button
             onClick={() => doMove("down")}
-            className="h-11 rounded-lg bg-[#27272a] text-white text-lg active:bg-[#8b5cf6]"
+            className="h-12 rounded-xl bg-[#27272a] text-white text-xl font-bold active:bg-[#8b5cf6] active:scale-95 transition-all border border-[#3f3f46]"
           >
             ↓
           </button>
           <button
             onClick={() => doMove("right")}
-            className="h-11 rounded-lg bg-[#27272a] text-white text-lg active:bg-[#8b5cf6]"
+            className="h-12 rounded-xl bg-[#27272a] text-white text-xl font-bold active:bg-[#8b5cf6] active:scale-95 transition-all border border-[#3f3f46]"
           >
             →
           </button>
@@ -292,7 +474,7 @@ export default function Game2048Page() {
 
         <button
           onClick={restart}
-          className="mt-5 inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors"
+          className="mt-6 inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-xl transition-colors border border-[#3f3f46]"
         >
           <RotateCcw className="w-4 h-4" /> 重新开始
         </button>

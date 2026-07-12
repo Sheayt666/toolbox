@@ -119,10 +119,15 @@ export interface PlayerInfo {
 const AVATARS = ["🐱", "🦊", "🐼", "🐨", "🦁", "🐯", "🐸", "🐵", "🦄", "🐲", "🤖", "👻", "💀", "🥷", "Wizard", "🧙"];
 
 export function getPlayer(): PlayerInfo {
-  return safeParse<PlayerInfo>(KEYS.PLAYER, {
+  const existing = safeParse<PlayerInfo | null>(KEYS.PLAYER, null);
+  if (existing && existing.name) return existing;
+  // 首次访问：生成随机昵称和头像并持久化，避免每次调用返回不同值
+  const newPlayer: PlayerInfo = {
     name: "匿名玩家" + Math.floor(Math.random() * 1000),
     avatar: AVATARS[Math.floor(Math.random() * AVATARS.length)],
-  });
+  };
+  safeSave(KEYS.PLAYER, newPlayer);
+  return newPlayer;
 }
 
 export function setPlayer(name: string, avatar: string): void {

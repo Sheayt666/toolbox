@@ -1,19 +1,15 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import Link from "next/link";
-import { Crosshair, Trophy, Share2, ArrowLeft, Home, RefreshCw, Target, Clock, Zap } from "lucide-react";
-import {
-  submitScore,
-  getLeaderboard,
-  createDiss,
-  type LeaderboardEntry,
-} from "@/lib/gamification";
+import { Crosshair, RotateCcw, Trophy, Flame } from "lucide-react";
+import GameShell, { type GameStat } from "@/components/games/GameShell";
+import { submitScore } from "@/lib/gamification";
 
 const GAME_ID = "aim-trainer";
-const GAME_DURATION = 30; // 30 秒
-const TARGET_SIZE = 48; // 目标直径 px
-const TARGET_LIFETIME = 1500; // 目标自动消失时间 ms
+const GAME_DURATION = 30;
+const TARGET_SIZE = 52;
+const TARGET_LIFETIME = 1500;
+const BEST_KEY = "toolbox_aim_best";
 
 type Phase = "ready" | "playing" | "over";
 
@@ -23,30 +19,70 @@ interface TargetData {
   y: number;
 }
 
-/* ============ 组件 ============ */
+interface BurstEffect {
+  id: number;
+  x: number;
+  y: number;
+  type: "hit" | "miss";
+}
+
+interface Result {
+  rank: number;
+  total: number;
+  beatPercent: number;
+  hits: number;
+  misses: number;
+  accuracy: number;
+  avgReaction: number;
+  bestReaction: number;
+  maxCombo: number;
+  score: number;
+  isNewBest: boolean;
+}
 
 export default function AimTrainerPage() {
   const [phase, setPhase] = useState<Phase>("ready");
   const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
   const [hits, setHits] = useState(0);
   const [misses, setMisses] = useState(0);
+  const [combo, setCombo] = useState(0);
+  const [maxCombo, setMaxCombo] = useState(0);
   const [target, setTarget] = useState<TargetData | null>(null);
-  const [bestScore, setBestScore] = useState<number | null>(null);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [shareMsg, setShareMsg] = useState<string | null>(null);
-  const [submitted, setSubmitted] = useState(false);
-  const [reactionTimes, setReactionTimes] = useState<number[]>([]);
+  const [bestScore, setBestScore] = useState(0);
+  const [result, setResult] = useState<Result | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [bursts, setBursts] = useState<BurstEffect[]>([]);
 
   const arenaRef = useRef<HTMLDivElement>(null);
   const targetIdRef = useRef(0);
   const targetSpawnTimeRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const autoHideRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const burstIdRef = useRef(0);
+
+  // 用 ref 防止 endGame 闭包过期（修复旧代码中 hits 始终为 0 的 bug）
+  const hitsRef = useRef(0);
+  const missesRef = useRef(0);
+  const comboRef = useRef(0);
+  const maxComboRef = useRef(0);
+  const reactionTimesRef = useRef<number[]>([]);
+  const submittedRef = useRef(false);
 
   useEffect(() => {
-    setLeaderboard(getLeaderboard(GAME_ID));
-    const statsRaw = JSON.parse(localStorage.getItem("gm_stats") || "{}");
-    if (statsRaw.highScores?.[GAME_ID]) setBestScore(statsRaw.highScores[GAME_ID]);
+    try {
+      const b = localStorage.getItem(BEST_KEY);
+      if (b) setBestScore(parseInt(b, 10) || 0);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const addBurst = useCallback((x: number, y: number, type: "hit" | "miss") => {
+    const id = ++burstIdRef.current;
+    setBursts((prev) => [...prev, { id, x, y, type }]);
+    window.setTimeout(() => {
+      setBursts((prev) => prev.filter((b) => b.id !== id));
+    }, 600);
   }, []);
 
   const spawnTarget = useCallback(() => {
@@ -61,36 +97,81 @@ export default function AimTrainerPage() {
     targetSpawnTimeRef.current = Date.now();
     setTarget({ id: targetIdRef.current, x, y });
 
-    // 自动消失换位置（算 miss）
     if (autoHideRef.current) clearTimeout(autoHideRef.current);
     autoHideRef.current = setTimeout(() => {
-      setMisses((m) => m + 1);
+      missesRef.current += 1;
+      setMisses(missesRef.current);
+      comboRef.current = 0;
+      setCombo(0);
       spawnTarget();
     }, TARGET_LIFETIME);
   }, []);
 
   const endGame = useCallback(() => {
+    if (submittedRef.current) return;
+    submittedRef.current = true;
     setPhase("over");
     setTarget(null);
-    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
-    if (autoHideRef.current) { clearTimeout(autoHideRef.current); autoHideRef.current = null; }
-    if (!submitted) {
-      submitScore(GAME_ID, hits, `命中 ${hits} 次`);
-      setBestScore((prev) => (prev === null ? hits : Math.max(prev, hits)));
-      setLeaderboard(getLeaderboard(GAME_ID));
-      setSubmitted(true);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
     }
-  }, [hits, submitted]);
+    if (autoHideRef.current) {
+      clearTimeout(autoHideRef.current);
+      autoHideRef.current = null;
+    }
+
+    const h = hitsRef.current;
+    const m = missesRef.current;
+    const rt = reactionTimesRef.current;
+    const totalShots = h + m;
+    const accuracy = totalShots > 0 ? Math.round((h / totalShots) * 100) : 0;
+    const avgReaction =
+      rt.length > 0 ? Math.round(rt.reduce((a, b) => a + b, 0) / rt.length) : 0;
+    const bestReaction = rt.length > 0 ? Math.min(...rt) : 0;
+    const score = h;
+    const r = submitScore(GAME_ID, score, `命中 ${h} 次`);
+    const isNewBest = score > bestScore;
+    if (isNewBest) {
+      setBestScore(score);
+      try {
+        localStorage.setItem(BEST_KEY, String(score));
+      } catch {
+        /* ignore */
+      }
+    }
+    setResult({
+      ...r,
+      hits: h,
+      misses: m,
+      accuracy,
+      avgReaction,
+      bestReaction,
+      maxCombo: maxComboRef.current,
+      score,
+      isNewBest,
+    });
+    setRefreshKey((k) => k + 1);
+  }, [bestScore]);
 
   const startGame = useCallback(() => {
-    setPhase("playing");
+    submittedRef.current = false;
+    hitsRef.current = 0;
+    missesRef.current = 0;
+    comboRef.current = 0;
+    maxComboRef.current = 0;
+    reactionTimesRef.current = [];
     setHits(0);
     setMisses(0);
-    setSubmitted(false);
-    setReactionTimes([]);
+    setCombo(0);
+    setMaxCombo(0);
+    setBursts([]);
+    setResult(null);
     setTimeLeft(GAME_DURATION);
+    setPhase("playing");
     // 等待下一帧让 arena 渲染
-    setTimeout(() => spawnTarget(), 50);
+    window.setTimeout(() => spawnTarget(), 50);
+    if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
       setTimeLeft((t) => {
         if (t <= 1) {
@@ -104,110 +185,165 @@ export default function AimTrainerPage() {
 
   const handleHit = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!target) return;
     const reactionTime = Date.now() - targetSpawnTimeRef.current;
-    setReactionTimes((prev) => [...prev, reactionTime]);
-    setHits((h) => h + 1);
+    reactionTimesRef.current.push(reactionTime);
+    hitsRef.current += 1;
+    setHits(hitsRef.current);
+    comboRef.current += 1;
+    if (comboRef.current > maxComboRef.current) {
+      maxComboRef.current = comboRef.current;
+      setMaxCombo(maxComboRef.current);
+    }
+    setCombo(comboRef.current);
+
+    // 爆炸效果在目标中心
+    addBurst(target.x + TARGET_SIZE / 2, target.y + TARGET_SIZE / 2, "hit");
+
     if (autoHideRef.current) clearTimeout(autoHideRef.current);
     spawnTarget();
   };
 
-  const handleMiss = () => {
+  const handleMiss = (e: React.MouseEvent) => {
     if (phase !== "playing") return;
-    setMisses((m) => m + 1);
+    missesRef.current += 1;
+    setMisses(missesRef.current);
+    comboRef.current = 0;
+    setCombo(0);
+
+    // 涟漪效果在点击位置
+    const rect = arenaRef.current?.getBoundingClientRect();
+    if (rect) {
+      addBurst(e.clientX - rect.left, e.clientY - rect.top, "miss");
+    }
   };
 
-  useEffect(() => () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (autoHideRef.current) clearTimeout(autoHideRef.current);
-  }, []);
-
-  const handleShare = () => {
-    const score = bestScore ?? 0;
-    const r = createDiss(GAME_ID, score, "排行榜上的各位");
-    setShareMsg(r.message);
-    setTimeout(() => setShareMsg(null), 4000);
-  };
+  useEffect(
+    () => () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (autoHideRef.current) clearTimeout(autoHideRef.current);
+    },
+    [],
+  );
 
   const totalShots = hits + misses;
   const accuracy = totalShots > 0 ? Math.round((hits / totalShots) * 100) : 0;
-  const avgReaction = reactionTimes.length > 0
-    ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length)
-    : 0;
+
+  const stats: GameStat[] =
+    phase === "ready"
+      ? []
+      : [
+          { label: "剩余时间", value: `${timeLeft}s` },
+          { label: "命中", value: hits },
+          { label: "命中率", value: `${accuracy}%` },
+          { label: "连击", value: combo },
+        ];
+
+  const timePercent = (timeLeft / GAME_DURATION) * 100;
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100">
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        {/* 顶部导航 */}
-        <div className="flex items-center justify-between mb-6">
-          <Link href="/games" className="inline-flex items-center gap-2 text-zinc-400 hover:text-[#8b5cf6] transition-colors text-sm">
-            <ArrowLeft className="w-4 h-4" />
-            返回游戏大厅
-          </Link>
-          <Link href="/" className="inline-flex items-center gap-2 text-zinc-400 hover:text-[#8b5cf6] transition-colors text-sm">
-            <Home className="w-4 h-4" />
-            首页
-          </Link>
-        </div>
+    <GameShell
+      gameId={GAME_ID}
+      title="瞄准训练器"
+      description="30 秒倒计时，随机位置出现圆形目标。点击目标得分，目标会在 1.5 秒后自动消失。统计命中数、命中率与反应时间。"
+      instructions={`点击"开始训练"启动 30 秒倒计时，圆形目标会在随机位置出现。
+尽快点击目标得分，每个目标最多停留 1.5 秒，超时自动消失并计为未命中。
+连续命中可累积连击，未命中或超时则连击清零。
+游戏结束后，命中数将自动提交到排行榜。`}
+      icon={Crosshair}
+      stats={stats}
+      shareScore={result?.score ?? 0}
+      refreshKey={refreshKey}
+    >
+      <style>{`
+        @keyframes aim-target-in {
+          0% { transform: scale(0); opacity: 0; }
+          60% { transform: scale(1.15); }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        .aim-target-in { animation: aim-target-in 0.2s cubic-bezier(0.22, 1, 0.36, 1); }
+        @keyframes aim-hit-burst {
+          0% { transform: translate(-50%, -50%) scale(0.4); opacity: 1; border-width: 4px; }
+          100% { transform: translate(-50%, -50%) scale(3); opacity: 0; border-width: 1px; }
+        }
+        .aim-hit-burst { animation: aim-hit-burst 0.5s ease-out forwards; }
+        @keyframes aim-miss-burst {
+          0% { transform: translate(-50%, -50%) scale(0); opacity: 0.5; }
+          100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
+        }
+        .aim-miss-burst { animation: aim-miss-burst 0.4s ease-out forwards; }
+        @keyframes aim-float-in {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .aim-float-in { animation: aim-float-in 0.4s ease-out forwards; }
+      `}</style>
 
-        {/* 标题 */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8b5cf6] to-[#6d28d9] mb-4 shadow-lg shadow-[#8b5cf6]/30">
-            <Crosshair className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold mb-2">瞄准训练器</h1>
-          <p className="text-zinc-400 text-sm max-w-md mx-auto">
-            30 秒倒计时，随机位置出现圆形目标。点击目标得分，目标会在 1.5 秒后自动消失换位置。统计命中数和命中率。
-          </p>
-        </div>
-
-        {/* 统计栏 */}
-        {phase !== "ready" && (
-          <div className="flex items-center justify-center gap-3 mb-6 flex-wrap">
-            <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2">
-              <Clock className="w-4 h-4 text-[#8b5cf6]" />
-              <span className="font-mono text-lg font-bold">{timeLeft}s</span>
-            </div>
-            <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2">
-              <Target className="w-4 h-4 text-green-400" />
-              <span className="text-sm text-zinc-500">命中</span>
-              <span className="font-mono text-lg font-bold text-green-400">{hits}</span>
-            </div>
-            <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2">
-              <span className="text-sm text-zinc-500">未中</span>
-              <span className="font-mono text-lg font-bold text-red-400">{misses}</span>
-            </div>
-            <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2">
-              <Zap className="w-4 h-4 text-yellow-400" />
-              <span className="text-sm text-zinc-500">命中率</span>
-              <span className="font-mono text-lg font-bold text-yellow-400">{accuracy}%</span>
-            </div>
+      <div className="flex flex-col items-center">
+        {/* 进度条（仅游戏中显示） */}
+        {phase === "playing" && (
+          <div className="w-full h-2 bg-[#27272a] rounded-full mb-4 overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-1000 ease-linear"
+              style={{
+                width: `${timePercent}%`,
+                background:
+                  timePercent > 33
+                    ? "linear-gradient(90deg, #8b5cf6, #c084fc)"
+                    : "linear-gradient(90deg, #ef4444, #f59e0b)",
+                boxShadow: "0 0 10px rgba(168, 85, 247, 0.4)",
+              }}
+            />
           </div>
         )}
 
-        {/* 游戏区域 */}
+        {/* 准备界面 */}
         {phase === "ready" && (
-          <div className="text-center py-16">
+          <div className="flex flex-col items-center py-12">
+            <div className="text-5xl mb-4">🎯</div>
+            <p className="text-sm text-slate-400 mb-6 text-center max-w-sm">
+              30 秒内尽可能多地命中目标。目标会在 1.5 秒后自动消失，手要快！
+            </p>
+            {bestScore > 0 && (
+              <div className="mb-6 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-sm">
+                <Trophy className="w-4 h-4" /> 历史最佳: {bestScore} 命中
+              </div>
+            )}
             <button
               onClick={startGame}
-              className="bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl px-8 py-3 text-white font-bold text-lg hover:opacity-90 transition-opacity shadow-lg shadow-[#8b5cf6]/30"
+              className="h-12 px-8 text-base font-bold text-white bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg shadow-[#8b5cf6]/30"
             >
               开始训练
             </button>
           </div>
         )}
 
+        {/* 游戏中 */}
         {phase === "playing" && (
           <div
             ref={arenaRef}
             onClick={handleMiss}
-            className="relative w-full bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden mb-6 select-none cursor-crosshair"
-            style={{ height: "420px" }}
+            className="relative w-full bg-[#09090b] border border-[#27272a] rounded-xl overflow-hidden mb-4 select-none cursor-crosshair bg-dot"
+            style={{ height: "400px" }}
           >
+            {/* 连击显示 */}
+            {combo >= 2 && (
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+                <div
+                  key={combo}
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-sm font-bold animate-scale-in backdrop-blur-sm"
+                >
+                  <Flame className="w-4 h-4" /> {combo} 连击
+                </div>
+              </div>
+            )}
+
+            {/* 目标 */}
             {target && (
               <button
                 key={target.id}
                 onClick={handleHit}
-                className="absolute rounded-full bg-gradient-to-br from-[#8b5cf6] to-[#6d28d9] hover:from-[#a78bfa] hover:to-[#7c3aed] transition-all active:scale-90 shadow-lg shadow-[#8b5cf6]/50"
+                className="absolute rounded-full bg-gradient-to-br from-[#a855f7] to-[#7c3aed] hover:from-[#c084fc] hover:to-[#8b5cf6] transition-transform active:scale-90 shadow-lg shadow-[#8b5cf6]/50 aim-target-in flex items-center justify-center"
                 style={{
                   left: `${target.x}px`,
                   top: `${target.y}px`,
@@ -215,94 +351,94 @@ export default function AimTrainerPage() {
                   height: `${TARGET_SIZE}px`,
                 }}
               >
-                <span className="flex items-center justify-center w-full h-full">
-                  <span className="w-2 h-2 rounded-full bg-white/80" />
-                </span>
+                <span className="w-3 h-3 rounded-full bg-white/90 shadow-sm" />
               </button>
             )}
+
+            {/* 命中/未中特效 */}
+            {bursts.map((b) => (
+              <div
+                key={b.id}
+                className={`absolute pointer-events-none rounded-full ${b.type === "hit" ? "aim-hit-burst" : "aim-miss-burst"}`}
+                style={{
+                  left: `${b.x}px`,
+                  top: `${b.y}px`,
+                  width: `${b.type === "hit" ? TARGET_SIZE : 30}px`,
+                  height: `${b.type === "hit" ? TARGET_SIZE : 30}px`,
+                  border: b.type === "hit" ? "3px solid #22c55e" : "2px solid #ef4444",
+                  backgroundColor: b.type === "hit" ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.1)",
+                }}
+              />
+            ))}
           </div>
         )}
 
-        {phase === "over" && (
-          <div className="text-center py-8 mb-6">
-            <div className="inline-block bg-zinc-900 border border-zinc-800 rounded-xl px-8 py-6">
-              <p className="text-2xl font-bold mb-4">
-                {hits >= 25 ? "🎯 神枪手！" : hits >= 15 ? "👍 不错！" : "💪 继续训练！"}
-              </p>
-              <div className="grid grid-cols-3 gap-6 mb-4">
-                <div>
-                  <p className="text-xs text-zinc-500 mb-1">命中数</p>
-                  <p className="text-3xl font-bold text-green-400">{hits}</p>
+        {/* 结果界面 */}
+        {phase === "over" && result && (
+          <div className="w-full max-w-md aim-float-in">
+            <div className="rounded-xl border border-[#27272a] bg-[#09090b] p-6 text-center">
+              <div className="text-5xl mb-3">
+                {result.hits >= 25 ? "🎯" : result.hits >= 15 ? "👍" : "💪"}
+              </div>
+              <h3 className="text-xl font-bold mb-1">
+                {result.hits >= 25
+                  ? "神枪手！"
+                  : result.hits >= 15
+                    ? "不错！"
+                    : "继续训练！"}
+              </h3>
+              {result.isNewBest && (
+                <div className="inline-flex items-center gap-1 mt-2 mb-1 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-medium animate-scale-in">
+                  <Trophy className="w-3 h-3" /> 新纪录！
                 </div>
-                <div>
-                  <p className="text-xs text-zinc-500 mb-1">命中率</p>
-                  <p className="text-3xl font-bold text-yellow-400">{accuracy}%</p>
+              )}
+              <div className="grid grid-cols-2 gap-3 mb-4 mt-4">
+                <div className="bg-[#18181b] rounded-lg p-3 border border-[#27272a]">
+                  <div className="text-xs text-slate-500 mb-1">命中</div>
+                  <div className="text-2xl font-bold text-emerald-400">{result.hits}</div>
                 </div>
-                <div>
-                  <p className="text-xs text-zinc-500 mb-1">平均反应</p>
-                  <p className="text-3xl font-bold text-[#8b5cf6]">{avgReaction}<span className="text-base">ms</span></p>
+                <div className="bg-[#18181b] rounded-lg p-3 border border-[#27272a]">
+                  <div className="text-xs text-slate-500 mb-1">命中率</div>
+                  <div className="text-2xl font-bold text-[#a78bfa]">{result.accuracy}%</div>
                 </div>
+                <div className="bg-[#18181b] rounded-lg p-3 border border-[#27272a]">
+                  <div className="text-xs text-slate-500 mb-1">平均反应</div>
+                  <div className="text-2xl font-bold text-white">{result.avgReaction}ms</div>
+                </div>
+                <div className="bg-[#18181b] rounded-lg p-3 border border-[#27272a]">
+                  <div className="text-xs text-slate-500 mb-1">最高连击</div>
+                  <div className="text-2xl font-bold text-amber-400 flex items-center justify-center gap-1">
+                    <Flame className="w-5 h-5" />
+                    {result.maxCombo}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-center gap-3 mb-4 text-xs text-slate-400 flex-wrap">
+                <span>
+                  未中 <span className="text-red-400 font-medium">{result.misses}</span>
+                </span>
+                <span className="text-slate-600">|</span>
+                <span>
+                  最快反应 <span className="text-white font-medium">{result.bestReaction}ms</span>
+                </span>
+                <span className="text-slate-600">|</span>
+                <span>
+                  排名第 <span className="text-white font-medium">{result.rank}</span>/
+                  {result.total}
+                </span>
+                <span className="text-slate-600">|</span>
+                <span>超越 {result.beatPercent}% 玩家</span>
               </div>
               <button
                 onClick={startGame}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl px-6 py-2.5 text-white font-medium hover:opacity-90 transition-opacity"
+                className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl transition-all hover:scale-105 active:scale-95"
               >
-                <RefreshCw className="w-4 h-4" />
-                再来一局
+                <RotateCcw className="w-4 h-4" /> 再来一局
               </button>
             </div>
           </div>
         )}
-
-        {/* 分数 + 分享 */}
-        <div className="grid sm:grid-cols-2 gap-4 mb-8">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center gap-3">
-            <Trophy className="w-6 h-6 text-yellow-500" />
-            <div>
-              <p className="text-xs text-zinc-500">最佳命中数</p>
-              <p className="text-xl font-bold">{bestScore ?? "—"}</p>
-            </div>
-          </div>
-          <button
-            onClick={handleShare}
-            className="bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl p-4 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity text-white font-medium"
-          >
-            <Share2 className="w-5 h-5" />
-            分享挑战
-          </button>
-        </div>
-
-        {shareMsg && (
-          <div className="mb-6 bg-[#8b5cf6]/10 border border-[#8b5cf6]/30 rounded-xl p-3 text-center text-sm text-[#c4b5fd]">
-            {shareMsg}
-          </div>
-        )}
-
-        {/* 排行榜 */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <Trophy className="w-5 h-5 text-[#8b5cf6]" />
-            <h2 className="font-bold text-lg">排行榜</h2>
-          </div>
-          <div className="space-y-2">
-            {leaderboard.slice(0, 10).map((entry, i) => (
-              <div
-                key={i}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2 ${
-                  entry.name.includes("(你)") ? "bg-[#8b5cf6]/10 border border-[#8b5cf6]/30" : "bg-zinc-800/40"
-                }`}
-              >
-                <span className={`w-7 text-center font-bold ${i === 0 ? "text-yellow-400" : i === 1 ? "text-zinc-300" : i === 2 ? "text-amber-600" : "text-zinc-500"}`}>
-                  {i + 1}
-                </span>
-                <span className="text-xl">{entry.avatar}</span>
-                <span className="flex-1 text-sm truncate">{entry.name}</span>
-                <span className="font-mono font-bold text-[#8b5cf6]">{entry.score} <span className="text-xs text-zinc-500">命中</span></span>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
-    </div>
+    </GameShell>
   );
 }

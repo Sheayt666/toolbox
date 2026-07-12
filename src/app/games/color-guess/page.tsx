@@ -12,10 +12,10 @@ import {
 
 const GAME_ID = "color-guess";
 
-type GameState = "ready" | "playing" | "over";
+type GameState = "ready" | "playing" | "transitioning" | "over";
 
 interface LevelData {
-  n: number; // 网格大小 N×N
+  n: number;
   baseColor: { r: number; g: number; b: number };
   diffColor: { r: number; g: number; b: number };
   differentIndex: number;
@@ -49,8 +49,6 @@ function rgbToCss(c: { r: number; g: number; b: number }): string {
 function generateLevel(level: number): LevelData {
   const n = Math.min(2 + Math.floor((level - 1) / 3), 8);
   const baseColor = randomHSL();
-  // 色差随关卡递减（越来越难）
-  // level 1: 差异大，level 越高差异越小
   const diffAmount = Math.max(8, 90 - level * 6);
   const sign = () => (Math.random() < 0.5 ? -1 : 1);
   const diffColor = {
@@ -70,15 +68,22 @@ export default function ColorGuessPage() {
   const [level, setLevel] = useState(1);
   const [levelData, setLevelData] = useState<LevelData | null>(null);
   const [wrongIndex, setWrongIndex] = useState<number | null>(null);
+  const [correctIndex, setCorrectIndex] = useState<number | null>(null);
   const [bestScore, setBestScore] = useState<number | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [shareMsg, setShareMsg] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [scoreAnim, setScoreAnim] = useState(0);
+  const [flashEffect, setFlashEffect] = useState<"none" | "correct" | "wrong">("none");
 
   useEffect(() => {
     setLeaderboard(getLeaderboard(GAME_ID));
-    const statsRaw = JSON.parse(localStorage.getItem("gm_stats") || "{}");
-    if (statsRaw.highScores?.[GAME_ID]) setBestScore(statsRaw.highScores[GAME_ID]);
+    try {
+      const statsRaw = JSON.parse(localStorage.getItem("gm_stats") || "{}");
+      if (statsRaw.highScores?.[GAME_ID]) setBestScore(statsRaw.highScores[GAME_ID]);
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   const startGame = useCallback(() => {
@@ -86,27 +91,37 @@ export default function ColorGuessPage() {
     setLevel(1);
     setSubmitted(false);
     setWrongIndex(null);
+    setCorrectIndex(null);
     setLevelData(generateLevel(1));
+    setFlashEffect("none");
   }, []);
 
   const handleCellClick = (index: number) => {
     if (state !== "playing" || !levelData) return;
     if (index === levelData.differentIndex) {
-      // 答对
-      const nextLevel = level + 1;
-      setLevel(nextLevel);
-      setLevelData(generateLevel(nextLevel));
-      setWrongIndex(null);
+      // Correct - flash green, then transition
+      setCorrectIndex(index);
+      setFlashEffect("correct");
+      setState("transitioning");
+      window.setTimeout(() => {
+        const nextLevel = level + 1;
+        setLevel(nextLevel);
+        setLevelData(generateLevel(nextLevel));
+        setCorrectIndex(null);
+        setFlashEffect("none");
+        setState("playing");
+      }, 500);
     } else {
-      // 答错
+      // Wrong - flash red, shake, then game over
       setWrongIndex(index);
+      setFlashEffect("wrong");
       setState("over");
-      // 提交分数 = 通过的关卡数
       const score = level;
       if (!submitted) {
         submitScore(GAME_ID, score, `通过 ${score} 关`);
         setBestScore((prev) => (prev === null ? score : Math.max(prev, score)));
         setLeaderboard(getLeaderboard(GAME_ID));
+        setScoreAnim((n) => n + 1);
         setSubmitted(true);
       }
     }
@@ -118,6 +133,8 @@ export default function ColorGuessPage() {
     setShareMsg(r.message);
     setTimeout(() => setShareMsg(null), 4000);
   };
+
+  const cellSize = (n: number) => `${Math.max(36, 300 / n)}px`;
 
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-100">
@@ -146,67 +163,125 @@ export default function ColorGuessPage() {
         </div>
 
         {/* 分数显示 */}
-        {state === "playing" && (
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-2 flex items-center gap-2">
+        {(state === "playing" || state === "transitioning") && (
+          <div className="flex items-center justify-center gap-3 sm:gap-4 mb-6 flex-wrap">
+            <div className="bg-[#18181b] border border-[#27272a] rounded-xl px-5 py-2.5 flex items-center gap-2 min-h-[44px]">
               <Target className="w-4 h-4 text-[#8b5cf6]" />
               <span className="text-sm text-zinc-500">第</span>
-              <span className="font-mono text-xl font-bold text-[#8b5cf6]">{level}</span>
+              <span key={level} className="font-mono text-xl font-bold text-[#c084fc] animate-score-pop">{level}</span>
               <span className="text-sm text-zinc-500">关</span>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-2">
+            <div className="bg-[#18181b] border border-[#27272a] rounded-xl px-5 py-2.5 min-h-[44px]">
               <span className="text-sm text-zinc-500">网格</span>
               <span className="font-mono text-xl font-bold ml-2">{levelData?.n}×{levelData?.n}</span>
             </div>
+            {bestScore !== null && (
+              <div className="flex items-center gap-2 bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5">
+                <Trophy className="w-4 h-4 text-amber-400" />
+                <span className="text-sm text-zinc-500">最佳：</span>
+                <span key={scoreAnim} className="text-sm font-bold text-[#c084fc] animate-score-pop">{bestScore}</span>
+              </div>
+            )}
           </div>
         )}
 
         {/* 游戏区域 */}
         {state === "ready" && (
           <div className="text-center py-16">
-            <button
-              onClick={startGame}
-              className="bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl px-8 py-3 text-white font-bold text-lg hover:opacity-90 transition-opacity shadow-lg shadow-[#8b5cf6]/30"
-            >
-              开始游戏
-            </button>
+            <div className="inline-flex flex-col items-center gap-6">
+              <div className="flex gap-2">
+                {[0, 1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="w-12 h-12 rounded-xl animate-float"
+                    style={{
+                      backgroundColor: rgbToCss(randomHSL()),
+                      animationDelay: `${i * 0.15}s`,
+                    }}
+                  />
+                ))}
+              </div>
+              <button
+                onClick={startGame}
+                className="bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl px-8 py-3.5 text-white font-bold text-lg hover:opacity-90 transition-opacity shadow-lg shadow-[#8b5cf6]/30 active:scale-95 min-h-[44px]"
+              >
+                开始游戏
+              </button>
+            </div>
           </div>
         )}
 
-        {state === "playing" && levelData && (
-          <div className="flex justify-center mb-8">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 shadow-xl">
+        {(state === "playing" || state === "transitioning") && levelData && (
+          <div
+            className={`flex justify-center mb-8 ${flashEffect === "correct" ? "animate-correct-flash" : ""} ${flashEffect === "wrong" ? "animate-wrong-flash" : ""} rounded-xl`}
+          >
+            <div key={`level-${level}`} className="bg-[#18181b] border border-[#27272a] rounded-xl p-3 shadow-xl animate-level-in">
               <div
                 className="grid gap-1"
                 style={{ gridTemplateColumns: `repeat(${levelData.n}, minmax(0, 1fr))` }}
               >
-                {Array.from({ length: levelData.n * levelData.n }).map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleCellClick(i)}
-                    className="rounded-lg transition-all hover:scale-105 active:scale-95"
-                    style={{
-                      backgroundColor: rgbToCss(i === levelData.differentIndex ? levelData.diffColor : levelData.baseColor),
-                      width: `${Math.max(28, 280 / levelData.n)}px`,
-                      height: `${Math.max(28, 280 / levelData.n)}px`,
-                    }}
-                  />
-                ))}
+                {Array.from({ length: levelData.n * levelData.n }).map((_, i) => {
+                  const isCorrect = correctIndex === i;
+                  const isWrong = wrongIndex === i;
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => handleCellClick(i)}
+                      className={`rounded-lg transition-all hover:scale-105 active:scale-95 ${
+                        isCorrect ? "ring-4 ring-green-400 scale-110" : ""
+                      } ${isWrong ? "ring-4 ring-red-400 scale-110" : ""}`}
+                      style={{
+                        backgroundColor: rgbToCss(i === levelData.differentIndex ? levelData.diffColor : levelData.baseColor),
+                        width: cellSize(levelData.n),
+                        height: cellSize(levelData.n),
+                        minWidth: "36px",
+                        minHeight: "36px",
+                      }}
+                    />
+                  );
+                })}
               </div>
             </div>
           </div>
         )}
 
-        {state === "over" && (
-          <div className="text-center py-8">
+        {state === "over" && levelData && (
+          <div className="text-center py-8 animate-bounce-in">
+            {/* Show the correct answer */}
+            <div className="flex justify-center mb-6">
+              <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-3 shadow-xl animate-shake">
+                <div
+                  className="grid gap-1"
+                  style={{ gridTemplateColumns: `repeat(${levelData.n}, minmax(0, 1fr))` }}
+                >
+                  {Array.from({ length: levelData.n * levelData.n }).map((_, i) => (
+                    <div
+                      key={i}
+                      className={`rounded-lg ${
+                        i === levelData.differentIndex ? "ring-4 ring-green-400" : ""
+                      } ${i === wrongIndex ? "ring-4 ring-red-400" : ""}`}
+                      style={{
+                        backgroundColor: rgbToCss(i === levelData.differentIndex ? levelData.diffColor : levelData.baseColor),
+                        width: cellSize(levelData.n),
+                        height: cellSize(levelData.n),
+                        minWidth: "36px",
+                        minHeight: "36px",
+                        opacity: i === wrongIndex ? 0.5 : 1,
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
             <div className="inline-block bg-red-500/10 border border-red-500/30 rounded-xl px-6 py-4 mb-6">
               <p className="text-red-400 font-bold text-xl mb-1">游戏结束！</p>
-              <p className="text-zinc-400 text-sm">你通过了 {level} 关</p>
+              <p className="text-zinc-400 text-sm">你通过了 <span key={scoreAnim} className="font-bold text-[#c084fc] animate-score-pop">{level - 1}</span> 关</p>
+              <p className="text-zinc-500 text-xs mt-1">绿色为正确答案</p>
             </div>
             <div>
               <button
                 onClick={startGame}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl px-6 py-2.5 text-white font-medium hover:opacity-90 transition-opacity"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl px-6 py-3 text-white font-medium hover:opacity-90 transition-opacity active:scale-95 min-h-[44px]"
               >
                 <RefreshCw className="w-4 h-4" />
                 再来一局
@@ -217,16 +292,16 @@ export default function ColorGuessPage() {
 
         {/* 分数 + 分享 */}
         <div className="grid sm:grid-cols-2 gap-4 mb-8">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center gap-3">
+          <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-4 flex items-center gap-3">
             <Trophy className="w-6 h-6 text-yellow-500" />
             <div>
               <p className="text-xs text-zinc-500">最佳关卡</p>
-              <p className="text-xl font-bold">{bestScore ?? "—"} <span className="text-sm text-zinc-500">关</span></p>
+              <p key={scoreAnim} className="text-xl font-bold animate-score-pop">{bestScore ?? "—"} <span className="text-sm text-zinc-500">关</span></p>
             </div>
           </div>
           <button
             onClick={handleShare}
-            className="bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl p-4 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity text-white font-medium"
+            className="bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl p-4 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity text-white font-medium min-h-[44px]"
           >
             <Share2 className="w-5 h-5" />
             分享挑战
@@ -240,7 +315,7 @@ export default function ColorGuessPage() {
         )}
 
         {/* 排行榜 */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+        <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-5">
           <div className="flex items-center gap-2 mb-4">
             <Trophy className="w-5 h-5 text-[#8b5cf6]" />
             <h2 className="font-bold text-lg">排行榜</h2>
@@ -250,7 +325,7 @@ export default function ColorGuessPage() {
               <div
                 key={i}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2 ${
-                  entry.name.includes("(你)") ? "bg-[#8b5cf6]/10 border border-[#8b5cf6]/30" : "bg-zinc-800/40"
+                  entry.name.includes("(你)") ? "bg-[#8b5cf6]/10 border border-[#8b5cf6]/30" : "bg-[#09090b]/60"
                 }`}
               >
                 <span className={`w-7 text-center font-bold ${i === 0 ? "text-yellow-400" : i === 1 ? "text-zinc-300" : i === 2 ? "text-amber-600" : "text-zinc-500"}`}>
