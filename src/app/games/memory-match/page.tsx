@@ -63,6 +63,10 @@ export default function MemoryMatchPage() {
   const secondsRef = useRef(0);
   const matchedRef = useRef(0);
   const submittedRef = useRef(false);
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  // 卸载时清理所有定时器
+  useEffect(() => () => { timersRef.current.forEach(clearTimeout); }, []);
 
   // Mount: generate cards and load best score
   useEffect(() => {
@@ -135,12 +139,12 @@ export default function MemoryMatchPage() {
         );
         setFlipped([]);
         if (matchedRef.current === EMOJIS.length) {
-          window.setTimeout(() => finish(), 600);
+          timersRef.current.push(setTimeout(() => finish(), 600));
         }
       } else {
         // No match - flip back after delay
         setLocked(true);
-        window.setTimeout(() => {
+        timersRef.current.push(setTimeout(() => {
           setCards((cs) =>
             cs.map((c, idx) =>
               idx === a || idx === b ? { ...c, flipped: false } : c,
@@ -148,7 +152,7 @@ export default function MemoryMatchPage() {
           );
           setFlipped([]);
           setLocked(false);
-        }, 900);
+        }, 900));
       }
     }
   };

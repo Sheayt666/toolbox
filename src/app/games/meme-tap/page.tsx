@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Sparkles, RotateCcw, Play, Trophy, Flame, Calendar, Shuffle } from "lucide-react";
+import { Sparkles, RotateCcw, Play, Trophy, Flame, Calendar, Shuffle, Pause } from "lucide-react";
 import GameShell, { type GameStat } from "@/components/games/GameShell";
 import { submitScore } from "@/lib/gamification";
 
@@ -99,8 +99,11 @@ export default function MemeTapPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [dailyMode, setDailyMode] = useState(false);
   const [floats, setFloats] = useState<FloatScore[]>([]);
+  const [paused, setPaused] = useState(false);
 
   // Refs
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const pausedRef = useRef(false);
   const scoreRef = useRef(0);
   const comboRef = useRef(0);
   const maxComboRef = useRef(0);
@@ -132,11 +135,36 @@ export default function MemeTapPage() {
     }
   }, []);
 
+  /* ===== Cleanup timers on unmount ===== */
+  useEffect(() => {
+    return () => {
+      timersRef.current.forEach(clearTimeout);
+    };
+  }, []);
+
+  /* ===== Pause hotkey (P) ===== */
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "p" || e.key === "P") {
+        if (phase === "playing") {
+          setPaused((p) => {
+            pausedRef.current = !p;
+            return !p;
+          });
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [phase]);
+
   /* ===== Game loop ===== */
   useEffect(() => {
     if (phase !== "playing") return;
 
     const tick = () => {
+      if (pausedRef.current) return;
+
       // Decrement timer
       timeLeftRef.current = Math.max(0, timeLeftRef.current - 0.1);
       setTimeLeft(timeLeftRef.current);
@@ -237,6 +265,7 @@ export default function MemeTapPage() {
     overRef.current = false;
     runningRef.current = true;
     submittedRef.current = false;
+    pausedRef.current = false;
 
     if (dailyMode) {
       dailyRngRef.current = mulberry32(getDailySeed());
@@ -253,13 +282,14 @@ export default function MemeTapPage() {
     setCells(Array(CELL_COUNT).fill(null));
     setResult(null);
     setFloats([]);
+    setPaused(false);
     setPhase("playing");
   }, [dailyMode]);
 
   /* ===== Click cell ===== */
   const clickCell = useCallback(
     (index: number) => {
-      if (!runningRef.current || overRef.current) return;
+      if (!runningRef.current || overRef.current || pausedRef.current) return;
       const cell = cellsRef.current[index];
       if (!cell) return;
 
@@ -285,9 +315,9 @@ export default function MemeTapPage() {
         ...prev,
         { id: fid, value: points, cellIndex: index, color: memeType.ringColor },
       ]);
-      setTimeout(() => {
+      timersRef.current.push(setTimeout(() => {
         setFloats((prev) => prev.filter((f) => f.id !== fid));
-      }, 800);
+      }, 800));
 
       // Clear cell
       cellsRef.current[index] = null;
@@ -302,6 +332,7 @@ export default function MemeTapPage() {
     overRef.current = false;
     runningRef.current = false;
     submittedRef.current = false;
+    pausedRef.current = false;
     scoreRef.current = 0;
     comboRef.current = 0;
     cellsRef.current = Array(CELL_COUNT).fill(null);
@@ -313,6 +344,7 @@ export default function MemeTapPage() {
     setCells(Array(CELL_COUNT).fill(null));
     setResult(null);
     setFloats([]);
+    setPaused(false);
   }, []);
 
   const timePercent = (timeLeft / GAME_DURATION) * 100;
@@ -451,7 +483,7 @@ export default function MemeTapPage() {
               <button
                 key={i}
                 onClick={() => clickCell(i)}
-                disabled={phase !== "playing"}
+                disabled={phase !== "playing" || paused}
                 className={`relative aspect-square rounded-xl border-2 flex items-center justify-center transition-all duration-150 ${
                   phase !== "playing"
                     ? "border-[#27272a] bg-[#18181b]"
@@ -565,6 +597,24 @@ export default function MemeTapPage() {
               </button>
             </div>
           )}
+
+          {/* Pause overlay */}
+          {phase === "playing" && paused && (
+            <div className="absolute inset-0 rounded-xl bg-[#09090b]/90 backdrop-blur-sm flex flex-col items-center justify-center animate-overlay-in z-10">
+              <Pause className="w-12 h-12 text-fuchsia-400 mb-3" />
+              <h3 className="text-xl font-bold text-white mb-2">已暂停</h3>
+              <p className="text-sm text-slate-400 mb-4">按 P 键或点击按钮继续</p>
+              <button
+                onClick={() => {
+                  pausedRef.current = false;
+                  setPaused(false);
+                }}
+                className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-gradient-to-r from-fuchsia-500 to-pink-500 hover:from-fuchsia-600 hover:to-pink-600 rounded-xl transition-all shadow-lg shadow-fuchsia-500/30 active:scale-95"
+              >
+                <Play className="w-4 h-4" /> 继续游戏
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Meme legend */}
@@ -584,12 +634,23 @@ export default function MemeTapPage() {
 
         {/* Restart button during play */}
         {phase === "playing" && (
-          <button
-            onClick={restart}
-            className="mt-4 inline-flex items-center gap-2 h-9 px-4 text-xs font-medium text-slate-400 hover:text-red-400 bg-[#18181b] border border-[#27272a] hover:border-red-500/30 rounded-lg transition-colors"
-          >
-            <RotateCcw className="w-3.5 h-3.5" /> 放弃
-          </button>
+          <div className="mt-4 flex items-center gap-2">
+            <button
+              onClick={() => {
+                pausedRef.current = true;
+                setPaused(true);
+              }}
+              className="inline-flex items-center gap-2 h-9 px-4 text-xs font-medium text-slate-300 hover:text-fuchsia-400 bg-[#18181b] border border-[#27272a] hover:border-fuchsia-500/30 rounded-lg transition-colors"
+            >
+              <Pause className="w-3.5 h-3.5" /> 暂停
+            </button>
+            <button
+              onClick={restart}
+              className="inline-flex items-center gap-2 h-9 px-4 text-xs font-medium text-slate-400 hover:text-red-400 bg-[#18181b] border border-[#27272a] hover:border-red-500/30 rounded-lg transition-colors"
+            >
+              <RotateCcw className="w-3.5 h-3.5" /> 放弃
+            </button>
+          </div>
         )}
       </div>
     </GameShell>

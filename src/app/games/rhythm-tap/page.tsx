@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Music, RotateCcw, Play } from "lucide-react";
+import { Music, RotateCcw, Play, Pause } from "lucide-react";
 import GameShell, { type GameStat } from "@/components/games/GameShell";
 import { submitScore } from "@/lib/gamification";
 
@@ -150,6 +150,9 @@ export default function RhythmTapPage() {
   const bestRef = useRef(0);
   const animFrameRef = useRef(0);
   const comboPopRef = useRef(0);
+  const progressRef = useRef(0);
+  const pausedRef = useRef(false);
+  const pauseStartRef = useRef(0);
 
   // UI 状态
   const [score, setScore] = useState(0);
@@ -160,11 +163,12 @@ export default function RhythmTapPage() {
   const [result, setResult] = useState<Result | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [paused, setPaused] = useState(false);
   const [stats, setStats] = useState({ perfect: 0, good: 0, miss: 0, maxCombo: 0 });
 
   /* ----- 命中处理 ----- */
   const handleHit = useCallback((lane: number) => {
-    if (!runningRef.current || overRef.current) return;
+    if (!runningRef.current || overRef.current || pausedRef.current) return;
     const elapsed = performance.now() - startTimeRef.current;
 
     // 找最近的待判定音符
@@ -220,6 +224,7 @@ export default function RhythmTapPage() {
     runningRef.current = false;
     setOver(true);
     setRunning(false);
+    setProgress(progressRef.current);
     if (submittedRef.current) return;
     submittedRef.current = true;
     const s = scoreRef.current;
@@ -252,7 +257,7 @@ export default function RhythmTapPage() {
     animFrameRef.current++;
 
     const elapsed = runningRef.current
-      ? performance.now() - startTimeRef.current
+      ? (pausedRef.current ? pauseStartRef.current : performance.now()) - startTimeRef.current
       : 0;
 
     // 背景
@@ -425,7 +430,7 @@ export default function RhythmTapPage() {
     let raf: number;
     const loop = () => {
       raf = requestAnimationFrame(loop);
-      if (runningRef.current && !overRef.current) {
+      if (runningRef.current && !overRef.current && !pausedRef.current) {
         const elapsed = performance.now() - startTimeRef.current;
 
         // 检查漏判音符
@@ -442,8 +447,8 @@ export default function RhythmTapPage() {
           }
         }
 
-        // 更新进度
-        setProgress(Math.min(100, (elapsed / SONG_DURATION) * 100));
+        // 更新进度（使用 ref 避免 60fps 重渲染）
+        progressRef.current = Math.min(100, (elapsed / SONG_DURATION) * 100);
 
         // 歌曲结束
         if (elapsed >= SONG_DURATION) {
@@ -485,9 +490,13 @@ export default function RhythmTapPage() {
     setScore(0);
     setCombo(0);
     setProgress(0);
+    progressRef.current = 0;
     setStats({ perfect: 0, good: 0, miss: 0, maxCombo: 0 });
     setOver(false);
     setResult(null);
+    pausedRef.current = false;
+    pauseStartRef.current = 0;
+    setPaused(false);
     startTimeRef.current = performance.now();
     runningRef.current = true;
     setRunning(true);
@@ -508,9 +517,28 @@ export default function RhythmTapPage() {
     setScore(0);
     setCombo(0);
     setProgress(0);
+    progressRef.current = 0;
     setOver(false);
     setResult(null);
     setRunning(false);
+    pausedRef.current = false;
+    pauseStartRef.current = 0;
+    setPaused(false);
+  }, []);
+
+  /* ----- 暂停 ----- */
+  const togglePause = useCallback(() => {
+    if (!runningRef.current || overRef.current) return;
+    setPaused((p) => {
+      const np = !p;
+      if (np) {
+        pauseStartRef.current = performance.now();
+      } else {
+        startTimeRef.current += performance.now() - pauseStartRef.current;
+      }
+      pausedRef.current = np;
+      return np;
+    });
   }, []);
 
   /* ----- 键盘控制 ----- */
@@ -537,7 +565,7 @@ export default function RhythmTapPage() {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
     };
-  }, [handleHit, start]);
+  }, [handleHit, start, togglePause]);
 
   /* ----- 触摸按钮控制 ----- */
   const handleLanePress = useCallback(
@@ -653,6 +681,15 @@ export default function RhythmTapPage() {
               </button>
             </div>
           )}
+
+          {/* 暂停覆盖层 */}
+          {paused && running && !over && (
+            <div className="absolute inset-0 rounded-xl bg-[#09090b]/70 backdrop-blur-sm flex flex-col items-center justify-center animate-overlay-in">
+              <div className="text-4xl mb-2">⏸️</div>
+              <h3 className="text-xl font-bold text-white">已暂停</h3>
+              <p className="mt-2 text-xs text-slate-400">按 P 或点击按钮继续</p>
+            </div>
+          )}
         </div>
 
         {/* 4个触摸按钮（移动端 + 桌面端都显示）*/}
@@ -692,6 +729,15 @@ export default function RhythmTapPage() {
               className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-purple-500 hover:bg-purple-600 rounded-xl transition-colors shadow-lg shadow-purple-500/30"
             >
               <Play className="w-4 h-4" /> 开始
+            </button>
+          )}
+          {running && !over && (
+            <button
+              onClick={togglePause}
+              className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-amber-500 hover:bg-amber-600 rounded-xl transition-colors shadow-lg shadow-amber-500/30"
+            >
+              {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+              {paused ? "继续" : "暂停"}
             </button>
           )}
           <button

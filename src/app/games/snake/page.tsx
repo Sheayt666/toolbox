@@ -177,8 +177,14 @@ export default function SnakePage() {
     } catch { /* ignore */ }
   }, []);
 
-  // 动画帧循环（用于食物脉动效果，独立于游戏逻辑）
+  // 绘制当前状态（非运行时也绘制一次，确保画布有内容）
   useEffect(() => {
+    draw();
+  }, [draw, running, over]);
+
+  // 动画帧循环（仅游戏运行时，用于食物脉动效果）
+  useEffect(() => {
+    if (!running || over) return;
     let raf: number;
     const animate = () => {
       animFrameRef.current++;
@@ -187,7 +193,7 @@ export default function SnakePage() {
     };
     raf = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(raf);
-  }, [draw]);
+  }, [draw, running, over]);
 
   const finish = useCallback(() => {
     if (submittedRef.current) return;
@@ -282,7 +288,6 @@ export default function SnakePage() {
     setCurrentSpeed(BASE_SPEED);
     submittedRef.current = false;
     setScore(3);
-    setBest(3);
     setOver(false);
     setResult(null);
     setRunning(false);

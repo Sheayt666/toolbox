@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Grid3x3, Check, Eraser, Calendar, Undo2 } from "lucide-react";
+import { Grid3x3, Check, Eraser, Calendar, Undo2, Pause, Play } from "lucide-react";
 import GameShell, { type GameStat } from "@/components/games/GameShell";
 import { submitScore } from "@/lib/gamification";
 
@@ -179,6 +179,8 @@ export default function DailySudokuPage() {
   const [cellAnim, setCellAnim] = useState<string>("");
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const submittedRef = useRef(false);
+  const [paused, setPaused] = useState(false);
+  const pausedRef = useRef(false);
 
   useEffect(() => {
     const today = getTodayStr();
@@ -202,8 +204,18 @@ export default function DailySudokuPage() {
       setAlreadyDone(true);
     }
 
-    timerRef.current = setInterval(() => setTime((t) => t + 1), 1000);
+    timerRef.current = setInterval(() => {
+      if (pausedRef.current) return;
+      setTime((t) => t + 1);
+    }, 1000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, []);
+
+  const togglePause = useCallback(() => {
+    setPaused((p) => {
+      pausedRef.current = !p;
+      return !p;
+    });
   }, []);
 
   const conflicts = grid ? findConflicts(grid) : new Set<string>();
@@ -213,7 +225,7 @@ export default function DailySudokuPage() {
   }, []);
 
   const handleInput = (num: number) => {
-    if (!grid || !given || !selected || completed) return;
+    if (!grid || !given || !selected || completed || pausedRef.current) return;
     const [r, c] = selected;
     if (given[r][c]) return;
     pushHistory(grid);
@@ -243,7 +255,7 @@ export default function DailySudokuPage() {
   };
 
   const handleErase = () => {
-    if (!grid || !given || !selected || completed) return;
+    if (!grid || !given || !selected || completed || pausedRef.current) return;
     const [r, c] = selected;
     if (given[r][c]) return;
     pushHistory(grid);
@@ -263,7 +275,12 @@ export default function DailySudokuPage() {
   // 键盘输入
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (!selected) return;
+      if (e.key === "p" || e.key === "P") {
+        e.preventDefault();
+        togglePause();
+        return;
+      }
+      if (!selected || pausedRef.current) return;
       const num = parseInt(e.key, 10);
       if (num >= 1 && num <= 9) {
         handleInput(num);
@@ -284,7 +301,7 @@ export default function DailySudokuPage() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [selected, grid, given, completed]);
+  }, [selected, grid, given, completed, togglePause]);
 
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60);
@@ -366,11 +383,29 @@ export default function DailySudokuPage() {
               <span className="text-sm font-medium text-green-400">今日已完成</span>
             </div>
           )}
+          {!completed && (
+            <button
+              onClick={togglePause}
+              className="flex items-center gap-2 bg-[#18181b] border border-[#27272a] rounded-lg px-3 py-1.5 hover:border-[#8b5cf6] transition-colors"
+            >
+              {paused ? <Play className="w-4 h-4 text-[#8b5cf6]" /> : <Pause className="w-4 h-4 text-[#8b5cf6]" />}
+              <span className="text-sm font-medium text-zinc-300">{paused ? "继续" : "暂停"}</span>
+            </button>
+          )}
         </div>
 
         {/* 数独网格 */}
         <div className="flex justify-center mb-4 overflow-x-auto max-w-full">
-          <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-2 shadow-xl">
+          <div className="relative bg-[#18181b] border border-[#27272a] rounded-xl p-2 shadow-xl">
+            {paused && !completed && (
+              <div className="absolute inset-0 z-10 rounded-xl bg-[#09090b]/80 backdrop-blur-sm flex items-center justify-center">
+                <div className="text-center">
+                  <Pause className="w-10 h-10 text-[#8b5cf6] mx-auto mb-2" />
+                  <p className="text-lg font-bold text-zinc-200">已暂停</p>
+                  <p className="text-xs text-slate-400 mt-1">按 P 键或点击继续按钮恢复</p>
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-9 gap-0">
               {grid.map((row, r) =>
                 row.map((cell, c) => {

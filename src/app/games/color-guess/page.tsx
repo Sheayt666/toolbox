@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Palette, RefreshCw } from "lucide-react";
 import GameShell, { type GameStat } from "@/components/games/GameShell";
 import { submitScore } from "@/lib/gamification";
@@ -69,6 +69,11 @@ export default function ColorGuessPage() {
   const [scoreAnim, setScoreAnim] = useState(0);
   const [flashEffect, setFlashEffect] = useState<"none" | "correct" | "wrong">("none");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [decoColors, setDecoColors] = useState<{ r: number; g: number; b: number }[]>([]);
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  // 卸载时清理所有定时器
+  useEffect(() => () => { timersRef.current.forEach(clearTimeout); }, []);
 
   useEffect(() => {
     try {
@@ -77,6 +82,7 @@ export default function ColorGuessPage() {
     } catch {
       /* ignore */
     }
+    setDecoColors(Array.from({ length: 6 }, () => randomHSL()));
   }, []);
 
   const startGame = useCallback(() => {
@@ -96,14 +102,14 @@ export default function ColorGuessPage() {
       setCorrectIndex(index);
       setFlashEffect("correct");
       setState("transitioning");
-      window.setTimeout(() => {
+      timersRef.current.push(setTimeout(() => {
         const nextLevel = level + 1;
         setLevel(nextLevel);
         setLevelData(generateLevel(nextLevel));
         setCorrectIndex(null);
         setFlashEffect("none");
         setState("playing");
-      }, 500);
+      }, 500));
     } else {
       // Wrong - flash red, shake, then game over
       setWrongIndex(index);
@@ -153,7 +159,7 @@ export default function ColorGuessPage() {
                     key={i}
                     className="w-12 h-12 rounded-xl animate-float"
                     style={{
-                      backgroundColor: rgbToCss(randomHSL()),
+                      backgroundColor: decoColors[i] ? rgbToCss(decoColors[i]) : "#8b5cf6",
                       animationDelay: `${i * 0.15}s`,
                     }}
                   />

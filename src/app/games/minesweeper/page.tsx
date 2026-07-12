@@ -139,6 +139,9 @@ export default function MinesweeperPage() {
     }
   }, []);
 
+  // 卸载时清理计时器
+  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
+
   const stopTimer = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);

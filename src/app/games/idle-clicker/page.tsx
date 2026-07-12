@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Cookie, RotateCcw, Zap, Clock, Cpu, Sparkles, Gauge } from "lucide-react";
 import GameShell, { type GameStat } from "@/components/games/GameShell";
-import { recordGamePlay } from "@/lib/gamification";
+import { recordGamePlay, submitScore } from "@/lib/gamification";
 
 const GAME_ID = "idle-clicker";
 const SAVE_KEY = "gm_idle_clicker_save";
@@ -217,6 +217,11 @@ export default function IdleClickerPage() {
 
     const interval = setInterval(tick, 100);
 
+    // Submit score to leaderboard every 30 seconds
+    const submitInterval = setInterval(() => {
+      submitScore(GAME_ID, Math.floor(scoreRef.current), `总产出 ${formatNum(totalRef.current)}`);
+    }, 30000);
+
     // Auto-save every 5 seconds
     saveTimerRef.current = setInterval(() => {
       const save: SaveData = {
@@ -235,7 +240,10 @@ export default function IdleClickerPage() {
 
     return () => {
       clearInterval(interval);
+      clearInterval(submitInterval);
       clearInterval(saveTimerRef.current);
+      // Submit final score on unmount
+      submitScore(GAME_ID, Math.floor(scoreRef.current), `总产出 ${formatNum(totalRef.current)}`);
       // Save on unmount
       const save: SaveData = {
         score: scoreRef.current,

@@ -227,6 +227,7 @@ export default function BlockJigsawPage() {
     offsetY: number;
   } | null>(null);
   const gridContainerRef = useRef<HTMLDivElement>(null);
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const [mounted, setMounted] = useState(false);
   const [grid, setGrid] = useState<number[][]>(emptyGrid());
@@ -255,6 +256,13 @@ export default function BlockJigsawPage() {
     } catch {
       /* ignore */
     }
+  }, []);
+
+  /* ----- cleanup timers on unmount ----- */
+  useEffect(() => {
+    return () => {
+      timersRef.current.forEach(clearTimeout);
+    };
   }, []);
 
   /* ----- 开始新游戏 ----- */
@@ -332,7 +340,7 @@ export default function BlockJigsawPage() {
         setFlashScore(
           `+${lineScore}${comboBonus > 0 ? ` 连击 x${newCombo}!` : ""}`,
         );
-        setTimeout(() => setFlashScore(null), 1200);
+        timersRef.current.push(setTimeout(() => setFlashScore(null), 1200));
       } else {
         newCombo = 0;
       }
@@ -358,11 +366,11 @@ export default function BlockJigsawPage() {
       }
 
       // 检查游戏结束
-      setTimeout(() => {
+      timersRef.current.push(setTimeout(() => {
         if (!canAnyBlockFit(gridRef.current, blocksRef.current)) {
           doGameOver();
         }
-      }, 50);
+      }, 50));
     },
     [doGameOver],
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Rabbit, RotateCcw, Play, ChevronLeft, ChevronRight } from "lucide-react";
+import { Rabbit, RotateCcw, Play, Pause, ChevronLeft, ChevronRight } from "lucide-react";
 import GameShell, { type GameStat } from "@/components/games/GameShell";
 import { submitScore } from "@/lib/gamification";
 
@@ -159,6 +159,8 @@ export default function DoodleJumpPage() {
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const pausedRef = useRef(false);
 
   /* ----- 绘制 ----- */
   const draw = useCallback(() => {
@@ -533,7 +535,7 @@ export default function DoodleJumpPage() {
       last = time;
       if (dt > 0 && dt < 100) {
         // 固定步长更新（以 16.67ms 为基准）
-        if (runningRef.current && !overRef.current) {
+        if (runningRef.current && !overRef.current && !pausedRef.current) {
           update();
         }
       }
@@ -593,6 +595,8 @@ export default function DoodleJumpPage() {
     cameraYRef.current = 0;
     maxClimbRef.current = 0;
     submittedRef.current = false;
+    pausedRef.current = false;
+    setPaused(false);
     setScore(0);
     setOver(false);
     setResult(null);
@@ -619,6 +623,18 @@ export default function DoodleJumpPage() {
     setOver(false);
     setResult(null);
     setRunning(false);
+    pausedRef.current = false;
+    setPaused(false);
+  }, []);
+
+  /* ----- 暂停 ----- */
+  const togglePause = useCallback(() => {
+    if (!runningRef.current || overRef.current) return;
+    setPaused((p) => {
+      const np = !p;
+      pausedRef.current = np;
+      return np;
+    });
   }, []);
 
   /* ----- 键盘控制 ----- */
@@ -634,6 +650,9 @@ export default function DoodleJumpPage() {
       } else if (k === " " || k === "enter") {
         e.preventDefault();
         if (!runningRef.current && !overRef.current) start();
+      } else if (k === "p") {
+        e.preventDefault();
+        togglePause();
       }
     };
     const onKeyUp = (e: KeyboardEvent) => {
@@ -650,7 +669,7 @@ export default function DoodleJumpPage() {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
     };
-  }, [start]);
+  }, [start, togglePause]);
 
   /* ----- 触摸控制（左右半屏）----- */
   const onTouchStart = (e: React.TouchEvent) => {
@@ -693,7 +712,7 @@ export default function DoodleJumpPage() {
   const stats: GameStat[] = [
     { label: "当前高度", value: score },
     { label: "最高记录", value: best },
-    { label: "游戏状态", value: over ? "已结束" : running ? "进行中" : "待开始" },
+    { label: "游戏状态", value: over ? "已结束" : paused ? "已暂停" : running ? "进行中" : "待开始" },
   ];
 
   return (
@@ -770,6 +789,15 @@ export default function DoodleJumpPage() {
               </button>
             </div>
           )}
+
+          {/* 暂停覆盖层 */}
+          {paused && running && !over && (
+            <div className="absolute inset-0 rounded-xl bg-[#09090b]/70 backdrop-blur-sm flex flex-col items-center justify-center animate-overlay-in">
+              <div className="text-4xl mb-2">⏸️</div>
+              <h3 className="text-xl font-bold text-white">已暂停</h3>
+              <p className="mt-2 text-xs text-slate-400">按 P 或点击按钮继续</p>
+            </div>
+          )}
         </div>
 
         {/* 控制按钮区 */}
@@ -830,6 +858,15 @@ export default function DoodleJumpPage() {
                 className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-emerald-500 hover:bg-emerald-600 rounded-xl transition-colors shadow-lg shadow-emerald-500/30"
               >
                 <Play className="w-4 h-4" /> 开始
+              </button>
+            )}
+            {running && !over && (
+              <button
+                onClick={togglePause}
+                className="inline-flex items-center gap-2 h-10 px-5 text-sm font-medium text-white bg-amber-500 hover:bg-amber-600 rounded-xl transition-colors shadow-lg shadow-amber-500/30"
+              >
+                {paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                {paused ? "继续" : "暂停"}
               </button>
             )}
             <button

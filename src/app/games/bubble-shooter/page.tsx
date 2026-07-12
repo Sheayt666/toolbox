@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CircleDot, RotateCcw } from "lucide-react";
+import { CircleDot, RotateCcw, Pause, Play } from "lucide-react";
 import GameShell, { type GameStat } from "@/components/games/GameShell";
 import { submitScore } from "@/lib/gamification";
 
@@ -343,8 +343,10 @@ export default function BubbleShooterPage() {
   const popIdRef = useRef(0);
   const popAnimsRef = useRef<PopAnim[]>([]);
   const overRef = useRef(false);
+  const pausedRef = useRef(false);
   const handleSnapRef = useRef<(sb: { x: number; y: number; vx: number; vy: number; color: number }) => void>(() => {});
   const [nextBubble, setNextBubble] = useState(0);
+  const [paused, setPaused] = useState(false);
 
   /* ===== init game (mounted) ===== */
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -484,6 +486,10 @@ export default function BubbleShooterPage() {
     if (!mounted) return;
 
     const loop = () => {
+      if (pausedRef.current) {
+        animRef.current = requestAnimationFrame(loop);
+        return;
+      }
       const sb = shootingRef.current;
       if (sb && !overRef.current) {
         sb.x += sb.vx;
@@ -682,7 +688,7 @@ export default function BubbleShooterPage() {
   };
 
   const handleShoot = () => {
-    if (overRef.current || shootingRef.current || !mounted) return;
+    if (overRef.current || shootingRef.current || !mounted || pausedRef.current) return;
     const angle = aimAngleRef.current;
     shootingRef.current = {
       x: W / 2,
@@ -712,7 +718,30 @@ export default function BubbleShooterPage() {
     setOver(false);
     setResult(null);
     setCombo(0);
+    pausedRef.current = false;
+    setPaused(false);
   };
+
+  const togglePause = useCallback(() => {
+    if (overRef.current) return;
+    setPaused((p) => {
+      const np = !p;
+      pausedRef.current = np;
+      return np;
+    });
+  }, []);
+
+  /* ===== keyboard pause ===== */
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === "p") {
+        e.preventDefault();
+        togglePause();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [togglePause]);
 
   const stats: GameStat[] = [
     { label: "分数", value: score },
@@ -766,13 +795,24 @@ export default function BubbleShooterPage() {
               }}
             />
           </div>
-          <button
-            onClick={restart}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-lg transition-colors"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            重新开始
-          </button>
+          <div className="flex items-center gap-2">
+            {!over && (
+              <button
+                onClick={togglePause}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-amber-500 hover:bg-amber-600 rounded-lg transition-colors"
+              >
+                {paused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
+                {paused ? "继续" : "暂停"}
+              </button>
+            )}
+            <button
+              onClick={restart}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 bg-[#27272a] hover:bg-[#3f3f46] rounded-lg transition-colors"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              重新开始
+            </button>
+          </div>
         </div>
 
         {/* Canvas */}
@@ -795,6 +835,15 @@ export default function BubbleShooterPage() {
             className="rounded-xl border border-[#27272a] cursor-crosshair touch-none max-w-full"
             style={{ background: "#0f0f12" }}
           />
+
+          {/* Pause overlay */}
+          {paused && !over && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[#09090b]/70 backdrop-blur-sm rounded-xl animate-overlay-in">
+              <div className="text-4xl">⏸️</div>
+              <div className="text-xl font-bold text-white">已暂停</div>
+              <div className="text-xs text-slate-400">按 P 或点击按钮继续</div>
+            </div>
+          )}
 
           {/* Game over overlay */}
           {over && (

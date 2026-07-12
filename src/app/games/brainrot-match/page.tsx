@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FlaskConical, RotateCcw, Play, Trophy, Flame, Bomb } from "lucide-react";
+import { FlaskConical, RotateCcw, Play, Trophy, Flame, Bomb, Pause } from "lucide-react";
 import GameShell, { type GameStat } from "@/components/games/GameShell";
 import { submitScore } from "@/lib/gamification";
 
@@ -288,6 +288,7 @@ export default function BrainrotMatchPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [clearingCells, setClearingCells] = useState<Set<string>>(new Set());
   const [floatScore, setFloatScore] = useState<{ id: number; value: number } | null>(null);
+  const [paused, setPaused] = useState(false);
 
   // Refs
   const boardRef = useRef<Board>(board);
@@ -304,6 +305,7 @@ export default function BrainrotMatchPage() {
   const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const cascadeTimerRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const floatIdRef = useRef(0);
+  const pausedRef = useRef(false);
 
   /* ===== Mount: load best score ===== */
   useEffect(() => {
@@ -327,10 +329,27 @@ export default function BrainrotMatchPage() {
     };
   }, []);
 
+  /* ===== Pause hotkey (P) ===== */
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "p" || e.key === "P") {
+        if (phase === "playing") {
+          setPaused((p) => {
+            pausedRef.current = !p;
+            return !p;
+          });
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [phase]);
+
   /* ===== Timer ===== */
   useEffect(() => {
     if (phase !== "playing") return;
     timerRef.current = setInterval(() => {
+      if (pausedRef.current) return;
       timeLeftRef.current = Math.max(0, timeLeftRef.current - 1);
       setTimeLeft(timeLeftRef.current);
       if (timeLeftRef.current <= 0) {
@@ -426,9 +445,10 @@ export default function BrainrotMatchPage() {
         // Float score
         const fid = floatIdRef.current++;
         setFloatScore({ id: fid, value: points });
-        setTimeout(() => {
+        const ft = setTimeout(() => {
           setFloatScore((prev) => (prev?.id === fid ? null : prev));
         }, 800);
+        cascadeTimerRef.current.push(ft);
 
         boardRef.current = cleared;
         setBoard(cleared);
@@ -457,7 +477,7 @@ export default function BrainrotMatchPage() {
   /* ===== Handle cell click ===== */
   const handleClick = useCallback(
     (r: number, c: number) => {
-      if (!runningRef.current || overRef.current || lockedRef.current) return;
+      if (!runningRef.current || overRef.current || lockedRef.current || pausedRef.current) return;
 
       const sel = selectedRef.current;
       if (!sel) {
@@ -530,6 +550,7 @@ export default function BrainrotMatchPage() {
     submittedRef.current = false;
     lockedRef.current = false;
     selectedRef.current = null;
+    pausedRef.current = false;
 
     cascadeTimerRef.current.forEach((t) => clearTimeout(t));
     cascadeTimerRef.current = [];
@@ -544,6 +565,7 @@ export default function BrainrotMatchPage() {
     setResult(null);
     setClearingCells(new Set());
     setFloatScore(null);
+    setPaused(false);
     setPhase("playing");
   }, []);
 
@@ -557,6 +579,7 @@ export default function BrainrotMatchPage() {
     submittedRef.current = false;
     lockedRef.current = false;
     selectedRef.current = null;
+    pausedRef.current = false;
     setPhase("idle");
     setScore(0);
     setCombo(0);
@@ -567,6 +590,7 @@ export default function BrainrotMatchPage() {
     setResult(null);
     setClearingCells(new Set());
     setFloatScore(null);
+    setPaused(false);
   }, []);
 
   const timePercent = (timeLeft / GAME_DURATION) * 100;
@@ -713,7 +737,7 @@ export default function BrainrotMatchPage() {
                   <button
                     key={`${r}-${c}`}
                     onClick={() => handleClick(r, c)}
-                    disabled={phase !== "playing" || locked}
+                    disabled={phase !== "playing" || locked || paused}
                     className={`relative aspect-square rounded-lg flex items-center justify-center transition-all duration-150 cell-drop ${
                       cell
                         ? `bg-gradient-to-br ${EMOJI_COLORS[cell.type]} border ${
@@ -796,6 +820,24 @@ export default function BrainrotMatchPage() {
               </button>
             </div>
           )}
+
+          {/* Pause overlay */}
+          {phase === "playing" && paused && (
+            <div className="absolute inset-0 rounded-xl bg-[#09090b]/90 backdrop-blur-sm flex flex-col items-center justify-center animate-overlay-in z-10">
+              <Pause className="w-12 h-12 text-violet-400 mb-3" />
+              <h3 className="text-xl font-bold text-white mb-2">已暂停</h3>
+              <p className="text-sm text-slate-400 mb-4">按 P 键或点击按钮继续</p>
+              <button
+                onClick={() => {
+                  pausedRef.current = false;
+                  setPaused(false);
+                }}
+                className="inline-flex items-center gap-2 h-11 px-6 text-sm font-medium text-white bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 rounded-xl transition-all shadow-lg shadow-violet-500/30 active:scale-95"
+              >
+                <Play className="w-4 h-4" /> 继续游戏
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Legend */}
@@ -810,12 +852,23 @@ export default function BrainrotMatchPage() {
         )}
 
         {phase === "playing" && (
-          <button
-            onClick={restart}
-            className="mt-3 inline-flex items-center gap-2 h-9 px-4 text-xs font-medium text-slate-400 hover:text-red-400 bg-[#18181b] border border-[#27272a] hover:border-red-500/30 rounded-lg transition-colors"
-          >
-            <RotateCcw className="w-3.5 h-3.5" /> 结束游戏
-          </button>
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              onClick={() => {
+                pausedRef.current = true;
+                setPaused(true);
+              }}
+              className="inline-flex items-center gap-2 h-9 px-4 text-xs font-medium text-slate-300 hover:text-violet-400 bg-[#18181b] border border-[#27272a] hover:border-violet-500/30 rounded-lg transition-colors"
+            >
+              <Pause className="w-3.5 h-3.5" /> 暂停
+            </button>
+            <button
+              onClick={restart}
+              className="inline-flex items-center gap-2 h-9 px-4 text-xs font-medium text-slate-400 hover:text-red-400 bg-[#18181b] border border-[#27272a] hover:border-red-500/30 rounded-lg transition-colors"
+            >
+              <RotateCcw className="w-3.5 h-3.5" /> 结束游戏
+            </button>
+          </div>
         )}
       </div>
     </GameShell>

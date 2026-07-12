@@ -166,6 +166,10 @@ export default function Game2048Page() {
   const [spawnedCells, setSpawnedCells] = useState<Set<string>>(new Set());
   const [mergedCells, setMergedCells] = useState<Set<string>>(new Set());
   const popupIdRef = useRef(0);
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  // 卸载时清理所有定时器
+  useEffect(() => () => { timersRef.current.forEach(clearTimeout); }, []);
 
   // 挂载后初始化游戏（mounted 模式修复水合错误 #418）
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -186,9 +190,9 @@ export default function Game2048Page() {
   const triggerScorePopup = useCallback((value: number) => {
     const id = popupIdRef.current++;
     setScorePopups((prev) => [...prev, { id, value }]);
-    setTimeout(() => {
+    timersRef.current.push(setTimeout(() => {
       setScorePopups((prev) => prev.filter((p) => p.id !== id));
-    }, 800);
+    }, 800));
   }, []);
 
   const finish = useCallback((g: Grid) => {
@@ -224,10 +228,10 @@ export default function Game2048Page() {
       setMergedCells(res.mergedCells);
 
       // 清除动画标记
-      setTimeout(() => {
+      timersRef.current.push(setTimeout(() => {
         setSpawnedCells(new Set());
         setMergedCells(new Set());
-      }, 260);
+      }, 260));
 
       if (res.gained > 0) {
         scoreRef.current += res.gained;

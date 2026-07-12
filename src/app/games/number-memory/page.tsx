@@ -32,12 +32,12 @@ export default function NumberMemoryPage() {
   const [showCountdown, setShowCountdown] = useState(0);
   const [finalScore, setFinalScore] = useState(0);
   const [scoreAnim, setScoreAnim] = useState(0);
-  const [progressPercent, setProgressPercent] = useState(100);
   const [refreshKey, setRefreshKey] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
     try {
@@ -51,7 +51,8 @@ export default function NumberMemoryPage() {
   const clearTimers = useCallback(() => {
     if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
     if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
-    if (progressRef.current) { clearInterval(progressRef.current); progressRef.current = null; }
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
   }, []);
 
   const startRound = useCallback((len: number) => {
@@ -72,26 +73,26 @@ export default function NumberMemoryPage() {
       }
     }, 1000);
 
-    // Smooth progress bar animation (updates every 50ms)
-    const startTime = Date.now();
-    setProgressPercent(100);
-    progressRef.current = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const pct = Math.max(0, 100 - (elapsed / SHOW_DURATION) * 100);
-      setProgressPercent(pct);
-      if (pct <= 0 && progressRef.current) {
-        clearInterval(progressRef.current);
-        progressRef.current = null;
-      }
-    }, 50);
-
     timerRef.current = setTimeout(() => {
       setPhase("input");
       setShowCountdown(0);
-      setProgressPercent(0);
-      setTimeout(() => inputRef.current?.focus(), 100);
+      timersRef.current.push(setTimeout(() => inputRef.current?.focus(), 100));
     }, SHOW_DURATION);
   }, []);
+
+  // CSS transition 进度条动画（避免 setInterval 频繁重渲染）
+  useEffect(() => {
+    if (phase !== "showing") return;
+    const bar = progressBarRef.current;
+    if (!bar) return;
+    // 重置到 100% 无过渡
+    bar.style.transition = "none";
+    bar.style.width = "100%";
+    // 强制重排，然后启动 CSS 过渡
+    void bar.offsetWidth;
+    bar.style.transition = `width ${SHOW_DURATION}ms linear`;
+    bar.style.width = "0%";
+  }, [phase]);
 
   const startGame = useCallback(() => {
     clearTimers();
@@ -114,19 +115,19 @@ export default function NumberMemoryPage() {
           setRefreshKey((k) => k + 1);
           setSubmitted(true);
         }
-        setTimeout(() => setPhase("over"), 1500);
+        timersRef.current.push(setTimeout(() => setPhase("over"), 1500));
         return;
       }
       // Next round
-      setTimeout(() => {
+      timersRef.current.push(setTimeout(() => {
         const nextLen = length + 1;
         setLength(nextLen);
         startRound(nextLen);
-      }, 1300);
+      }, 1300));
     } else {
       // Wrong
       setPhase("wrong");
-      setTimeout(() => {
+      timersRef.current.push(setTimeout(() => {
         setPhase("over");
         const score = length > START_LENGTH ? length - 1 : 0;
         setFinalScore(score);
@@ -140,7 +141,7 @@ export default function NumberMemoryPage() {
           submitScore(GAME_ID, 0, "未通过");
           setSubmitted(true);
         }
-      }, 1200);
+      }, 1200));
     }
   }, [phase, input, target, length, submitted, startRound]);
 
@@ -192,11 +193,9 @@ export default function NumberMemoryPage() {
             </div>
             <div className="h-3 bg-[#18181b] border border-[#27272a] rounded-full overflow-hidden">
               <div
+                ref={progressBarRef}
                 className="h-full progress-shimmer rounded-full"
-                style={{
-                  width: `${progressPercent}%`,
-                  transition: "width 50ms linear",
-                }}
+                style={{ width: "100%" }}
               />
             </div>
           </div>
