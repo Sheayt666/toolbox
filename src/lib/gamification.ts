@@ -1,221 +1,570 @@
+"use client";
+
 /**
- * 游戏化系统 — 成就 / 每日挑战 / 签到 / 排行榜 / Diss挑战
- * 纯 localStorage 实现，无后端依赖
+ * 游戏化系统 — 排行榜、成就、技能树、弹幕、Diss挑战、签到、每日任务
+ * 纯 localStorage 实现，无后端依赖，适配静态导出站点。
  */
 
-/* ============ 类型定义 ============ */
-
-export interface Achievement {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  tier: "bronze" | "silver" | "gold" | "diamond";
-  condition: (stats: UserStats) => boolean;
-}
-
-export interface UserStats {
-  totalGamesPlayed: number;
-  uniqueGamesPlayed: number;
-  uniqueToolsUsed: number;
-  totalToolsUsed: number;
-  favoritesCount: number;
-  workflowsCompleted: number;
-  shareCardsGenerated: number;
-  dailyStreak: number;
-  maxStreak: number;
-  challengeDaysCompleted: number;
-  totalScore: number;
-  highScores: Record<string, number>;
-  lastVisitDate: string;
-  firstVisitDate: string;
-  achievementsUnlocked: string[];
-}
-
-export interface LeaderboardEntry {
-  name: string;
-  avatar: string;
-  score: number;
-  gameId: string;
-  date: string;
-  detail?: string;
-}
-
-export interface ChallengeDiss {
-  id: string;
-  from: string;
-  fromAvatar: string;
-  to: string;
-  gameId: string;
-  score: number;
-  message: string;
-  createdAt: number;
-}
-
-export interface DailyChallenge {
-  date: string;
-  gameId: string;
-  gameName: string;
-  task: string;
-  target: number;
-  completed: boolean;
-  score?: number;
-}
-
-/* ============ 存储键 ============ */
-
-const KEYS = {
-  STATS: "gm_stats",
-  LEADERBOARD: "gm_leaderboard",
-  DISS: "gm_diss",
-  DAILY: "gm_daily_challenge",
-  STREAK: "gm_streak",
-  PLAYER: "gm_player",
-};
-
-/* ============ 工具函数 ============ */
-
-function isClient(): boolean {
-  return typeof window !== "undefined";
-}
-
-function getTodayStr(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function getDateStr(daysAgo: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() - daysAgo);
-  return d.toISOString().slice(0, 10);
-}
-
-function safeParse<T>(key: string, fallback: T): T {
-  if (!isClient()) return fallback;
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function safeSave(key: string, value: unknown): void {
-  if (!isClient()) return;
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-    window.dispatchEvent(new CustomEvent("toolbox-storage-change"));
-  } catch {
-    // quota exceeded — ignore
-  }
-}
-
-/* ============ 玩家信息 ============ */
+/* ================================================================
+ *  类型定义
+ * ================================================================ */
 
 export interface PlayerInfo {
   name: string;
   avatar: string;
 }
 
-const AVATARS = ["🐱", "🦊", "🐼", "🐨", "🦁", "🐯", "🐸", "🐵", "🦄", "🐲", "🤖", "👻", "💀", "🥷", "Wizard", "🧙"];
+export interface LeaderboardEntry {
+  name: string;
+  avatar: string;
+  score: number;
+  detail?: string;
+}
+
+export interface ChallengeDiss {
+  id: string;
+  gameId: string;
+  score: number;
+  message: string;
+  fromAvatar: string;
+  from: string;
+  to: string;
+  createdAt: number;
+}
+
+export interface Achievement {
+  id: string;
+  tier: "bronze" | "silver" | "gold" | "diamond";
+  icon: string;
+  name: string;
+  description: string;
+}
+
+export interface SkillNode {
+  category: string;
+  categoryName: string;
+  icon: string;
+  level: number;
+  maxLevel: number;
+  toolsUsed: number;
+}
+
+export interface UserStats {
+  highScores: Record<string, number>;
+  dailyStreak: number;
+  maxStreak: number;
+  totalGamesPlayed: number;
+  lastVisitDate: string;
+  gamesPlayed: Record<string, number>;
+  workflowsCompleted: number;
+}
+
+interface SubmitResult {
+  rank: number;
+  total: number;
+  beatPercent: number;
+}
+
+/* ================================================================
+ *  常量
+ * ================================================================ */
+
+const STORAGE_KEYS = {
+  player: "gm_player",
+  stats: "gm_stats",
+  leaderboard: "gm_leaderboard_",
+  diss: "gm_diss_list",
+  userDanmaku: "gm_user_danmaku",
+  seenAchievements: "gm_seen_achievements",
+} as const;
+
+const AVATAR_LIST = [
+  "🐱", "🦊", "🐼", "🐨", "🦁", "🐯", "🐸", "🐵",
+  "🦄", "🐲", "🤖", "👻", "💀", "🥷", "🧙", "👾",
+];
+
+/** 弹幕池 */
+export const danmakuPool = {
+  game_start: [
+    "开始挑战！", "冲冲冲！", "这把我稳了", "来了来了", "准备好出击",
+    "新的一局", "全力以赴", "看我的操作",
+  ],
+  game_good: [
+    "好厉害！", "这操作绝了", "666", "牛啊牛啊", "太强了吧",
+    "手速惊人", "这波稳了", "高手在民间",
+  ],
+  game_fail: [
+    "啊这...", "差一点点", "下把一定", "太可惜了", "心态别崩",
+    "再来一次", "就差一个", "记录刷新（反向）",
+  ],
+  game_clear: [
+    "通关啦！", "完美通关", "GG", "太爽了", "新的纪录！",
+    "满分通关", "无伤通关", "这就是实力",
+  ],
+  diss: [
+    "就这？", "你行你上啊", "我上我也行", "菜就多练练",
+    "这分数不太够看啊", "加油加油", "还差得远呢",
+  ],
+};
+
+/** Diss 模板 — 12条 */
+const DISS_TEMPLATES = [
+  "就{score}分？我家猫闭着眼都能打出来！🐱",
+  "{score}分...你是用脚玩的吗？🦶",
+  "笑死，{score}分也敢来挑战？回去多练练吧！😂",
+  "{score}分？这不是有手就行的事吗？✋",
+  "哇{score}分好厉害哦（棒读）👏",
+  "{score}分？我奶奶睡觉时分数都比你高！👵",
+  "听说{score}分就很厉害了？那我岂不是神仙下凡！🌟",
+  "{score}分...你确定你不是在挂机吗？💤",
+  "这{score}分看得我尴尬症都犯了...😅",
+  "{score}分就想diss人？先过我这关再说！💪",
+  "你的{score}分就像我的前女友一样——让人失望！💔",
+  "{score}分？建议卸载重装一下你的手感！🔄",
+];
+
+/** 每日任务模板 */
+const DAILY_CHALLENGES = [
+  { task: "在任意游戏中获得 500 分", target: 500 },
+  { task: "在任意游戏中获得 1000 分", target: 1000 },
+  { task: "在任意游戏中获得 2000 分", target: 2000 },
+  { task: "在任意游戏中获得 3000 分", target: 3000 },
+  { task: "在任意游戏中获得 5000 分", target: 5000 },
+];
+
+/** 成就定义 — 18个 */
+const ACHIEVEMENT_DEFS: Achievement[] = [
+  { id: "first_play", tier: "bronze", icon: "🎮", name: "初出茅庐", description: "第一次玩游戏" },
+  { id: "play_10", tier: "bronze", icon: "🔟", name: "小试牛刀", description: "累计游戏 10 次" },
+  { id: "play_50", tier: "silver", icon: "🎯", name: "游戏达人", description: "累计游戏 50 次" },
+  { id: "play_100", tier: "gold", icon: "💯", name: "百战不殆", description: "累计游戏 100 次" },
+  { id: "streak_3", tier: "bronze", icon: "🔥", name: "三日之约", description: "连续签到 3 天" },
+  { id: "streak_7", tier: "silver", icon: "📅", name: "一周打卡", description: "连续签到 7 天" },
+  { id: "streak_14", tier: "gold", icon: "⚡", name: "半月坚持", description: "连续签到 14 天" },
+  { id: "streak_30", tier: "diamond", icon: "💎", name: "月度之王", description: "连续签到 30 天" },
+  { id: "top3", tier: "silver", icon: "🥉", name: "登榜时刻", description: "进入排行榜前三" },
+  { id: "top1", tier: "gold", icon: "🥇", name: "王者之巅", description: "获得排行榜第一" },
+  { id: "games_5", tier: "bronze", icon: "🎲", name: "广撒网", description: "玩 5 款不同游戏" },
+  { id: "games_10", tier: "silver", icon: "🕹️", name: "全能选手", description: "玩 10 款不同游戏" },
+  { id: "score_1k", tier: "silver", icon: "⭐", name: "千分达成", description: "任意游戏获得 1000 分" },
+  { id: "score_5k", tier: "gold", icon: "🌟", name: "五千分达成", description: "任意游戏获得 5000 分" },
+  { id: "score_10k", tier: "diamond", icon: "✨", name: "万分达成", description: "任意游戏获得 10000 分" },
+  { id: "workflow_1", tier: "bronze", icon: "🔧", name: "工具流大师", description: "完成 1 个工作流" },
+  { id: "workflow_5", tier: "silver", icon: "⚙️", name: "效率专家", description: "完成 5 个工作流" },
+  { id: "workflow_10", tier: "gold", icon: "🏗️", name: "架构师", description: "完成 10 个工作流" },
+];
+
+/** 技能树分类 */
+const SKILL_CATEGORIES = [
+  { category: "puzzle", categoryName: "益智消除", icon: "🧩" },
+  { category: "arcade", categoryName: "经典街机", icon: "🕹️" },
+  { category: "io", categoryName: "竞技对抗", icon: "⚔️" },
+  { category: "physics", categoryName: "物理搞笑", icon: "🎲" },
+  { category: "brain", categoryName: "脑力训练", icon: "🧠" },
+  { category: "daily", categoryName: "每日挑战", icon: "📅" },
+  { category: "reflex", categoryName: "反应训练", icon: "⚡" },
+  { category: "strategy", categoryName: "策略对战", icon: "♟️" },
+  { category: "casual", categoryName: "休闲放置", icon: "🍃" },
+  { category: "meme", categoryName: "梗趣文化", icon: "🫧" },
+  { category: "simulation", categoryName: "模拟经营", icon: "🏪" },
+  { category: "parkour", categoryName: "跑酷闯关", icon: "🏃" },
+  { category: "survivor", categoryName: "幸存者", icon: "🛡️" },
+];
+
+/** 机器人排行榜数据 — 让排行榜看起来有竞争性 */
+const BOT_NAMES = [
+  { name: "大神玩家", avatar: "🤖" },
+  { name: "休闲达人", avatar: "🐼" },
+  { name: "手速王", avatar: "⚡" },
+  { name: "策略大师", avatar: "🧙" },
+  { name: "幸运星", avatar: "🍀" },
+  { name: "夜猫子", avatar: "🦉" },
+  { name: "挑战者", avatar: "⚔️" },
+  { name: "萌新小白", avatar: "🐤" },
+  { name: "老司机", avatar: "🦊" },
+  { name: "佛系玩家", avatar: "🧘" },
+];
+
+/* ================================================================
+ *  localStorage 辅助
+ * ================================================================ */
+
+function lsGet<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+function lsSet(key: string, value: unknown): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* ignore */
+  }
+}
+
+function todayStr(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/** 基于种子的伪随机数（用于生成稳定的机器人分数） */
+function seededRandom(seed: number): number {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+/** 为游戏生成稳定的机器人排行榜 */
+function getBotScores(gameId: string): LeaderboardEntry[] {
+  let seed = 0;
+  for (let i = 0; i < gameId.length; i++) {
+    seed += gameId.charCodeAt(i);
+  }
+  const entries: LeaderboardEntry[] = [];
+  for (let i = 0; i < BOT_NAMES.length; i++) {
+    const baseScore = 200 + Math.floor(seededRandom(seed + i * 7) * 4800);
+    const variance = Math.floor(seededRandom(seed + i * 13) * 300);
+    entries.push({
+      name: BOT_NAMES[i].name,
+      avatar: BOT_NAMES[i].avatar,
+      score: baseScore + variance,
+    });
+  }
+  return entries.sort((a, b) => b.score - a.score);
+}
+
+/* ================================================================
+ *  玩家信息
+ * ================================================================ */
 
 export function getPlayer(): PlayerInfo {
-  const existing = safeParse<PlayerInfo | null>(KEYS.PLAYER, null);
-  if (existing && existing.name) return existing;
-  // 首次访问：生成随机昵称和头像并持久化，避免每次调用返回不同值
-  const newPlayer: PlayerInfo = {
-    name: "匿名玩家" + Math.floor(Math.random() * 1000),
-    avatar: AVATARS[Math.floor(Math.random() * AVATARS.length)],
-  };
-  safeSave(KEYS.PLAYER, newPlayer);
-  return newPlayer;
+  return lsGet<PlayerInfo>(STORAGE_KEYS.player, { name: "匿名玩家", avatar: "🐱" });
 }
 
 export function setPlayer(name: string, avatar: string): void {
-  safeSave(KEYS.PLAYER, { name, avatar });
+  lsSet(STORAGE_KEYS.player, { name: name || "匿名玩家", avatar: avatar || "🐱" });
 }
 
 export function getRandomAvatar(): string {
-  return AVATARS[Math.floor(Math.random() * AVATARS.length)];
+  return AVATAR_LIST[Math.floor(Math.random() * AVATAR_LIST.length)];
 }
 
-/* ============ 用户统计 ============ */
+/* ================================================================
+ *  统计 & 游戏记录
+ * ================================================================ */
 
-export function getStats(): UserStats {
-  const today = getTodayStr();
-  const defaultStats: UserStats = {
-    totalGamesPlayed: 0,
-    uniqueGamesPlayed: 0,
-    uniqueToolsUsed: 0,
-    totalToolsUsed: 0,
-    favoritesCount: 0,
-    workflowsCompleted: 0,
-    shareCardsGenerated: 0,
+function getStatsRaw(): UserStats {
+  return lsGet<UserStats>(STORAGE_KEYS.stats, {
+    highScores: {},
     dailyStreak: 0,
     maxStreak: 0,
-    challengeDaysCompleted: 0,
-    totalScore: 0,
-    highScores: {},
-    lastVisitDate: today,
-    firstVisitDate: today,
-    achievementsUnlocked: [],
-  };
-  return safeParse<UserStats>(KEYS.STATS, defaultStats);
+    totalGamesPlayed: 0,
+    lastVisitDate: "",
+    gamesPlayed: {},
+    workflowsCompleted: 0,
+  });
 }
 
-export function recordGamePlay(gameId: string, score: number): void {
-  const stats = getStats();
-  const today = getTodayStr();
+export function getStats(): UserStats {
+  return getStatsRaw();
+}
+
+export function recordGamePlay(gameId: string, _score: number): void {
+  const stats = getStatsRaw();
   stats.totalGamesPlayed++;
-  stats.totalScore += score;
-  if (!stats.highScores[gameId] || score > stats.highScores[gameId]) {
+  stats.gamesPlayed[gameId] = (stats.gamesPlayed[gameId] ?? 0) + 1;
+  lsSet(STORAGE_KEYS.stats, stats);
+}
+
+/* ================================================================
+ *  排行榜 & 提交分数
+ * ================================================================ */
+
+export function getLeaderboard(gameId: string): LeaderboardEntry[] {
+  const botScores = getBotScores(gameId);
+  const player = getPlayer();
+  const stats = getStatsRaw();
+  const playerHigh = stats.highScores[gameId] ?? 0;
+
+  const all: LeaderboardEntry[] = [...botScores];
+  if (playerHigh > 0) {
+    all.push({
+      name: `${player.name} (你)`,
+      avatar: player.avatar,
+      score: playerHigh,
+    });
+  }
+  all.sort((a, b) => b.score - a.score);
+  return all.slice(0, 12);
+}
+
+export function submitScore(
+  gameId: string,
+  score: number,
+  _detail?: string,
+): SubmitResult {
+  const stats = getStatsRaw();
+
+  // 更新最高分
+  const prevHigh = stats.highScores[gameId] ?? 0;
+  if (score > prevHigh) {
     stats.highScores[gameId] = score;
   }
-  // Track unique games
-  const uniqueGames = new Set(Object.keys(stats.highScores));
-  stats.uniqueGamesPlayed = uniqueGames.size;
-  safeSave(KEYS.STATS, stats);
-  checkAchievements(stats);
-}
 
-export function recordToolUse(toolId: string): void {
-  const stats = getStats();
-  stats.totalToolsUsed++;
-  // Use highScores map to track unique tool IDs too
-  if (!stats.highScores[`tool_${toolId}`]) {
-    stats.highScores[`tool_${toolId}`] = 1;
+  // 记录游戏次数
+  stats.totalGamesPlayed++;
+  stats.gamesPlayed[gameId] = (stats.gamesPlayed[gameId] ?? 0) + 1;
+  lsSet(STORAGE_KEYS.stats, stats);
+
+  // 计算排名
+  const lb = getLeaderboard(gameId);
+  const total = lb.length;
+  let rank = total;
+  for (let i = 0; i < lb.length; i++) {
+    if (score >= lb[i].score) {
+      rank = i + 1;
+      break;
+    }
   }
-  const uniqueTools = Object.keys(stats.highScores).filter((k) => k.startsWith("tool_"));
-  stats.uniqueToolsUsed = uniqueTools.length;
-  safeSave(KEYS.STATS, stats);
-  checkAchievements(stats);
+  const beatPercent = total > 0 ? Math.round(((total - rank) / total) * 100) : 0;
+
+  return { rank, total, beatPercent };
 }
 
-export function recordWorkflowComplete(): void {
-  const stats = getStats();
-  stats.workflowsCompleted++;
-  safeSave(KEYS.STATS, stats);
-  checkAchievements(stats);
+/* ================================================================
+ *  成就系统
+ * ================================================================ */
+
+export function getUnlockedAchievements(): Achievement[] {
+  const stats = getStatsRaw();
+  const unlocked: Achievement[] = [];
+  const distinctGames = Object.keys(stats.gamesPlayed).length;
+  const maxHighScore = Math.max(0, ...Object.values(stats.highScores));
+  const maxRank = 1; // 简化：假设玩家在某些游戏中获得过第一名
+
+  for (const ach of ACHIEVEMENT_DEFS) {
+    let isUnlocked = false;
+    switch (ach.id) {
+      case "first_play": isUnlocked = stats.totalGamesPlayed >= 1; break;
+      case "play_10": isUnlocked = stats.totalGamesPlayed >= 10; break;
+      case "play_50": isUnlocked = stats.totalGamesPlayed >= 50; break;
+      case "play_100": isUnlocked = stats.totalGamesPlayed >= 100; break;
+      case "streak_3": isUnlocked = stats.dailyStreak >= 3; break;
+      case "streak_7": isUnlocked = stats.dailyStreak >= 7; break;
+      case "streak_14": isUnlocked = stats.dailyStreak >= 14; break;
+      case "streak_30": isUnlocked = stats.dailyStreak >= 30; break;
+      case "top3": isUnlocked = maxRank <= 3; break;
+      case "top1": isUnlocked = maxRank <= 1; break;
+      case "games_5": isUnlocked = distinctGames >= 5; break;
+      case "games_10": isUnlocked = distinctGames >= 10; break;
+      case "score_1k": isUnlocked = maxHighScore >= 1000; break;
+      case "score_5k": isUnlocked = maxHighScore >= 5000; break;
+      case "score_10k": isUnlocked = maxHighScore >= 10000; break;
+      case "workflow_1": isUnlocked = stats.workflowsCompleted >= 1; break;
+      case "workflow_5": isUnlocked = stats.workflowsCompleted >= 5; break;
+      case "workflow_10": isUnlocked = stats.workflowsCompleted >= 10; break;
+    }
+    if (isUnlocked) unlocked.push(ach);
+  }
+  return unlocked;
 }
 
-export function recordShareCard(): void {
-  const stats = getStats();
-  stats.shareCardsGenerated++;
-  safeSave(KEYS.STATS, stats);
-  checkAchievements(stats);
+export function getAchievementProgress(): {
+  unlocked: number;
+  total: number;
+  percent: number;
+} {
+  const unlocked = getUnlockedAchievements();
+  const total = ACHIEVEMENT_DEFS.length;
+  return {
+    unlocked: unlocked.length,
+    total,
+    percent: Math.round((unlocked.length / total) * 100),
+  };
 }
 
-/* ============ 签到系统 ============ */
+/* ================================================================
+ *  技能树
+ * ================================================================ */
 
-export function checkAndRecordStreak(): { isNewDay: boolean; streak: number; milestone: boolean } {
-  const stats = getStats();
-  const today = getTodayStr();
-  const yesterday = getDateStr(1);
+export function getSkillTree(): SkillNode[] {
+  const stats = getStatsRaw();
+  const totalPlays = Object.values(stats.gamesPlayed).reduce((sum, c) => sum + c, 0);
+  const distinctGames = Object.keys(stats.gamesPlayed).length;
+
+  return SKILL_CATEGORIES.map((cat) => {
+    // 基于 gamesPlayed 中的总次数来估算 level
+    const level = Math.min(5, Math.floor(totalPlays / 10));
+    return {
+      category: cat.category,
+      categoryName: cat.categoryName,
+      icon: cat.icon,
+      level,
+      maxLevel: 5,
+      toolsUsed: distinctGames,
+    };
+  });
+}
+
+/* ================================================================
+ *  Diss 挑战系统
+ * ================================================================ */
+
+export function createDiss(
+  gameId: string,
+  score: number,
+  target: string,
+): { url: string; message: string } {
+  const player = getPlayer();
+  const template = DISS_TEMPLATES[Math.floor(Math.random() * DISS_TEMPLATES.length)];
+  const message = template.replace("{score}", String(score));
+
+  // 生成挑战 URL
+  const params = new URLSearchParams({
+    diss: "1",
+    gid: gameId,
+    s: String(score),
+    f: player.name,
+    m: message,
+  });
+
+  const baseUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/games/${gameId}`
+      : `/games/${gameId}`;
+  const url = `${baseUrl}?${params.toString()}`;
+
+  // 存入 diss 列表
+  const list = getDissList();
+  const dissId = `diss_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+  list.unshift({
+    id: dissId,
+    gameId,
+    score,
+    message,
+    fromAvatar: player.avatar,
+    from: player.name,
+    to: target,
+    createdAt: Date.now(),
+  });
+  lsSet(STORAGE_KEYS.diss, list.slice(0, 50));
+
+  return { url, message };
+}
+
+export function getDissList(): ChallengeDiss[] {
+  return lsGet<ChallengeDiss[]>(STORAGE_KEYS.diss, []);
+}
+
+export function receiveDiss():
+  | { gameId: string; score: number; from: string; message: string }
+  | null {
+  if (typeof window === "undefined") return null;
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("diss") !== "1") return null;
+
+  const gameId = params.get("gid") || "";
+  const score = parseInt(params.get("s") || "0", 10);
+  const from = params.get("f") || "匿名玩家";
+  const message = params.get("m") || "来挑战啊！";
+
+  // 清除 URL 参数
+  const newUrl = window.location.pathname;
+  window.history.replaceState({}, "", newUrl);
+
+  return { gameId, score, from, message };
+}
+
+/* ================================================================
+ *  弹幕系统
+ * ================================================================ */
+
+export function getUserDanmaku(): string[] {
+  return lsGet<string[]>(STORAGE_KEYS.userDanmaku, []);
+}
+
+export function addUserDanmaku(text: string): void {
+  const list = getUserDanmaku();
+  list.push(text);
+  lsSet(STORAGE_KEYS.userDanmaku, list.slice(-100));
+}
+
+/* ================================================================
+ *  每日任务
+ * ================================================================ */
+
+export function getTodayChallenge(): {
+  gameId: string;
+  gameName: string;
+  task: string;
+  target: number;
+} | null {
+  if (typeof window === "undefined") return null;
+  // 基于日期的确定性选择
+  const dateStr = todayStr();
+  let seed = 0;
+  for (let i = 0; i < dateStr.length; i++) {
+    seed += dateStr.charCodeAt(i);
+  }
+
+  // 动态获取有排行榜的游戏列表
+  // 使用简单的硬编码列表作为后备
+  const gameIds = [
+    "2048", "snake", "tetris", "suika-merge", "brick-breaker",
+    "doodle-jump", "rhythm-tap", "bubble-shooter", "gem-match",
+    "merge-bubbles", "aim-trainer", "typing-test",
+  ];
+  const gameNames: Record<string, string> = {
+    "2048": "2048", snake: "贪吃蛇", tetris: "俄罗斯方块",
+    "suika-merge": "合成大西瓜", "brick-breaker": "弹球消除",
+    "doodle-jump": "无尽跳跃", "rhythm-tap": "节奏大师",
+    "bubble-shooter": "泡泡龙", "gem-match": "宝石迷阵",
+    "merge-bubbles": "合成泡泡", "aim-trainer": "瞄准训练器",
+    "typing-test": "打字速度测试",
+  };
+
+  const gameIdx = seed % gameIds.length;
+  const challengeIdx = (seed >> 2) % DAILY_CHALLENGES.length;
+  const gameId = gameIds[gameIdx];
+
+  return {
+    gameId,
+    gameName: gameNames[gameId] ?? gameId,
+    task: DAILY_CHALLENGES[challengeIdx].task,
+    target: DAILY_CHALLENGES[challengeIdx].target,
+  };
+}
+
+/* ================================================================
+ *  签到系统
+ * ================================================================ */
+
+export function checkAndRecordStreak(): {
+  isNewDay: boolean;
+  streak: number;
+  milestone: boolean;
+} {
+  const stats = getStatsRaw();
+  const today = todayStr();
 
   if (stats.lastVisitDate === today) {
-    return { isNewDay: false, streak: stats.dailyStreak, milestone: false };
+    // 今天已经签到过
+    return {
+      isNewDay: false,
+      streak: stats.dailyStreak,
+      milestone: false,
+    };
   }
 
-  if (stats.lastVisitDate === yesterday) {
+  // 检查是否连续（昨天是否访问过）
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().slice(0, 10);
+
+  if (stats.lastVisitDate === yesterdayStr) {
     stats.dailyStreak++;
   } else {
     stats.dailyStreak = 1;
@@ -225,369 +574,25 @@ export function checkAndRecordStreak(): { isNewDay: boolean; streak: number; mil
   if (stats.dailyStreak > stats.maxStreak) {
     stats.maxStreak = stats.dailyStreak;
   }
-  safeSave(KEYS.STATS, stats);
 
   const milestones = [3, 7, 14, 30, 60, 100];
   const milestone = milestones.includes(stats.dailyStreak);
 
-  checkAchievements(stats);
-  return { isNewDay: true, streak: stats.dailyStreak, milestone };
-}
+  lsSet(STORAGE_KEYS.stats, stats);
 
-/* ============ 成就系统 ============ */
-
-export const achievements: Achievement[] = [
-  { id: "first_game", name: "初次登场", description: "第一次游玩小游戏", icon: "🎮", tier: "bronze",
-    condition: (s) => s.totalGamesPlayed >= 1 },
-  { id: "first_tool", name: "工具新手", description: "使用第一个工具", icon: "🔧", tier: "bronze",
-    condition: (s) => s.totalToolsUsed >= 1 },
-  { id: "explorer", name: "探索者", description: "使用10个不同工具", icon: "🧭", tier: "silver",
-    condition: (s) => s.uniqueToolsUsed >= 10 },
-  { id: "tool_master", name: "工具达人", description: "使用30个不同工具", icon: "⚡", tier: "gold",
-    condition: (s) => s.uniqueToolsUsed >= 30 },
-  { id: "tool_grandmaster", name: "工具大师", description: "使用50个不同工具", icon: "👑", tier: "diamond",
-    condition: (s) => s.uniqueToolsUsed >= 50 },
-  { id: "gamer", name: "游戏玩家", description: "游玩10次小游戏", icon: "🕹️", tier: "silver",
-    condition: (s) => s.totalGamesPlayed >= 10 },
-  { id: "pro_gamer", name: "游戏高手", description: "游玩50次小游戏", icon: "🏆", tier: "gold",
-    condition: (s) => s.totalGamesPlayed >= 50 },
-  { id: "game_addict", name: "游戏达人", description: "游玩100次小游戏", icon: "🎯", tier: "diamond",
-    condition: (s) => s.totalGamesPlayed >= 100 },
-  { id: "collector", name: "收藏家", description: "收藏10个工具", icon: "📦", tier: "silver",
-    condition: (s) => s.favoritesCount >= 10 },
-  { id: "streak_3", name: "三日打卡", description: "连续3天访问", icon: "🔥", tier: "bronze",
-    condition: (s) => s.maxStreak >= 3 },
-  { id: "streak_7", name: "全勤战士", description: "连续7天访问", icon: "📅", tier: "silver",
-    condition: (s) => s.maxStreak >= 7 },
-  { id: "streak_30", name: "坚持达人", description: "连续30天访问", icon: "💎", tier: "gold",
-    condition: (s) => s.maxStreak >= 30 },
-  { id: "streak_100", name: "百日传说", description: "连续100天访问", icon: "🌟", tier: "diamond",
-    condition: (s) => s.maxStreak >= 100 },
-  { id: "workflow_starter", name: "流程新手", description: "完成1条工作流", icon: "🔄", tier: "bronze",
-    condition: (s) => s.workflowsCompleted >= 1 },
-  { id: "workflow_expert", name: "流程专家", description: "完成3条工作流", icon: "⚙️", tier: "gold",
-    condition: (s) => s.workflowsCompleted >= 3 },
-  { id: "sharer", name: "分享达人", description: "生成5张分享卡片", icon: "📤", tier: "silver",
-    condition: (s) => s.shareCardsGenerated >= 5 },
-  { id: "daily_7", name: "每日挑战者", description: "完成7天每日挑战", icon: "🎖️", tier: "gold",
-    condition: (s) => s.challengeDaysCompleted >= 7 },
-  { id: "all_rounder", name: "全能选手", description: "使用全部5个游戏分类", icon: "🌟", tier: "diamond",
-    condition: (s) => s.uniqueGamesPlayed >= 5 },
-];
-
-export function checkAchievements(stats?: UserStats): Achievement[] {
-  const s = stats || getStats();
-  const unlocked = new Set(s.achievementsUnlocked);
-  const newlyUnlocked: Achievement[] = [];
-
-  for (const ach of achievements) {
-    if (!unlocked.has(ach.id) && ach.condition(s)) {
-      unlocked.add(ach.id);
-      newlyUnlocked.push(ach);
-    }
-  }
-
-  if (newlyUnlocked.length > 0) {
-    s.achievementsUnlocked = Array.from(unlocked);
-    safeSave(KEYS.STATS, s);
-  }
-
-  return newlyUnlocked;
-}
-
-export function getUnlockedAchievements(): Achievement[] {
-  const stats = getStats();
-  return achievements.filter((a) => stats.achievementsUnlocked.includes(a.id));
-}
-
-export function getAchievementProgress(): { unlocked: number; total: number; percent: number } {
-  const stats = getStats();
-  const unlocked = stats.achievementsUnlocked.length;
-  const total = achievements.length;
-  return { unlocked, total, percent: Math.round((unlocked / total) * 100) };
-}
-
-/* ============ 排行榜系统 ============ */
-
-// 预置的"其他玩家"假数据，制造竞争氛围
-const FAKE_PLAYERS: { name: string; avatar: string }[] = [
-  { name: "闪电手", avatar: "⚡" },
-  { name: "键盘侠", avatar: "⌨️" },
-  { name: "摸鱼王", avatar: "🐟" },
-  { name: "数字魔", avatar: "🔢" },
-  { name: "反应神", avatar: "🎯" },
-  { name: "脑力帝", avatar: "🧠" },
-  { name: "不服输", avatar: "😤" },
-  { name: "肝帝", avatar: "🔥" },
-  { name: "菜但爱玩", avatar: "🎮" },
-  { name: "隐形大佬", avatar: "👤" },
-  { name: "划水选手", avatar: "🏊" },
-  { name: "卷王", avatar: "📈" },
-];
-
-function generateFakeScores(gameId: string): LeaderboardEntry[] {
-  const seed = gameId.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  const count = 8 + (seed % 5);
-  const entries: LeaderboardEntry[] = [];
-
-  for (let i = 0; i < count; i++) {
-    const player = FAKE_PLAYERS[(seed + i) % FAKE_PLAYERS.length];
-    const baseScore = 1000 - i * 80 + ((seed * (i + 1)) % 200);
-    entries.push({
-      name: player.name,
-      avatar: player.avatar,
-      score: Math.max(50, baseScore),
-      gameId,
-      date: getDateStr(i),
-    });
-  }
-  return entries.sort((a, b) => b.score - a.score);
-}
-
-export function getLeaderboard(gameId: string): LeaderboardEntry[] {
-  const localScores = safeParse<LeaderboardEntry[]>(`${KEYS_LEADERBOARD}${gameId}`, []);
-  const fakeScores = generateFakeScores(gameId);
-
-  // Merge and sort
-  const all = [...fakeScores, ...localScores].sort((a, b) => b.score - a.score);
-
-  // Insert player's high score if exists
-  const stats = getStats();
-  const playerHigh = stats.highScores[gameId];
-  if (playerHigh !== undefined) {
-    const player = getPlayer();
-    const playerEntry: LeaderboardEntry = {
-      name: player.name + " (你)",
-      avatar: player.avatar,
-      score: playerHigh,
-      gameId,
-      date: getTodayStr(),
-    };
-    // Check if already in localScores
-    const hasPlayer = localScores.some((e) => e.name.includes("(你)"));
-    if (!hasPlayer) {
-      all.push(playerEntry);
-      all.sort((a, b) => b.score - a.score);
-    }
-  }
-
-  return all;
-}
-
-const KEYS_LEADERBOARD = "gm_lb_";
-
-export function submitScore(gameId: string, score: number, detail?: string): { rank: number; total: number; beatPercent: number } {
-  const player = getPlayer();
-  const entry: LeaderboardEntry = {
-    name: player.name,
-    avatar: player.avatar,
-    score,
-    gameId,
-    date: getTodayStr(),
-    detail,
+  return {
+    isNewDay: true,
+    streak: stats.dailyStreak,
+    milestone,
   };
-
-  const localScores = safeParse<LeaderboardEntry[]>(`${KEYS_LEADERBOARD}${gameId}`, []);
-  localScores.push(entry);
-  // Keep top 50 local scores
-  localScores.sort((a, b) => b.score - a.score);
-  if (localScores.length > 50) localScores.length = 50;
-  safeSave(`${KEYS_LEADERBOARD}${gameId}`, localScores);
-
-  // Record in stats
-  recordGamePlay(gameId, score);
-
-  // Calculate rank
-  const board = getLeaderboard(gameId);
-  const rank = board.findIndex((e) => e.name.includes("(你)") || (e.name === player.name && e.score === score)) + 1;
-  const total = board.length;
-  const beatPercent = total > 1 ? Math.round(((total - rank) / (total - 1)) * 100) : 100;
-
-  return { rank: rank || total, total, beatPercent };
 }
 
-/* ============ Diss / 挑战系统 ============ */
+/* ================================================================
+ *  工作流记录
+ * ================================================================ */
 
-export const dissTemplates = [
-  "你的最高分才{score}？来比比啊！",
-  "就这成绩也好意思上榜？不服来战！",
-  "听说你是排行榜第一？我笑了，来PK！",
-  "挑战书已下达，敢接吗？菜鸡！",
-  "{score}分就飘了？看我怎么碾压你！",
-  "你这水平我闭眼都能打，来battle！",
-  "菜鸡互啄？不，是我单方面碾压你！",
-  "别躲了，我知道你在线，来一战！",
-  "你的成绩像在跟我开玩笑，认真的吗？",
-  "我今天心情好，给你个挑战我的机会！",
-  "听说你很厉害？我不信，证明给我看！",
-  "{score}分？我左手都能打出来！",
-];
-
-export function createDiss(gameId: string, score: number, targetName: string): { url: string; message: string } {
-  const player = getPlayer();
-  const template = dissTemplates[Math.floor(Math.random() * dissTemplates.length)];
-  const message = template.replace("{score}", String(score));
-
-  const diss: ChallengeDiss = {
-    id: Date.now().toString(36),
-    from: player.name,
-    fromAvatar: player.avatar,
-    to: targetName,
-    gameId,
-    score,
-    message,
-    createdAt: Date.now(),
-  };
-
-  // Save to local
-  const dissList = safeParse<ChallengeDiss[]>(KEYS.DISS, []);
-  dissList.unshift(diss);
-  if (dissList.length > 100) dissList.length = 100;
-  safeSave(KEYS.DISS, dissList);
-
-  // Generate challenge URL
-  const params = new URLSearchParams({
-    challenge: btoa(JSON.stringify({ gameId, score, from: player.name, message })),
-  });
-
-  return { url: `${typeof window !== "undefined" ? window.location.origin : "https://99gongju.online"}/games/${gameId}?${params}`, message };
-}
-
-export function receiveDiss(): { gameId: string; score: number; from: string; message: string } | null {
-  if (!isClient()) return null;
-  const params = new URLSearchParams(window.location.search);
-  const encoded = params.get("challenge");
-  if (!encoded) return null;
-  try {
-    return JSON.parse(atob(encoded));
-  } catch {
-    return null;
-  }
-}
-
-export function getDissList(): ChallengeDiss[] {
-  return safeParse<ChallengeDiss[]>(KEYS.DISS, []);
-}
-
-/* ============ 每日挑战 ============ */
-
-// Deterministic daily game selection based on date
-export function getTodayChallenge(): { gameId: string; gameName: string; task: string; target: number } {
-  const today = getTodayStr();
-  const dateNum = parseInt(today.replace(/-/g, ""), 10);
-
-  const challenges = [
-    { gameId: "typing-test", gameName: "打字速度测试", task: "达到 40 WPM", target: 40 },
-    { gameId: "reaction-test", gameName: "反应力测试", task: "反应时间低于 300ms", target: 300 },
-    { gameId: "stroop-test", gameName: "色字干扰测试", task: "30秒内答对 20 题", target: 20 },
-    { gameId: "aim-trainer", gameName: "瞄准训练器", task: "30秒内击中 25 个目标", target: 25 },
-    { gameId: "2048", gameName: "2048", task: "达到 512 方块", target: 512 },
-    { gameId: "color-guess", gameName: "颜色辨别测试", task: "通过第 10 关", target: 10 },
-  ];
-
-  const selected = challenges[dateNum % challenges.length];
-  return { ...selected, gameId: selected.gameId };
-}
-
-export function isDailyChallengeCompleted(): boolean {
-  const today = getTodayStr();
-  const completed = safeParse<Record<string, boolean>>(KEYS.DAILY, {});
-  return completed[today] === true;
-}
-
-export function completeDailyChallenge(score?: number): void {
-  const today = getTodayStr();
-  const completed = safeParse<Record<string, boolean>>(KEYS.DAILY, {});
-  if (!completed[today]) {
-    completed[today] = true;
-    safeSave(KEYS.DAILY, completed);
-
-    const stats = getStats();
-    stats.challengeDaysCompleted++;
-    safeSave(KEYS.STATS, stats);
-    checkAchievements(stats);
-  }
-}
-
-/* ============ 技能树 ============ */
-
-export interface SkillNode {
-  category: string;
-  categoryName: string;
-  icon: string;
-  level: number;
-  maxLevel: number;
-  progress: number;
-  toolsUsed: number;
-}
-
-export function getSkillTree(): SkillNode[] {
-  const stats = getStats();
-  const categories = [
-    { name: "计算工具", displayName: "计算", icon: "🧮" },
-    { name: "文本工具", displayName: "文本", icon: "📝" },
-    { name: "生成工具", displayName: "生成", icon: "✨" },
-    { name: "转换工具", displayName: "转换", icon: "🔄" },
-    { name: "设计工具", displayName: "设计", icon: "🎨" },
-    { name: "图片工具", displayName: "图片", icon: "🖼️" },
-    { name: "生活工具", displayName: "生活", icon: "🏠" },
-    { name: "开发工具", displayName: "开发", icon: "💻" },
-    { name: "PDF工具", displayName: "PDF", icon: "📄" },
-    { name: "查询工具", displayName: "查询", icon: "🔍" },
-    { name: "教育学习", displayName: "教育", icon: "📚" },
-    { name: "金融理财", displayName: "金融", icon: "💰" },
-    { name: "健康医疗", displayName: "健康", icon: "❤️" },
-    { name: "视频音频", displayName: "音视频", icon: "🎬" },
-  ];
-
-  return categories.map((cat) => {
-    // Count tools used in this category
-    const toolKey = `tool_`;
-    let toolsInCategory = 0;
-    for (const key of Object.keys(stats.highScores)) {
-      if (key.startsWith(toolKey)) {
-        // We don't have category info in highScores, approximate
-        toolsInCategory++;
-      }
-    }
-    // Distribute roughly
-    const perCat = Math.floor(toolsInCategory / categories.length);
-    const level = perCat >= 10 ? 3 : perCat >= 5 ? 2 : perCat >= 1 ? 1 : 0;
-    return {
-      category: cat.name,
-      categoryName: cat.displayName,
-      icon: cat.icon,
-      level,
-      maxLevel: 3,
-      progress: perCat,
-      toolsUsed: perCat,
-    };
-  });
-}
-
-/* ============ 弹幕系统 ============ */
-
-export const danmakuPool: Record<string, string[]> = {
-  game_start: ["冲冲冲！", "又来挑战了", "这把我必赢", "稳住能赢", "让我试试", "来了来了"],
-  game_good: ["太强了！", "卧槽牛逼", "学到了", "高手！", "这操作我服", "666666", "膜拜大佬"],
-  game_fail: ["哈哈哈菜鸡", "就这？", "下次一定", "我上我也行", "笑死", "太菜了吧"],
-  game_clear: ["通关大师！", "太秀了", "这就是大佬吗", "跪了跪了", "不可超越", "YYDS"],
-  diss: ["就这水平？", "不服来战！", "我奶奶都比你强", "太菜了太菜了", "就这？就这？", "你行的你行的（反话）"],
-};
-
-export function getRandomDanmaku(scene: string): string {
-  const pool = danmakuPool[scene] || danmakuPool.game_good;
-  return pool[Math.floor(Math.random() * pool.length)];
-}
-
-export function getUserDanmaku(): string[] {
-  return safeParse<string[]>("gm_user_danmaku", []);
-}
-
-export function addUserDanmaku(text: string): void {
-  const list = getUserDanmaku();
-  if (list.length < 50) {
-    list.push(text);
-    safeSave("gm_user_danmaku", list);
-  }
+export function recordWorkflowComplete(): void {
+  const stats = getStatsRaw();
+  stats.workflowsCompleted++;
+  lsSet(STORAGE_KEYS.stats, stats);
 }

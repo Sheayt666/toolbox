@@ -1,7 +1,7 @@
 # ============================================================
 # 99gongju.online robots.txt
 # Allow all search engines and explicitly welcome AI crawlers
-# Deploy marker: 2026-07-12-v5-20-new-games
+# Deploy marker: 2026-07-13-v6-20-trending-games
 # ============================================================
 
 # --- Default rule for all bots ---

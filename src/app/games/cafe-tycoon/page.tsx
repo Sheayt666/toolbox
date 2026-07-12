@@ -542,6 +542,8 @@ export default function CafeTycoonPage() {
         icon={Coffee}
         iconEmoji="☕"
         iconGradient="from-amber-600 to-yellow-700"
+        stats={stats}
+        shareScore={coins + dayRevenue}
         refreshKey={refreshKey}
       >
         <div className="flex items-center justify-center min-h-[400px]">
