@@ -344,6 +344,53 @@ export default function HomeContent() {
         </div>
       </section>
 
+      {/* Games & Courses Entry - 休闲小游戏 & 工具实战课程 */}
+      <section className="pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* 休闲小游戏入口 */}
+            <Link
+              href="/games"
+              className="group relative flex items-center gap-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-orange-500/15 via-[#18181b] to-red-500/10 border border-orange-500/20 hover:border-orange-500/40 transition-all overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-2xl translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+              <div className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center flex-shrink-0">
+                <Gamepad2 className="w-6 h-6 text-white" />
+              </div>
+              <div className="relative flex-1 min-w-0">
+                <h3 className="text-base font-semibold text-white group-hover:text-orange-400 transition-colors">
+                  休闲小游戏 🎮
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  12款精选小游戏，每日挑战，排行榜PK
+                </p>
+              </div>
+              <ChevronRight className="relative w-5 h-5 text-slate-500 group-hover:text-orange-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+            </Link>
+
+            {/* 工具实战课程入口 */}
+            <Link
+              href="/courses"
+              className="group relative flex items-center gap-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-primary-500/15 via-[#18181b] to-accent-500/10 border border-primary-500/20 hover:border-primary-500/40 transition-all overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full blur-2xl translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+              <div className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center flex-shrink-0">
+                <GraduationCap className="w-6 h-6 text-white" />
+              </div>
+              <div className="relative flex-1 min-w-0">
+                <h3 className="text-base font-semibold text-white group-hover:text-primary-400 transition-colors">
+                  工具实战课程 📚
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  10个场景化工具课程，从入门到精通
+                </p>
+              </div>
+              <ChevronRight className="relative w-5 h-5 text-slate-500 group-hover:text-primary-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Main Content Area */}
       <section className="pb-16 lg:pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

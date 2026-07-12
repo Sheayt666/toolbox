@@ -6,11 +6,13 @@
  * A reusable "generate share card" button. On click it draws a 1080x1080
  * image with the Canvas API (suitable for Xiaohongshu / Instagram) showing the
  * tool name, a Before/After comparison and the 99gongju.online brand, plus a
- * faux QR code in the bottom corner. The generated image can be downloaded.
+ * real scannable QR code (generated via the `qrcode` library) in the bottom
+ * corner. The generated image can be downloaded.
  */
 
 import { useState } from "react";
 import { ImageDown, Download, Loader2 } from "lucide-react";
+import QRCode from "qrcode";
 
 export interface ShareCardProps {
   /** Card headline, e.g. "压缩结果分享" */
@@ -38,65 +40,50 @@ function parseNumber(value: string): { num: number; unit: string } | null {
   return { num, unit: match[2] || "" };
 }
 
-/** Deterministic pseudo-random generator from a string seed (for the faux QR). */
-function seededRandom(seed: string) {
-  let h = 1779033703 ^ seed.length;
-  for (let i = 0; i < seed.length; i++) {
-    h = Math.imul(h ^ seed.charCodeAt(i), 3432918353);
-    h = (h << 13) | (h >>> 19);
-  }
-  return function () {
-    h = Math.imul(h ^ (h >>> 16), 2246822507);
-    h = Math.imul(h ^ (h >>> 13), 3266489909);
-    h ^= h >>> 16;
-    return (h >>> 0) / 4294967296;
-  };
-}
-
-/** Draw the faux QR code (a square pattern, not a real QR). */
-function drawFauxQR(
+/**
+ * Generate a real, scannable QR code via the `qrcode` library and draw it onto
+ * the canvas at (x, y) with the given display size. The QR is rendered at a
+ * higher internal resolution (at least 200px) and then scaled to `size` so it
+ * stays sharp and reliably scannable when the share card is exported.
+ *
+ * A white background plate is painted first so the dark modules remain
+ * scannable on top of the dark card background.
+ */
+async function drawRealQR(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
   size: number,
-  seed: string
-) {
-  const modules = 25;
-  const cell = size / modules;
+  url: string
+): Promise<void> {
+  // Render the QR at >= 200px internal resolution for reliable scanning.
+  const renderSize = Math.max(200, Math.ceil(size));
+  const dataUrl = await QRCode.toDataURL(url, {
+    width: renderSize,
+    margin: 1,
+    errorCorrectionLevel: "M",
+    color: {
+      dark: "#09090b",
+      light: "#ffffff",
+    },
+  });
 
-  // Background
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(x, y, size, size);
-
-  // Random modules
-  const rand = seededRandom(seed);
-  ctx.fillStyle = "#09090b";
-  for (let r = 0; r < modules; r++) {
-    for (let c = 0; c < modules; c++) {
-      if (rand() > 0.55) {
-        ctx.fillRect(x + c * cell, y + r * cell, cell, cell);
-      }
-    }
-  }
-
-  // Three position-detection patterns (corners) for realism
-  const drawFinder = (fx: number, fy: number) => {
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(fx, fy, cell * 7, cell * 7);
-    ctx.fillStyle = "#09090b";
-    ctx.fillRect(fx, fy, cell * 7, cell * 7);
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(fx + cell, fy + cell, cell * 5, cell * 5);
-    ctx.fillStyle = "#09090b";
-    ctx.fillRect(fx + cell * 2, fy + cell * 2, cell * 3, cell * 3);
-  };
-  drawFinder(x, y);
-  drawFinder(x + size - cell * 7, y);
-  drawFinder(x, y + size - cell * 7);
+  await new Promise<void>((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      // White background plate so the QR stays scannable on the dark card.
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(x, y, size, size);
+      ctx.drawImage(img, x, y, size, size);
+      resolve();
+    };
+    img.onerror = () => resolve();
+    img.src = dataUrl;
+  });
 }
 
 /** Render the full share card onto a canvas and return its data URL. */
-function renderShareCard(canvas: HTMLCanvasElement, props: ShareCardProps): string {
+async function renderShareCard(canvas: HTMLCanvasElement, props: ShareCardProps): Promise<string> {
   const ctx = canvas.getContext("2d");
   if (!ctx) return "";
   const W = 1080;
@@ -190,8 +177,9 @@ function renderShareCard(canvas: HTMLCanvasElement, props: ShareCardProps): stri
   ctx.stroke();
 
   // QR code + call to action (bottom)
-  const qrSize = 160;
-  drawFauxQR(ctx, 80, 860, qrSize, `${SITE_URL}/tools/${props.toolId}`);
+  // Use a 200px QR so it stays reliably scannable when the card is exported.
+  const qrSize = 200;
+  await drawRealQR(ctx, 80, 860, qrSize, `${SITE_URL}/tools/${props.toolId}`);
 
   ctx.fillStyle = "#ffffff";
   ctx.font = "bold 36px sans-serif";
@@ -213,10 +201,10 @@ export default function ShareCard(props: ShareCardProps) {
   const handleGenerate = () => {
     setLoading(true);
     // Defer to next frame so the spinner can paint on slow devices.
-    requestAnimationFrame(() => {
+    requestAnimationFrame(async () => {
       try {
         const canvas = document.createElement("canvas");
-        const url = renderShareCard(canvas, props);
+        const url = await renderShareCard(canvas, props);
         setDataUrl(url);
       } catch {
         // ignore rendering errors

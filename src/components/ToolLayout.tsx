@@ -29,6 +29,7 @@ import { getOrCreateToolSeoContent } from "@/data/toolSeoContent";
 import { ToolPageSchema } from "./SEOSchema";
 import { getProductsByCategory } from "@/lib/products";
 import PurchaseModal from "./PurchaseModal";
+import ActivityIndicator from "./ActivityIndicator";
 import { useToolHistory } from "@/hooks/useToolHistory";
 import { getNextSteps } from "@/lib/toolWorkflows";
 
@@ -634,6 +635,9 @@ export default function ToolLayout({
                   </div>
                 </div>
               )}
+
+              {/* Live activity indicator (social proof) */}
+              <ActivityIndicator toolId={effectiveToolId} />
 
               {/* Popular Tools */}
               <div className="bg-[#18181b] rounded-xl border border-[#27272a] p-4">

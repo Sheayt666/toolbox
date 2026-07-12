@@ -4,6 +4,9 @@ import { blogPosts } from "@/lib/blog-posts";
 import { toolVariants } from "@/lib/tool-variants";
 import { products } from "@/lib/products";
 import { getToolSeoContent } from "@/data/toolSeoContent";
+import { games } from "@/lib/games";
+import { sceneCourses } from "@/lib/sceneCourses";
+import { workflowTemplates } from "@/lib/workflowEngine";
 
 export const dynamic = "force-static";
 
@@ -115,6 +118,46 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   };
 
+  // 游戏大厅页
+  const gamesPage = {
+    url: `${baseUrl}/games`,
+    lastModified: new Date(),
+    changeFrequency: "daily" as const,
+    priority: 0.9,
+  };
+
+  // 游戏详情页
+  const gameUrls = games.map((game) => ({
+    url: `${baseUrl}/games/${game.id}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
+  }));
+
+  // 社区擂台页
+  const communityPage = {
+    url: `${baseUrl}/community`,
+    lastModified: new Date(),
+    changeFrequency: "daily" as const,
+    priority: 0.85,
+  };
+
+  // 场景课程页
+  const coursesPage = {
+    url: `${baseUrl}/courses`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.85,
+  };
+
+  // 工作流模板页
+  const workflowsPage = {
+    url: `${baseUrl}/workflows`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
+  };
+
   // 程序化变体页面
   const variantUrls = toolVariants.map((variant) => ({
     url: `${baseUrl}/variants/${variant.toolId}/${variant.variantId}`,
@@ -131,6 +174,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...tagUrls,
     blogPage,
     statsPage,
+    gamesPage,
+    communityPage,
+    coursesPage,
+    workflowsPage,
+    ...gameUrls,
     productsPage,
     ...productDetailUrls,
     disclaimerPage,
