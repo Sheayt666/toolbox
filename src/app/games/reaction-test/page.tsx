@@ -226,7 +226,7 @@ export default function ReactionTestPage() {
         {/* 反应区域 */}
         <button
           onClick={handleClick}
-          className={`w-full max-w-[480px] min-h-[300px] sm:min-h-[400px] lg:min-h-[450px] rounded-xl flex flex-col items-center justify-center select-none transition-colors ${areaBg[phase]} ${
+          className={`w-full max-w-[640px] min-h-[340px] sm:min-h-[460px] lg:min-h-[520px] rounded-xl flex flex-col items-center justify-center select-none transition-colors ${areaBg[phase]} ${
             phase === "ready"
               ? "reaction-pulse"
               : phase === "tooSoon"
@@ -237,7 +237,7 @@ export default function ReactionTestPage() {
             transitionDuration: phase === "ready" ? "0ms" : "300ms",
           }}
         >
-          <span className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
+          <span className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white">
             {areaText[phase]}
           </span>
           <span className="mt-2 text-sm text-white/80">{areaSub[phase]}</span>

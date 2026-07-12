@@ -334,7 +334,7 @@ export default function StroopTestPage() {
 
             <div
               key={animKey}
-              className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8 select-none stroop-pop"
+              className="text-6xl sm:text-7xl lg:text-8xl font-bold mb-8 select-none stroop-pop"
               style={{ color: q.ink.hex }}
             >
               {q.word.name}
@@ -346,7 +346,7 @@ export default function StroopTestPage() {
                   key={opt.name}
                   onClick={() => handleAnswer(opt.name)}
                   disabled={finished}
-                  className="min-h-[56px] sm:min-h-[64px] rounded-xl bg-[#27272a] hover:bg-[#3f3f46] text-white text-lg font-medium transition-all hover:scale-[1.03] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="min-h-[64px] sm:min-h-[72px] lg:min-h-[80px] rounded-xl bg-[#27272a] hover:bg-[#3f3f46] text-white text-xl sm:text-2xl font-medium transition-all hover:scale-[1.03] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   <span
                     className="w-3.5 h-3.5 rounded-full flex-shrink-0"

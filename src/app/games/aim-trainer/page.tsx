@@ -7,7 +7,7 @@ import { submitScore } from "@/lib/gamification";
 
 const GAME_ID = "aim-trainer";
 const GAME_DURATION = 30;
-const TARGET_SIZE = 64;
+const TARGET_SIZE = 80;
 const TARGET_LIFETIME = 1500;
 const BEST_KEY = "toolbox_aim_best";
 
@@ -325,7 +325,7 @@ export default function AimTrainerPage() {
           <div
             ref={arenaRef}
             onClick={handleMiss}
-            className="relative w-full min-h-[350px] sm:min-h-[450px] lg:min-h-[500px] bg-[#09090b] border border-[#27272a] rounded-xl overflow-hidden mb-4 select-none cursor-crosshair bg-dot"
+            className="relative w-full min-h-[400px] sm:min-h-[520px] lg:min-h-[580px] bg-[#09090b] border border-[#27272a] rounded-xl overflow-hidden mb-4 select-none cursor-crosshair bg-dot"
           >
             {/* 连击显示 */}
             {combo >= 2 && (
@@ -344,7 +344,7 @@ export default function AimTrainerPage() {
               <button
                 key={target.id}
                 onClick={handleHit}
-                className="absolute w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-[#a855f7] to-[#7c3aed] hover:from-[#c084fc] hover:to-[#8b5cf6] transition-transform active:scale-90 shadow-lg shadow-[#8b5cf6]/50 aim-target-in flex items-center justify-center"
+                className="absolute w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[#a855f7] to-[#7c3aed] hover:from-[#c084fc] hover:to-[#8b5cf6] transition-transform active:scale-90 shadow-lg shadow-[#8b5cf6]/50 aim-target-in flex items-center justify-center"
                 style={{
                   left: `${target.x}px`,
                   top: `${target.y}px`,

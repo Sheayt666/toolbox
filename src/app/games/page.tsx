@@ -301,14 +301,14 @@ export default function GamesPage() {
               >
                 {/* Icon Area */}
                 <div
-                  className={`relative h-36 bg-gradient-to-br ${game.color} flex items-center justify-center overflow-hidden`}
+                  className={`relative h-44 bg-gradient-to-br ${game.color} flex items-center justify-center overflow-hidden`}
                 >
                   {/* 漂浮装饰小圆点 */}
                   <span className="absolute top-3 left-4 w-1.5 h-1.5 bg-white/40 rounded-full animate-pulse" />
                   <span className="absolute top-10 right-6 w-1 h-1 bg-white/30 rounded-full animate-pulse [animation-delay:300ms]" />
                   <span className="absolute bottom-5 left-8 w-1.5 h-1.5 bg-white/20 rounded-full animate-pulse [animation-delay:600ms]" />
                   <span className="absolute bottom-8 right-4 w-1 h-1 bg-white/30 rounded-full animate-pulse [animation-delay:900ms]" />
-                  <span className="text-5xl drop-shadow-lg transition-transform duration-300 group-hover:scale-110">
+                  <span className="text-6xl drop-shadow-lg transition-transform duration-300 group-hover:scale-110">
                     {game.icon}
                   </span>
                   {game.hasDailyChallenge && (

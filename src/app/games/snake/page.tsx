@@ -8,7 +8,7 @@ import { submitScore } from "@/lib/gamification";
 const GAME_ID = "snake";
 const COLS = 20;
 const ROWS = 20;
-const CELL = 16; // 画布逻辑分辨率 320×320
+const CELL = 30; // 画布逻辑分辨率 600×600
 const BASE_SPEED = 160;
 const MIN_SPEED = 70;
 const BEST_SCORE_KEY = "gm_snake_best_score";
@@ -399,7 +399,7 @@ export default function SnakePage() {
             height={ROWS * CELL}
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
-            className="w-full max-w-[480px] h-auto rounded-xl border border-[#27272a] touch-none shadow-lg shadow-[#8b5cf6]/10"
+            className="w-full max-w-[600px] h-auto rounded-xl border border-[#27272a] touch-none shadow-lg shadow-[#8b5cf6]/10"
           />
 
           {/* 暂停覆盖层 */}

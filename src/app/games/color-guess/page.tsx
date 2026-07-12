@@ -176,7 +176,7 @@ export default function ColorGuessPage() {
           >
             <div key={`level-${level}`} className="bg-[#18181b] border border-[#27272a] rounded-xl p-3 shadow-xl animate-level-in">
               <div
-                className="grid gap-1 sm:gap-2"
+                className="grid gap-1.5 sm:gap-2.5 lg:gap-3"
                 style={{ gridTemplateColumns: `repeat(${levelData.n}, minmax(0, 1fr))` }}
               >
                 {Array.from({ length: levelData.n * levelData.n }).map((_, i) => {
@@ -186,7 +186,7 @@ export default function ColorGuessPage() {
                     <button
                       key={i}
                       onClick={() => handleCellClick(i)}
-                      className={`w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-lg transition-all hover:scale-105 active:scale-95 ${
+                      className={`w-14 h-14 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-lg transition-all hover:scale-105 active:scale-95 ${
                         isCorrect ? "ring-4 ring-green-400 scale-110" : ""
                       } ${isWrong ? "ring-4 ring-red-400 scale-110" : ""}`}
                       style={{
@@ -207,13 +207,13 @@ export default function ColorGuessPage() {
             <div className="flex justify-center mb-4 overflow-x-auto max-w-full">
               <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-3 shadow-xl animate-shake">
                 <div
-                  className="grid gap-1 sm:gap-2"
+                  className="grid gap-1.5 sm:gap-2.5 lg:gap-3"
                   style={{ gridTemplateColumns: `repeat(${levelData.n}, minmax(0, 1fr))` }}
                 >
                   {Array.from({ length: levelData.n * levelData.n }).map((_, i) => (
                     <div
                       key={i}
-                      className={`w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-lg ${
+                      className={`w-14 h-14 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-lg ${
                         i === levelData.differentIndex ? "ring-4 ring-green-400" : ""
                       } ${i === wrongIndex ? "ring-4 ring-red-400" : ""}`}
                       style={{

@@ -315,7 +315,7 @@ export default function MinesweeperPage() {
         <div className="flex justify-center mb-4">
           <div className="inline-block bg-[#18181b] border border-[#27272a] rounded-xl p-3 shadow-xl">
             <div
-              className="grid gap-0.5 sm:gap-1"
+              className="grid gap-1 sm:gap-1.5 lg:gap-2"
               style={{ gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))` }}
             >
               {board.map((row, r) =>
@@ -332,7 +332,7 @@ export default function MinesweeperPage() {
                         longPressTimer.current = null;
                       }
                     }}
-                    className={`w-7 h-7 sm:w-9 sm:h-9 lg:w-10 lg:h-10 flex items-center justify-center rounded-md text-sm sm:text-base lg:text-lg font-bold transition-all select-none ${
+                    className={`w-9 h-9 sm:w-11 sm:h-11 lg:w-12 lg:h-12 flex items-center justify-center rounded-md text-base sm:text-lg lg:text-xl font-bold transition-all select-none ${
                       cell.revealed
                         ? cell.isMine
                           ? "bg-red-500/80 text-white animate-cell-flip"

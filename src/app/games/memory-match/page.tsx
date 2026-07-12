@@ -232,14 +232,14 @@ export default function MemoryMatchPage() {
         )}
 
         <div className="relative w-full max-w-[420px]">
-          <div className="grid grid-cols-4 gap-2 sm:gap-3">
+          <div className="grid grid-cols-4 gap-2.5 sm:gap-3.5 lg:gap-4">
             {cards.map((c, i) => {
               const isUp = c.flipped || c.matched;
               return (
                 <button
                   key={c.id}
                   onClick={() => handleClick(i)}
-                  className={`card-3d w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 ${isUp ? "flipped" : ""}`}
+                  className={`card-3d w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 ${isUp ? "flipped" : ""}`}
                   aria-label={isUp ? c.emoji : "未翻开卡片"}
                 >
                   <div className="card-3d-inner">

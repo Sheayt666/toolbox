@@ -119,20 +119,20 @@ export default function GameShell({
       {/* 主体内容 */}
       <div className="flex-1 max-w-[1400px] w-full mx-auto px-3 sm:px-6 py-4 sm:py-6">
         {/* 标题区 — 大图标 + 标题 */}
-        <div className="flex items-center gap-4 mb-5">
+        <div className="flex items-center gap-4 sm:gap-5 mb-5">
           <div
-            className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br ${iconGradient} flex items-center justify-center shadow-xl shadow-[#8b5cf6]/20 flex-shrink-0`}
+            className={`relative w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-2xl bg-gradient-to-br ${iconGradient} flex items-center justify-center shadow-xl shadow-[#8b5cf6]/20 flex-shrink-0`}
           >
             {/* 光晕效果 */}
             <div
               className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${iconGradient} blur-xl opacity-40 -z-10`}
             />
             {iconEmoji ? (
-              <span className="text-3xl sm:text-4xl drop-shadow-lg">
+              <span className="text-5xl sm:text-6xl lg:text-7xl drop-shadow-lg">
                 {iconEmoji}
               </span>
             ) : (
-              <Icon className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+              <Icon className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 text-white" />
             )}
           </div>
           <div className="flex-1 min-w-0">
@@ -163,13 +163,13 @@ export default function GameShell({
         )}
 
         {/* 桌面端两列布局：游戏区 + 侧边栏 */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4 lg:gap-6">
           {/* 左侧：游戏主区域 */}
           <div className="flex flex-col gap-4">
             {/* 游戏画布容器 */}
-            <div className="relative bg-gradient-to-b from-[#18181b] to-[#131316] border border-[#27272a] rounded-2xl p-4 sm:p-6 lg:p-8 overflow-hidden">
+            <div className="relative bg-gradient-to-b from-[#18181b] to-[#131316] border border-[#27272a] rounded-2xl p-4 sm:p-8 lg:p-10 overflow-hidden">
               {/* 装饰性光晕 */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-32 bg-[#8b5cf6]/5 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-40 bg-[#8b5cf6]/5 rounded-full blur-3xl pointer-events-none" />
               <div className="relative">
                 {children}
               </div>

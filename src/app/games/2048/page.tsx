@@ -136,9 +136,9 @@ const TILE_STYLES: Record<number, string> = {
 };
 
 function tileFontSize(v: number): string {
-  if (v >= 1024) return "text-2xl sm:text-3xl lg:text-4xl";
-  if (v >= 128) return "text-3xl sm:text-4xl lg:text-5xl";
-  return "text-4xl sm:text-5xl lg:text-6xl";
+  if (v >= 1024) return "text-3xl sm:text-4xl lg:text-5xl";
+  if (v >= 128) return "text-4xl sm:text-5xl lg:text-6xl";
+  return "text-5xl sm:text-6xl lg:text-7xl";
 }
 
 interface Result {
@@ -372,7 +372,7 @@ export default function Game2048Page() {
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
         >
-          <div className="grid grid-cols-4 gap-2 sm:gap-3 lg:gap-4 bg-[#09090b] p-2.5 sm:p-3 rounded-xl border border-[#27272a]">
+          <div className="grid grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5 bg-[#09090b] p-3 sm:p-4 lg:p-5 rounded-xl border border-[#27272a]">
             {grid.flat().map((v, i) => {
               const row = Math.floor(i / SIZE);
               const col = i % SIZE;
@@ -387,7 +387,7 @@ export default function Game2048Page() {
               return (
                 <div
                   key={i}
-                  className={`w-16 h-16 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-lg flex items-center justify-center font-bold transition-colors duration-150 ${TILE_STYLES[v] ?? "bg-gradient-to-br from-[#22c55e] to-[#16a34a] text-white"} ${animClass} ${v >= 128 ? "shadow-lg shadow-[#8b5cf6]/20" : ""}`}
+                  className={`w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-lg flex items-center justify-center font-bold transition-colors duration-150 ${TILE_STYLES[v] ?? "bg-gradient-to-br from-[#22c55e] to-[#16a34a] text-white"} ${animClass} ${v >= 128 ? "shadow-lg shadow-[#8b5cf6]/20" : ""}`}
                 >
                   <span className={`${tileFontSize(v)} ${v !== 0 ? "opacity-100" : "opacity-0"}`}>
                     {v !== 0 ? v : ""}

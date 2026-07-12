@@ -202,7 +202,7 @@ WPM = (正确字符数 / 5) / 已用分钟数；准确率 = 正确字符 / 总�
 
         {finished && result ? (
           /* ===== 结果界面 ===== */
-          <div className="w-full max-w-md typing-float-in">
+          <div className="w-full max-w-2xl typing-float-in">
             <div className="rounded-xl border border-[#27272a] bg-[#09090b] p-6 text-center">
               <div className="text-5xl mb-3">⌨️</div>
               <h3 className="text-xl font-bold mb-1">测试完成</h3>
@@ -261,7 +261,7 @@ WPM = (正确字符数 / 5) / 已用分钟数；准确率 = 正确字符 / 总�
               }`}
               onClick={() => inputRef.current?.focus()}
             >
-              <p className="font-mono text-lg sm:text-xl lg:text-2xl leading-relaxed whitespace-pre-wrap break-words">
+              <p className="font-mono text-xl sm:text-2xl lg:text-3xl leading-relaxed whitespace-pre-wrap break-words">
                 {TEXT.split("").map((ch, i) => {
                   let cls = "text-slate-600";
                   if (i < typed.length) {
@@ -298,7 +298,7 @@ WPM = (正确字符数 / 5) / 已用分钟数；准确率 = 正确字符 / 总�
                 autoCorrect="off"
                 autoCapitalize="off"
                 spellCheck={false}
-                className="absolute inset-0 opacity-0 w-full h-full cursor-text text-lg sm:text-xl"
+                className="absolute inset-0 opacity-0 w-full h-full cursor-text text-xl sm:text-2xl"
                 aria-label="打字输入框"
               />
             </div>

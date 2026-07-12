@@ -203,7 +203,7 @@ export default function NumberMemoryPage() {
         )}
 
         {/* 游戏区域 */}
-        <div className={`w-full bg-[#18181b] border border-[#27272a] rounded-xl p-8 mb-4 min-h-[200px] sm:min-h-[260px] lg:min-h-[300px] flex flex-col items-center justify-center ${
+        <div className={`w-full bg-[#18181b] border border-[#27272a] rounded-xl p-8 mb-4 min-h-[240px] sm:min-h-[320px] lg:min-h-[380px] flex flex-col items-center justify-center ${
           phase === "wrong" ? "animate-wrong-flash" : ""
         } ${phase === "correct" ? "animate-correct-flash" : ""}`}>
           {phase === "ready" && (
@@ -234,7 +234,7 @@ export default function NumberMemoryPage() {
                 <Eye className="w-5 h-5" />
                 <span className="text-sm font-medium">记住这串数字</span>
               </div>
-              <p key={target} className="font-mono text-5xl sm:text-6xl lg:text-7xl font-bold tracking-[0.15em] sm:tracking-[0.25em] text-zinc-100 break-all animate-number-reveal">
+              <p key={target} className="font-mono text-6xl sm:text-7xl lg:text-8xl font-bold tracking-[0.15em] sm:tracking-[0.25em] text-zinc-100 break-all animate-number-reveal">
                 {target}
               </p>
             </div>
@@ -255,7 +255,7 @@ export default function NumberMemoryPage() {
                 onChange={(e) => setInput(e.target.value.replace(/[^0-9]/g, ""))}
                 onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }}
                 maxLength={length}
-                className="w-full bg-[#09090b] border border-[#27272a] rounded-xl px-4 py-4 text-center font-mono text-2xl sm:text-3xl font-bold text-zinc-100 focus:border-[#8b5cf6] focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/30 transition-all min-h-[44px]"
+                className="w-full bg-[#09090b] border border-[#27272a] rounded-xl px-4 py-4 text-center font-mono text-3xl sm:text-4xl font-bold text-zinc-100 focus:border-[#8b5cf6] focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/30 transition-all min-h-[44px]"
                 placeholder="••••••"
               />
               <button

@@ -397,7 +397,7 @@ export default function DailySudokuPage() {
                     <button
                       key={key}
                       onClick={() => setSelected([r, c])}
-                      className={`w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 flex items-center justify-center text-base sm:text-lg lg:text-xl font-bold transition-all ${
+                      className={`w-9 h-9 sm:w-11 sm:h-11 lg:w-14 lg:h-14 flex items-center justify-center text-lg sm:text-xl lg:text-2xl font-bold transition-all ${
                         bgClass
                       } ${
                         borderRight ? "border-r-2 border-r-[#8b5cf6]/40" : ""

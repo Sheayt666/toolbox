@@ -336,7 +336,7 @@ export default function TicTacToePage() {
                     key={i}
                     onClick={() => handleClick(i)}
                     disabled={!!cell || result !== "playing" || isAiTurn}
-                    className={`w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 flex items-center justify-center rounded-xl text-4xl sm:text-5xl lg:text-6xl font-bold transition-all duration-200 ${
+                    className={`w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 flex items-center justify-center rounded-xl text-5xl sm:text-6xl lg:text-7xl font-bold transition-all duration-200 ${
                       isWinCell
                         ? "animate-win-glow border border-[#8b5cf6]"
                         : cell
