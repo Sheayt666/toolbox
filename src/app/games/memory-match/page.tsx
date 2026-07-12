@@ -177,6 +177,8 @@ export default function MemoryMatchPage() {
         description="4×4 网格共 8 对 emoji 卡片，翻牌找出全部配对，步数和时间越少分数越高"
         instructions="点击卡片将其翻开，每次最多翻开两张。"
         icon={Brain}
+        iconEmoji="🃏"
+        iconGradient="from-purple-500 to-violet-500"
         stats={[
           { label: "步数", value: 0 },
           { label: "用时", value: "0s" },
@@ -213,6 +215,8 @@ export default function MemoryMatchPage() {
 步数和时间越少最终分数越高，公式：10000 - 步数×100 - 用时秒数。
 找出全部 8 对配对后分数自动提交到排行榜。`}
       icon={Brain}
+      iconEmoji="🃏"
+      iconGradient="from-purple-500 to-violet-500"
       stats={stats}
       shareScore={result?.score ?? 0}
       refreshKey={refreshKey}
@@ -228,14 +232,14 @@ export default function MemoryMatchPage() {
         )}
 
         <div className="relative w-full max-w-[420px]">
-          <div className="grid grid-cols-4 gap-2.5 sm:gap-3">
+          <div className="grid grid-cols-4 gap-2 sm:gap-3">
             {cards.map((c, i) => {
               const isUp = c.flipped || c.matched;
               return (
                 <button
                   key={c.id}
                   onClick={() => handleClick(i)}
-                  className={`card-3d aspect-square min-h-[60px] sm:min-h-[80px] ${isUp ? "flipped" : ""}`}
+                  className={`card-3d w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 ${isUp ? "flipped" : ""}`}
                   aria-label={isUp ? c.emoji : "未翻开卡片"}
                 >
                   <div className="card-3d-inner">

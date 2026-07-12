@@ -1,14 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import Link from "next/link";
-import { Grid3x3, Trophy, Share2, ArrowLeft, Home, Clock, Check, Eraser, Calendar, Undo2 } from "lucide-react";
-import {
-  submitScore,
-  getLeaderboard,
-  createDiss,
-  type LeaderboardEntry,
-} from "@/lib/gamification";
+import { Grid3x3, Check, Eraser, Calendar, Undo2 } from "lucide-react";
+import GameShell, { type GameStat } from "@/components/games/GameShell";
+import { submitScore } from "@/lib/gamification";
 
 /* ============ 类型 ============ */
 type Grid = number[][]; // 0 表示空
@@ -177,10 +172,9 @@ export default function DailySudokuPage() {
   const [completed, setCompleted] = useState(false);
   const [alreadyDone, setAlreadyDone] = useState(false);
   const [bestScore, setBestScore] = useState<number | null>(null);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [shareMsg, setShareMsg] = useState<string | null>(null);
   const [todayStr, setTodayStr] = useState("");
   const [scoreAnim, setScoreAnim] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [history, setHistory] = useState<Grid[]>([]);
   const [cellAnim, setCellAnim] = useState<string>("");
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -196,7 +190,6 @@ export default function DailySudokuPage() {
     setGrid(p.map((r) => [...r]));
     setGiven(p.map((r) => r.map((v) => v !== 0)));
 
-    setLeaderboard(getLeaderboard(GAME_ID));
     try {
       const statsRaw = JSON.parse(localStorage.getItem("gm_stats") || "{}");
       if (statsRaw.highScores?.[GAME_ID]) setBestScore(statsRaw.highScores[GAME_ID]);
@@ -239,8 +232,8 @@ export default function DailySudokuPage() {
           const score = Math.max(100, 3000 - time * 5);
           submitScore(GAME_ID, score, `${time}秒完成`);
           setBestScore((prev) => (prev === null ? score : Math.max(prev, score)));
-          setLeaderboard(getLeaderboard(GAME_ID));
           setScoreAnim((n) => n + 1);
+          setRefreshKey((k) => k + 1);
           submittedRef.current = true;
           localStorage.setItem(`sudoku_done_${todayStr}`, "1");
           setAlreadyDone(true);
@@ -293,13 +286,6 @@ export default function DailySudokuPage() {
     return () => window.removeEventListener("keydown", handler);
   }, [selected, grid, given, completed]);
 
-  const handleShare = () => {
-    const score = bestScore ?? 0;
-    const r = createDiss(GAME_ID, score, "排行榜上的各位");
-    setShareMsg(r.message);
-    setTimeout(() => setShareMsg(null), 4000);
-  };
-
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60);
     const sec = s % 60;
@@ -308,9 +294,23 @@ export default function DailySudokuPage() {
 
   if (!grid || !given) {
     return (
-      <div className="min-h-screen bg-[#09090b] text-zinc-100 flex items-center justify-center">
-        <div className="w-10 h-10 border-2 border-[#8b5cf6] border-t-transparent rounded-full animate-spin" />
-      </div>
+      <GameShell
+        gameId={GAME_ID}
+        title="每日数独"
+        description="每天一题，基于日期生成。点击格子选中后用数字键盘或键盘 1-9 输入。红色高亮表示冲突。"
+        instructions="每天一题，基于日期生成，所有人共享同一道题。"
+        icon={Grid3x3}
+        iconEmoji="📊"
+        iconGradient="from-teal-500 to-cyan-500"
+        stats={[{ label: "状态", value: "加载中" }]}
+        shareScore={0}
+        refreshKey={0}
+      >
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="w-10 h-10 border-2 border-[#8b5cf6] border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-sm text-slate-400">正在生成今日数独...</p>
+        </div>
+      </GameShell>
     );
   }
 
@@ -329,59 +329,47 @@ export default function DailySudokuPage() {
     return sv !== 0 && grid[r][c] === sv && !(r === selected[0] && c === selected[1]);
   };
 
+  const stats: GameStat[] = [
+    { label: "时间", value: formatTime(time) },
+    { label: "最佳", value: bestScore ?? "—" },
+    { label: "状态", value: completed ? "已完成" : alreadyDone ? "今日已完成" : "进行中" },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100">
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        {/* 顶部导航 */}
-        <div className="flex items-center justify-between mb-6">
-          <Link href="/games" className="inline-flex items-center gap-2 text-zinc-400 hover:text-[#8b5cf6] transition-colors text-sm">
-            <ArrowLeft className="w-4 h-4" />
-            返回游戏大厅
-          </Link>
-          <Link href="/" className="inline-flex items-center gap-2 text-zinc-400 hover:text-[#8b5cf6] transition-colors text-sm">
-            <Home className="w-4 h-4" />
-            首页
-          </Link>
-        </div>
-
-        {/* 标题 */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8b5cf6] to-[#6d28d9] mb-4 shadow-lg shadow-[#8b5cf6]/30">
-            <Grid3x3 className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold mb-2">每日数独</h1>
-          <p className="text-zinc-400 text-sm max-w-md mx-auto">
-            每天一题，基于日期生成。点击格子选中后用数字键盘或键盘 1-9 输入。红色高亮表示冲突。
-          </p>
-          <div className="flex items-center justify-center gap-2 mt-3 text-sm text-zinc-500">
-            <Calendar className="w-4 h-4" />
-            {todayStr}
-          </div>
-        </div>
-
-        {/* 状态栏 */}
-        <div className="flex items-center justify-center gap-3 sm:gap-4 mb-6 flex-wrap">
-          <div className="flex items-center gap-2 bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 min-h-[44px]">
-            <Clock className="w-4 h-4 text-[#8b5cf6]" />
-            <span className="font-mono text-lg font-bold">{formatTime(time)}</span>
+    <GameShell
+      gameId={GAME_ID}
+      title="每日数独"
+      description="每天一题，基于日期生成。点击格子选中后用数字键盘或键盘 1-9 输入。红色高亮表示冲突。"
+      instructions={`每天一题，基于日期生成，所有人共享同一道题。
+点击格子选中后，用下方数字键盘或键盘 1-9 输入数字。
+再次输入相同数字可清除该格。
+红色高亮表示该数字与同行、同列或同九宫格冲突。
+支持快捷键：方向键移动选格，Backspace/Delete 清除，Ctrl+Z 撤销。
+填满全部 81 格且无冲突即完成，用时越短分数越高。`}
+      icon={Grid3x3}
+      iconEmoji="📊"
+      iconGradient="from-teal-500 to-cyan-500"
+      stats={stats}
+      shareScore={bestScore ?? 0}
+      refreshKey={refreshKey}
+    >
+      <div className="flex flex-col items-center">
+        {/* 日期 + 今日已完成标识 */}
+        <div className="flex items-center justify-center gap-2 mb-4 flex-wrap">
+          <div className="flex items-center gap-2 bg-[#18181b] border border-[#27272a] rounded-lg px-3 py-1.5">
+            <Calendar className="w-4 h-4 text-[#8b5cf6]" />
+            <span className="text-sm text-zinc-400">{todayStr}</span>
           </div>
           {alreadyDone && !completed && (
-            <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-2.5">
+            <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-1.5">
               <Check className="w-4 h-4 text-green-400" />
               <span className="text-sm font-medium text-green-400">今日已完成</span>
-            </div>
-          )}
-          {bestScore !== null && (
-            <div className="flex items-center gap-2 bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5">
-              <Trophy className="w-4 h-4 text-amber-400" />
-              <span className="text-sm text-zinc-500">最佳：</span>
-              <span key={scoreAnim} className="text-sm font-bold text-[#c084fc] animate-score-pop">{bestScore}</span>
             </div>
           )}
         </div>
 
         {/* 数独网格 */}
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-4 overflow-x-auto max-w-full">
           <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-2 shadow-xl">
             <div className="grid grid-cols-9 gap-0">
               {grid.map((row, r) =>
@@ -409,7 +397,7 @@ export default function DailySudokuPage() {
                     <button
                       key={key}
                       onClick={() => setSelected([r, c])}
-                      className={`w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center text-sm sm:text-lg font-bold transition-all ${
+                      className={`w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 flex items-center justify-center text-base sm:text-lg lg:text-xl font-bold transition-all ${
                         bgClass
                       } ${
                         borderRight ? "border-r-2 border-r-[#8b5cf6]/40" : ""
@@ -432,7 +420,7 @@ export default function DailySudokuPage() {
 
         {/* 数字键盘 + 功能按钮 */}
         {!completed && (
-          <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
               <button
                 key={n}
@@ -460,64 +448,14 @@ export default function DailySudokuPage() {
 
         {/* 完成提示 */}
         {completed && (
-          <div className="text-center mb-6 animate-bounce-in">
+          <div className="text-center mb-4 animate-bounce-in">
             <div className="inline-block bg-green-500/10 border border-green-500/30 rounded-xl px-6 py-4">
-              <p className="text-green-400 font-bold text-xl mb-1">🎉 恭喜完成今日数独！</p>
+              <p key={scoreAnim} className="text-green-400 font-bold text-xl mb-1 animate-score-pop">🎉 恭喜完成今日数独！</p>
               <p className="text-zinc-400 text-sm">用时 {formatTime(time)}</p>
             </div>
           </div>
         )}
-
-        {/* 分数 + 分享 */}
-        <div className="grid sm:grid-cols-2 gap-4 mb-8">
-          <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-4 flex items-center gap-3">
-            <Trophy className="w-6 h-6 text-yellow-500" />
-            <div>
-              <p className="text-xs text-zinc-500">最佳分数</p>
-              <p key={scoreAnim} className="text-xl font-bold animate-score-pop">{bestScore ?? "—"}</p>
-            </div>
-          </div>
-          <button
-            onClick={handleShare}
-            className="bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl p-4 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity text-white font-medium min-h-[44px]"
-          >
-            <Share2 className="w-5 h-5" />
-            分享挑战
-          </button>
-        </div>
-
-        {shareMsg && (
-          <div className="mb-6 bg-[#8b5cf6]/10 border border-[#8b5cf6]/30 rounded-xl p-3 text-center text-sm text-[#c4b5fd]">
-            {shareMsg}
-          </div>
-        )}
-
-        {/* 排行榜 */}
-        <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <Trophy className="w-5 h-5 text-[#8b5cf6]" />
-            <h2 className="font-bold text-lg">排行榜</h2>
-          </div>
-          <div className="space-y-2">
-            {leaderboard.slice(0, 10).map((entry, i) => (
-              <div
-                key={i}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2 ${
-                  entry.name.includes("(你)") ? "bg-[#8b5cf6]/10 border border-[#8b5cf6]/30" : "bg-[#09090b]/60"
-                }`}
-              >
-                <span className={`w-7 text-center font-bold ${i === 0 ? "text-yellow-400" : i === 1 ? "text-zinc-300" : i === 2 ? "text-amber-600" : "text-zinc-500"}`}>
-                  {i + 1}
-                </span>
-                <span className="text-xl">{entry.avatar}</span>
-                <span className="flex-1 text-sm truncate">{entry.name}</span>
-                <span className="text-xs text-zinc-500">{entry.detail}</span>
-                <span className="font-mono font-bold text-[#8b5cf6]">{entry.score}</span>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
-    </div>
+    </GameShell>
   );
 }

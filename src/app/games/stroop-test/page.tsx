@@ -203,6 +203,8 @@ export default function StroopTestPage() {
 30 秒倒计时内尽可能多答对，每答对一题得 100 分。
 注意：选的是墨色，不是字义。首次点击选项即开始计时。`}
       icon={Palette}
+      iconEmoji="🎨"
+      iconGradient="from-pink-500 to-rose-500"
       stats={stats}
       shareScore={result?.score ?? 0}
       refreshKey={refreshKey}
@@ -332,7 +334,7 @@ export default function StroopTestPage() {
 
             <div
               key={animKey}
-              className="text-7xl sm:text-8xl font-bold mb-8 select-none stroop-pop"
+              className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8 select-none stroop-pop"
               style={{ color: q.ink.hex }}
             >
               {q.word.name}
@@ -344,7 +346,7 @@ export default function StroopTestPage() {
                   key={opt.name}
                   onClick={() => handleAnswer(opt.name)}
                   disabled={finished}
-                  className="h-14 rounded-xl bg-[#27272a] hover:bg-[#3f3f46] text-white text-lg font-medium transition-all hover:scale-[1.03] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="min-h-[56px] sm:min-h-[64px] rounded-xl bg-[#27272a] hover:bg-[#3f3f46] text-white text-lg font-medium transition-all hover:scale-[1.03] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   <span
                     className="w-3.5 h-3.5 rounded-full flex-shrink-0"

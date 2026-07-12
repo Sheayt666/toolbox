@@ -1,14 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import Link from "next/link";
-import { Bomb, Flag, RefreshCw, Trophy, Share2, ArrowLeft, Clock, Home, Pickaxe } from "lucide-react";
-import {
-  submitScore,
-  getLeaderboard,
-  createDiss,
-  type LeaderboardEntry,
-} from "@/lib/gamification";
+import { Bomb, Flag, RefreshCw, Pickaxe } from "lucide-react";
+import GameShell, { type GameStat } from "@/components/games/GameShell";
+import { submitScore } from "@/lib/gamification";
 
 /* ============ 常量 ============ */
 const ROWS = 9;
@@ -127,17 +122,15 @@ export default function MinesweeperPage() {
   const [flagsUsed, setFlagsUsed] = useState(0);
   const [time, setTime] = useState(0);
   const [bestScore, setBestScore] = useState<number | null>(null);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [submitted, setSubmitted] = useState(false);
-  const [shareMsg, setShareMsg] = useState<string | null>(null);
   const [mode, setMode] = useState<InteractionMode>("dig");
   const [scoreAnim, setScoreAnim] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const GAME_ID = "minesweeper";
 
   useEffect(() => {
-    setLeaderboard(getLeaderboard(GAME_ID));
     try {
       const stats = JSON.parse(localStorage.getItem("gm_stats") || "{}");
       if (stats.highScores?.[GAME_ID]) setBestScore(stats.highScores[GAME_ID]);
@@ -202,7 +195,7 @@ export default function MinesweeperPage() {
         submitScore(GAME_ID, score, `${time}秒通关`);
         setScoreAnim((n) => n + 1);
         setBestScore((prev) => (prev === null ? score : Math.max(prev, score)));
-        setLeaderboard(getLeaderboard(GAME_ID));
+        setRefreshKey((k) => k + 1);
         setSubmitted(true);
       }
     }
@@ -256,53 +249,35 @@ export default function MinesweeperPage() {
     }
   };
 
-  const handleShare = () => {
-    const score = bestScore ?? 0;
-    const result = createDiss(GAME_ID, score, "排行榜上的各位");
-    setShareMsg(result.message);
-    setTimeout(() => setShareMsg(null), 4000);
-  };
-
   const minesLeft = MINES - flagsUsed;
 
+  const stats: GameStat[] = [
+    { label: "剩余雷", value: minesLeft },
+    { label: "时间", value: time },
+    { label: "最佳", value: bestScore ?? "—" },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* 顶部导航 */}
-        <div className="flex items-center justify-between mb-6">
-          <Link
-            href="/games"
-            className="inline-flex items-center gap-2 text-zinc-400 hover:text-[#8b5cf6] transition-colors text-sm"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            返回游戏大厅
-          </Link>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-zinc-400 hover:text-[#8b5cf6] transition-colors text-sm"
-          >
-            <Home className="w-4 h-4" />
-            首页
-          </Link>
-        </div>
-
-        {/* 标题 */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8b5cf6] to-[#6d28d9] mb-4 shadow-lg shadow-[#8b5cf6]/30">
-            <Bomb className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold mb-2">扫雷</h1>
-          <p className="text-zinc-400 text-sm max-w-md mx-auto">
-            经典 9×9 扫雷，10 个雷。点击挖开格子，长按或切换旗子模式标记。踩到雷游戏结束，挖开所有非雷格子获胜。
-          </p>
-        </div>
-
-        {/* 状态栏 */}
-        <div className="flex items-center justify-center gap-3 sm:gap-4 mb-6 flex-wrap">
-          <div className="flex items-center gap-2 bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 min-h-[44px]">
-            <Flag className="w-4 h-4 text-[#8b5cf6]" />
-            <span className="font-mono text-lg font-bold">{minesLeft}</span>
-          </div>
+    <GameShell
+      gameId={GAME_ID}
+      title="扫雷"
+      description="经典 9×9 扫雷，10 个雷。点击挖开格子，长按或切换旗子模式标记。踩到雷游戏结束，挖开所有非雷格子获胜。"
+      instructions={`经典 9×9 扫雷，共 10 个雷。
+点击格子挖开，长按或切换到标旗模式来标记可疑的雷。
+首次点击保证安全，挖到空白区域会自动展开相邻格子。
+数字表示周围 8 格中的雷数。
+挖开所有非雷格子即获胜，用时越短分数越高。
+踩到雷则游戏结束。`}
+      icon={Bomb}
+      iconEmoji="💣"
+      iconGradient="from-gray-500 to-slate-500"
+      stats={stats}
+      shareScore={bestScore ?? 0}
+      refreshKey={refreshKey}
+    >
+      <div className="flex flex-col items-center">
+        {/* 控制条：重置 + 模式切换 */}
+        <div className="flex items-center justify-center gap-2 mb-4 flex-wrap">
           <button
             onClick={reset}
             className="flex items-center gap-2 bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 hover:border-[#8b5cf6] transition-colors min-h-[44px]"
@@ -312,14 +287,6 @@ export default function MinesweeperPage() {
               {status === "won" ? "😎" : status === "lost" ? "💀" : "🙂"}
             </span>
           </button>
-          <div className="flex items-center gap-2 bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 min-h-[44px]">
-            <Clock className="w-4 h-4 text-[#8b5cf6]" />
-            <span className="font-mono text-lg font-bold">{time}</span>
-          </div>
-        </div>
-
-        {/* 模式切换 - 移动端友好 */}
-        <div className="flex items-center justify-center gap-2 mb-6">
           <button
             onClick={() => setMode("dig")}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all min-h-[44px] ${
@@ -344,11 +311,11 @@ export default function MinesweeperPage() {
           </button>
         </div>
 
-        {/* 游戏区域 */}
-        <div className="flex justify-center mb-8">
+        {/* 游戏网格 */}
+        <div className="flex justify-center mb-4">
           <div className="inline-block bg-[#18181b] border border-[#27272a] rounded-xl p-3 shadow-xl">
             <div
-              className="grid gap-0.5"
+              className="grid gap-0.5 sm:gap-1"
               style={{ gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))` }}
             >
               {board.map((row, r) =>
@@ -365,7 +332,7 @@ export default function MinesweeperPage() {
                         longPressTimer.current = null;
                       }
                     }}
-                    className={`w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-md text-sm font-bold transition-all select-none ${
+                    className={`w-7 h-7 sm:w-9 sm:h-9 lg:w-10 lg:h-10 flex items-center justify-center rounded-md text-sm sm:text-base lg:text-lg font-bold transition-all select-none ${
                       cell.revealed
                         ? cell.isMine
                           ? "bg-red-500/80 text-white animate-cell-flip"
@@ -393,71 +360,22 @@ export default function MinesweeperPage() {
 
         {/* 结果提示 */}
         {status === "won" && (
-          <div className="text-center mb-6 animate-bounce-in">
+          <div className="text-center mb-4 animate-bounce-in">
             <div className="inline-block bg-green-500/10 border border-green-500/30 rounded-xl px-6 py-4">
-              <p className="text-green-400 font-bold text-xl mb-1">🎉 恭喜通关！</p>
+              <p key={scoreAnim} className="text-green-400 font-bold text-xl mb-1 animate-score-pop">🎉 恭喜通关！</p>
               <p className="text-zinc-400 text-sm">用时 {time} 秒</p>
             </div>
           </div>
         )}
         {status === "lost" && (
-          <div className="text-center mb-6 animate-shake">
+          <div className="text-center mb-4 animate-shake">
             <div className="inline-block bg-red-500/10 border border-red-500/30 rounded-xl px-6 py-4">
               <p className="text-red-400 font-bold text-xl mb-1">💥 踩到雷了！</p>
               <p className="text-zinc-400 text-sm">再来一局吧</p>
             </div>
           </div>
         )}
-
-        {/* 分数 + 分享 */}
-        <div className="grid sm:grid-cols-2 gap-4 mb-8">
-          <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-4 flex items-center gap-3">
-            <Trophy className="w-6 h-6 text-yellow-500" />
-            <div>
-              <p className="text-xs text-zinc-500">最佳分数</p>
-              <p key={scoreAnim} className="text-xl font-bold animate-score-pop">{bestScore ?? "—"}</p>
-            </div>
-          </div>
-          <button
-            onClick={handleShare}
-            className="bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] rounded-xl p-4 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity text-white font-medium min-h-[44px]"
-          >
-            <Share2 className="w-5 h-5" />
-            分享挑战
-          </button>
-        </div>
-
-        {shareMsg && (
-          <div className="mb-6 bg-[#8b5cf6]/10 border border-[#8b5cf6]/30 rounded-xl p-3 text-center text-sm text-[#c4b5fd]">
-            {shareMsg}
-          </div>
-        )}
-
-        {/* 排行榜 */}
-        <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <Trophy className="w-5 h-5 text-[#8b5cf6]" />
-            <h2 className="font-bold text-lg">排行榜</h2>
-          </div>
-          <div className="space-y-2">
-            {leaderboard.slice(0, 10).map((entry, i) => (
-              <div
-                key={i}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2 ${
-                  entry.name.includes("(你)") ? "bg-[#8b5cf6]/10 border border-[#8b5cf6]/30" : "bg-[#09090b]/60"
-                }`}
-              >
-                <span className={`w-7 text-center font-bold ${i === 0 ? "text-yellow-400" : i === 1 ? "text-zinc-300" : i === 2 ? "text-amber-600" : "text-zinc-500"}`}>
-                  {i + 1}
-                </span>
-                <span className="text-xl">{entry.avatar}</span>
-                <span className="flex-1 text-sm truncate">{entry.name}</span>
-                <span className="font-mono font-bold text-[#8b5cf6]">{entry.score}</span>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
-    </div>
+    </GameShell>
   );
 }

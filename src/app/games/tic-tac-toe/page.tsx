@@ -278,6 +278,8 @@ export default function TicTacToePage() {
 困难模式：AI 使用 Minimax 算法，不可战胜，最多只能打平。
 你的胜负记录和最佳分数会自动保存在本地。`}
       icon={Grid3x3}
+      iconEmoji="⭕"
+      iconGradient="from-indigo-500 to-blue-500"
       stats={statsDisplay}
       shareScore={stats.bestScore}
       refreshKey={refreshKey}
@@ -334,7 +336,7 @@ export default function TicTacToePage() {
                     key={i}
                     onClick={() => handleClick(i)}
                     disabled={!!cell || result !== "playing" || isAiTurn}
-                    className={`w-[88px] h-[88px] sm:w-24 sm:h-24 flex items-center justify-center rounded-xl text-4xl sm:text-5xl font-bold transition-all duration-200 ${
+                    className={`w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 flex items-center justify-center rounded-xl text-4xl sm:text-5xl lg:text-6xl font-bold transition-all duration-200 ${
                       isWinCell
                         ? "animate-win-glow border border-[#8b5cf6]"
                         : cell

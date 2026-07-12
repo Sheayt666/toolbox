@@ -7,7 +7,7 @@ import { submitScore } from "@/lib/gamification";
 
 const GAME_ID = "aim-trainer";
 const GAME_DURATION = 30;
-const TARGET_SIZE = 52;
+const TARGET_SIZE = 64;
 const TARGET_LIFETIME = 1500;
 const BEST_KEY = "toolbox_aim_best";
 
@@ -251,6 +251,8 @@ export default function AimTrainerPage() {
 连续命中可累积连击，未命中或超时则连击清零。
 游戏结束后，命中数将自动提交到排行榜。`}
       icon={Crosshair}
+      iconEmoji="🎯"
+      iconGradient="from-red-500 to-orange-500"
       stats={stats}
       shareScore={result?.score ?? 0}
       refreshKey={refreshKey}
@@ -323,8 +325,7 @@ export default function AimTrainerPage() {
           <div
             ref={arenaRef}
             onClick={handleMiss}
-            className="relative w-full bg-[#09090b] border border-[#27272a] rounded-xl overflow-hidden mb-4 select-none cursor-crosshair bg-dot"
-            style={{ height: "400px" }}
+            className="relative w-full min-h-[350px] sm:min-h-[450px] lg:min-h-[500px] bg-[#09090b] border border-[#27272a] rounded-xl overflow-hidden mb-4 select-none cursor-crosshair bg-dot"
           >
             {/* 连击显示 */}
             {combo >= 2 && (
@@ -343,12 +344,10 @@ export default function AimTrainerPage() {
               <button
                 key={target.id}
                 onClick={handleHit}
-                className="absolute rounded-full bg-gradient-to-br from-[#a855f7] to-[#7c3aed] hover:from-[#c084fc] hover:to-[#8b5cf6] transition-transform active:scale-90 shadow-lg shadow-[#8b5cf6]/50 aim-target-in flex items-center justify-center"
+                className="absolute w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-[#a855f7] to-[#7c3aed] hover:from-[#c084fc] hover:to-[#8b5cf6] transition-transform active:scale-90 shadow-lg shadow-[#8b5cf6]/50 aim-target-in flex items-center justify-center"
                 style={{
                   left: `${target.x}px`,
                   top: `${target.y}px`,
-                  width: `${TARGET_SIZE}px`,
-                  height: `${TARGET_SIZE}px`,
                 }}
               >
                 <span className="w-3 h-3 rounded-full bg-white/90 shadow-sm" />

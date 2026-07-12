@@ -193,6 +193,8 @@ export default function ReactionTestPage() {
 共 5 轮，取平均反应时间计算最终分数。
 如果在变绿之前点击，会提示"太早了！"并重新开始该轮。`}
       icon={Zap}
+      iconEmoji="⚡"
+      iconGradient="from-yellow-500 to-amber-500"
       stats={stats}
       shareScore={result?.score ?? 0}
       refreshKey={refreshKey}
@@ -224,7 +226,7 @@ export default function ReactionTestPage() {
         {/* 反应区域 */}
         <button
           onClick={handleClick}
-          className={`w-full max-w-[480px] h-56 sm:h-64 rounded-xl flex flex-col items-center justify-center select-none transition-colors ${areaBg[phase]} ${
+          className={`w-full max-w-[480px] min-h-[300px] sm:min-h-[400px] lg:min-h-[450px] rounded-xl flex flex-col items-center justify-center select-none transition-colors ${areaBg[phase]} ${
             phase === "ready"
               ? "reaction-pulse"
               : phase === "tooSoon"
@@ -235,7 +237,7 @@ export default function ReactionTestPage() {
             transitionDuration: phase === "ready" ? "0ms" : "300ms",
           }}
         >
-          <span className="text-2xl sm:text-3xl font-bold text-white">
+          <span className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
             {areaText[phase]}
           </span>
           <span className="mt-2 text-sm text-white/80">{areaSub[phase]}</span>

@@ -373,6 +373,8 @@ export default function SnakePage() {
 撞到墙壁或自己的身体游戏结束，蛇的长度即为你的分数。
 你的最高长度记录会自动保存在本地。`}
       icon={Worm}
+      iconEmoji="🐍"
+      iconGradient="from-green-500 to-emerald-500"
       stats={stats}
       shareScore={score}
       refreshKey={refreshKey}
@@ -397,7 +399,7 @@ export default function SnakePage() {
             height={ROWS * CELL}
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
-            className="w-full max-w-[360px] aspect-square rounded-xl border border-[#27272a] touch-none shadow-lg shadow-[#8b5cf6]/10"
+            className="w-full max-w-[480px] h-auto rounded-xl border border-[#27272a] touch-none shadow-lg shadow-[#8b5cf6]/10"
           />
 
           {/* 暂停覆盖层 */}
@@ -457,26 +459,26 @@ export default function SnakePage() {
             <div />
             <button
               onClick={() => setDir(0, -1)}
-              className="h-12 rounded-xl bg-[#27272a] text-white flex items-center justify-center active:bg-[#8b5cf6] active:scale-95 transition-all border border-[#3f3f46]"
+              className="h-14 rounded-xl bg-[#27272a] text-white flex items-center justify-center active:bg-[#8b5cf6] active:scale-95 transition-all border border-[#3f3f46]"
             >
               <ChevronUp className="w-6 h-6" />
             </button>
             <div />
             <button
               onClick={() => setDir(-1, 0)}
-              className="h-12 rounded-xl bg-[#27272a] text-white flex items-center justify-center active:bg-[#8b5cf6] active:scale-95 transition-all border border-[#3f3f46]"
+              className="h-14 rounded-xl bg-[#27272a] text-white flex items-center justify-center active:bg-[#8b5cf6] active:scale-95 transition-all border border-[#3f3f46]"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
             <button
               onClick={() => setDir(0, 1)}
-              className="h-12 rounded-xl bg-[#27272a] text-white flex items-center justify-center active:bg-[#8b5cf6] active:scale-95 transition-all border border-[#3f3f46]"
+              className="h-14 rounded-xl bg-[#27272a] text-white flex items-center justify-center active:bg-[#8b5cf6] active:scale-95 transition-all border border-[#3f3f46]"
             >
               <ChevronDown className="w-6 h-6" />
             </button>
             <button
               onClick={() => setDir(1, 0)}
-              className="h-12 rounded-xl bg-[#27272a] text-white flex items-center justify-center active:bg-[#8b5cf6] active:scale-95 transition-all border border-[#3f3f46]"
+              className="h-14 rounded-xl bg-[#27272a] text-white flex items-center justify-center active:bg-[#8b5cf6] active:scale-95 transition-all border border-[#3f3f46]"
             >
               <ChevronRight className="w-6 h-6" />
             </button>

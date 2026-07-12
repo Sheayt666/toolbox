@@ -128,8 +128,12 @@ export default function GamesPage() {
         <div className="relative mb-8 overflow-hidden rounded-2xl">
           <div className="absolute inset-0 gradient-bg-hero" />
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl -translate-y-1/3 translate-x-1/4" />
-          <div className="relative py-8 sm:py-10">
-            <div className="flex items-center gap-2 mb-3">
+          <div className="absolute bottom-0 left-0 w-72 h-72 bg-accent-500/10 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4" />
+          <div className="absolute top-1/2 left-1/3 w-40 h-40 bg-primary-500/5 rounded-full blur-2xl" />
+          <div className="absolute top-4 left-8 w-2 h-2 bg-primary-400/40 rounded-full animate-pulse" />
+          <div className="absolute bottom-6 right-12 w-1.5 h-1.5 bg-accent-400/40 rounded-full animate-pulse [animation-delay:500ms]" />
+          <div className="relative py-10 sm:py-12">
+            <div className="flex items-center gap-2 mb-4">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium text-primary-300 bg-primary-500/15 rounded-full border border-primary-500/20">
                 <Sparkles className="w-3.5 h-3.5" />
                 12款精选小游戏
@@ -138,8 +142,12 @@ export default function GamesPage() {
                 <CheckCircle className="w-3.5 h-3.5" />
                 免费即玩
               </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium text-amber-400 bg-amber-500/10 rounded-full border border-amber-500/20">
+                <Trophy className="w-3.5 h-3.5" />
+                排行榜竞技
+              </span>
             </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold gradient-text mb-3 tracking-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold gradient-text mb-4 tracking-tight">
               休闲小游戏 🎮
             </h1>
             <p className="text-sm sm:text-base text-slate-400 max-w-2xl leading-relaxed">
@@ -281,21 +289,28 @@ export default function GamesPage() {
         </div>
 
         {/* Games Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-10">
           {filteredGames.map((game, idx) => {
             const diff = difficultyConfig[game.difficulty];
             return (
               <Link
                 key={game.id}
                 href={game.path}
-                className="group bg-[#18181b] rounded-xl border border-[#27272a] overflow-hidden hover:border-primary-500/30 transition-all hover:-translate-y-0.5 animate-fade-in-up"
+                className="group bg-[#18181b] rounded-xl border border-[#27272a] overflow-hidden hover:border-primary-500/30 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-primary-500/10 animate-fade-in-up"
                 style={{ animationDelay: `${idx * 30}ms` }}
               >
                 {/* Icon Area */}
                 <div
-                  className={`relative h-24 bg-gradient-to-br ${game.color} flex items-center justify-center overflow-hidden`}
+                  className={`relative h-36 bg-gradient-to-br ${game.color} flex items-center justify-center overflow-hidden`}
                 >
-                  <span className="text-4xl drop-shadow-lg">{game.icon}</span>
+                  {/* 漂浮装饰小圆点 */}
+                  <span className="absolute top-3 left-4 w-1.5 h-1.5 bg-white/40 rounded-full animate-pulse" />
+                  <span className="absolute top-10 right-6 w-1 h-1 bg-white/30 rounded-full animate-pulse [animation-delay:300ms]" />
+                  <span className="absolute bottom-5 left-8 w-1.5 h-1.5 bg-white/20 rounded-full animate-pulse [animation-delay:600ms]" />
+                  <span className="absolute bottom-8 right-4 w-1 h-1 bg-white/30 rounded-full animate-pulse [animation-delay:900ms]" />
+                  <span className="text-5xl drop-shadow-lg transition-transform duration-300 group-hover:scale-110">
+                    {game.icon}
+                  </span>
                   {game.hasDailyChallenge && (
                     <span className="absolute top-2 right-2 inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium text-amber-400 bg-black/40 backdrop-blur-sm rounded-md border border-amber-500/30">
                       <Calendar className="w-2.5 h-2.5" />
@@ -305,7 +320,7 @@ export default function GamesPage() {
                 </div>
                 {/* Content */}
                 <div className="p-4">
-                  <h3 className="text-sm font-bold text-white mb-1 group-hover:text-primary-400 transition-colors truncate">
+                  <h3 className="text-base font-bold text-white mb-1 group-hover:text-primary-400 transition-colors truncate">
                     {game.name}
                   </h3>
                   <p className="text-xs text-slate-500 line-clamp-2 mb-3 leading-relaxed">
@@ -313,12 +328,14 @@ export default function GamesPage() {
                   </p>
                   {/* Tags */}
                   <div className="flex flex-wrap items-center gap-1.5 mb-3">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium text-slate-400 bg-[#27272a] rounded">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-medium text-slate-300 bg-[#27272a]/80 rounded-full border border-[#3f3f46]">
+                      <span className="w-1 h-1 rounded-full bg-slate-400" />
                       {game.categoryName}
                     </span>
                     <span
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded border ${diff.className}`}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-medium rounded-full border ${diff.className}`}
                     >
+                      <span className="w-1 h-1 rounded-full bg-current opacity-70" />
                       {diff.label}
                     </span>
                   </div>

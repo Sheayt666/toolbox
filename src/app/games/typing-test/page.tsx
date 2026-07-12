@@ -156,6 +156,8 @@ export default function TypingTestPage() {
 WPM = (正确字符数 / 5) / 已用分钟数；准确率 = 正确字符 / 总输入字符。
 时间结束或完成全部文本后，WPM 将自动提交到排行榜。`}
       icon={Keyboard}
+      iconEmoji="⌨️"
+      iconGradient="from-blue-500 to-cyan-500"
       stats={stats}
       shareScore={result?.wpm ?? wpm}
       refreshKey={refreshKey}
@@ -259,7 +261,7 @@ WPM = (正确字符数 / 5) / 已用分钟数；准确率 = 正确字符 / 总�
               }`}
               onClick={() => inputRef.current?.focus()}
             >
-              <p className="font-mono text-base sm:text-lg leading-relaxed whitespace-pre-wrap break-words">
+              <p className="font-mono text-lg sm:text-xl lg:text-2xl leading-relaxed whitespace-pre-wrap break-words">
                 {TEXT.split("").map((ch, i) => {
                   let cls = "text-slate-600";
                   if (i < typed.length) {
@@ -296,7 +298,7 @@ WPM = (正确字符数 / 5) / 已用分钟数；准确率 = 正确字符 / 总�
                 autoCorrect="off"
                 autoCapitalize="off"
                 spellCheck={false}
-                className="absolute inset-0 opacity-0 w-full h-full cursor-text"
+                className="absolute inset-0 opacity-0 w-full h-full cursor-text text-lg sm:text-xl"
                 aria-label="打字输入框"
               />
             </div>

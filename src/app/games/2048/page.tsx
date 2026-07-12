@@ -136,9 +136,9 @@ const TILE_STYLES: Record<number, string> = {
 };
 
 function tileFontSize(v: number): string {
-  if (v >= 1024) return "text-xl sm:text-2xl";
-  if (v >= 128) return "text-2xl sm:text-3xl";
-  return "text-3xl sm:text-4xl";
+  if (v >= 1024) return "text-2xl sm:text-3xl lg:text-4xl";
+  if (v >= 128) return "text-3xl sm:text-4xl lg:text-5xl";
+  return "text-4xl sm:text-5xl lg:text-6xl";
 }
 
 interface Result {
@@ -319,6 +319,8 @@ export default function Game2048Page() {
         description="经典 4×4 数字合并游戏，滑动方块合成更大的数字，挑战 2048 甚至更高"
         instructions="加载中..."
         icon={Gamepad2}
+        iconEmoji="🔢"
+        iconGradient="from-amber-500 to-orange-500"
         stats={[
           { label: "当前分数", value: 0 },
           { label: "最高方块", value: 0 },
@@ -346,6 +348,8 @@ export default function Game2048Page() {
 当所有格子被填满且无法再合并时游戏结束，分数将自动提交到排行榜。
 你的历史最高分会自动保存在本地。`}
       icon={Gamepad2}
+      iconEmoji="🔢"
+      iconGradient="from-amber-500 to-orange-500"
       stats={stats}
       shareScore={score}
       refreshKey={refreshKey}
@@ -368,7 +372,7 @@ export default function Game2048Page() {
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
         >
-          <div className="grid grid-cols-4 gap-2.5 bg-[#09090b] p-2.5 sm:p-3 rounded-xl border border-[#27272a]">
+          <div className="grid grid-cols-4 gap-2 sm:gap-3 lg:gap-4 bg-[#09090b] p-2.5 sm:p-3 rounded-xl border border-[#27272a]">
             {grid.flat().map((v, i) => {
               const row = Math.floor(i / SIZE);
               const col = i % SIZE;
@@ -383,7 +387,7 @@ export default function Game2048Page() {
               return (
                 <div
                   key={i}
-                  className={`w-[68px] h-[68px] sm:w-20 sm:h-20 rounded-lg flex items-center justify-center font-bold transition-colors duration-150 ${TILE_STYLES[v] ?? "bg-gradient-to-br from-[#22c55e] to-[#16a34a] text-white"} ${animClass} ${v >= 128 ? "shadow-lg shadow-[#8b5cf6]/20" : ""}`}
+                  className={`w-16 h-16 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-lg flex items-center justify-center font-bold transition-colors duration-150 ${TILE_STYLES[v] ?? "bg-gradient-to-br from-[#22c55e] to-[#16a34a] text-white"} ${animClass} ${v >= 128 ? "shadow-lg shadow-[#8b5cf6]/20" : ""}`}
                 >
                   <span className={`${tileFontSize(v)} ${v !== 0 ? "opacity-100" : "opacity-0"}`}>
                     {v !== 0 ? v : ""}
