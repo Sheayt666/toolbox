@@ -4,9 +4,6 @@ import { BookOpen, ArrowRight, ChevronRight, Home } from "lucide-react";
 import { BreadcrumbListSchema } from "@/components/SEOSchema";
 import BlogListClient from "./BlogListClient";
 
-// Edge runtime for static export compatibility
-export const runtime = "edge";
-
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL || "https://99gongju.online";
 
