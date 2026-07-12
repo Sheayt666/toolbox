@@ -16,8 +16,6 @@ import {
 import { tools, categories, getToolsByCategory } from "@/lib/tools";
 import { BreadcrumbListSchema, FAQPageSchema } from "@/components/SEOSchema";
 
-export const runtime = "edge";
-
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://99gongju.online";
 
 export const metadata: Metadata = {
