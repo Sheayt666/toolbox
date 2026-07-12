@@ -285,6 +285,7 @@ export default function BlackHolePage() {
 
       // Player movement: smoothly follow mouse direction
       const player = holes[0];
+      if (!player) return;
       const dx = mouseRef.current.x - CANVAS_W / 2;
       const dy = mouseRef.current.y - CANVAS_H / 2;
       const dLen = Math.sqrt(dx * dx + dy * dy);

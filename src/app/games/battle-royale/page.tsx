@@ -453,7 +453,7 @@ export default function BattleRoyalePage() {
 
       // Player movement
       const player = entities[0];
-      if (player.alive) {
+      if (player && player.alive) {
         let mx = 0;
         let my = 0;
         if (keysRef.current.has("w") || keysRef.current.has("arrowup")) my -= 1;
@@ -749,7 +749,7 @@ export default function BattleRoyalePage() {
 
     // Player HP bar (big, bottom)
     const player = entities[0];
-    if (player.alive) {
+    if (player && player.alive) {
       const bw = 200;
       const bh = 10;
       const bx = (cv.width - bw) / 2;

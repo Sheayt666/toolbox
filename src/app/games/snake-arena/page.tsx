@@ -388,7 +388,7 @@ export default function SnakeArenaPage() {
 
       // Update player target angle from mouse
       const player = snakes[0];
-      if (player.alive) {
+      if (player && player.alive) {
         const head = player.segments[0];
         // mouseRef is relative to canvas center
         const dx = mouseRef.current.x - CANVAS_W / 2;
@@ -566,6 +566,7 @@ export default function SnakeArenaPage() {
     const foods = foodsRef.current;
     const particles = particlesRef.current;
     const player = snakes[0];
+    if (!player) return;
 
     // Camera follows player head
     let camX = MAP_W / 2;
