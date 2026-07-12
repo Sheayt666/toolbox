@@ -14,7 +14,8 @@
  * Runs on both Windows and Linux.  No external dependencies.
  */
 
-import { readdirSync, statSync, existsSync, mkdirSync, copyFileSync, readdir, lstatSync, rmSync } from "node:fs";
+import { readdirSync, statSync, existsSync, mkdirSync, copyFileSync, lstatSync, rmSync } from "node:fs";
+import { readdir as readdirAsync } from "node:fs/promises";
 import { join, dirname, relative, sep, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import process from "node:process";
@@ -71,7 +72,7 @@ async function walk(dir) {
   const results = [];
   let entries;
   try {
-    entries = await readdir(dir, { withFileTypes: true });
+    entries = await readdirAsync(dir, { withFileTypes: true });
   } catch {
     return results;
   }
@@ -201,7 +202,10 @@ async function main() {
   console.log(`[postbuild] Done. Total HTML pages: ${copied}`);
 }
 
-main().catch((e) => {
+// Use top-level await so that `await import("./postbuild.mjs")` in build.mjs
+// actually waits for postbuild to finish before checking the out/ directory.
+try {
+  await main();
+} catch (e) {
   console.error("[postbuild] Fatal error:", e);
-  process.exit(0); // Don't fail the build
-});
+}

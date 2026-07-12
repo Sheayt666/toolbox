@@ -10,7 +10,7 @@
  * all pages were successfully generated.
  */
 
-import { spawn, execSync } from "node:child_process";
+import { spawn, spawnSync, execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { existsSync } from "node:fs";
@@ -25,15 +25,25 @@ function runNextBuild() {
     const localNext = join(root, "node_modules", ".bin", "next");
     const isWin = process.platform === "win32";
 
-    let cmd, args;
+    let cmd, args, useShell;
     if (existsSync(localNext)) {
-      // Use local binary directly.
-      cmd = isWin ? "node" : localNext;
-      args = isWin ? [localNext, "build", "--webpack"] : ["build", "--webpack"];
+      if (isWin) {
+        // On Windows, node_modules/.bin/next is a shell script, not JS.
+        // Use npx.cmd which handles PATH resolution and spaces correctly.
+        cmd = "npx.cmd";
+        args = ["next", "build", "--webpack"];
+        useShell = true;
+      } else {
+        // On Linux/macOS, .bin/next is a JS file (or symlink) — run directly.
+        cmd = localNext;
+        args = ["build", "--webpack"];
+        useShell = false;
+      }
     } else {
       // Fall back to npx.
       cmd = isWin ? "npx.cmd" : "npx";
       args = ["next", "build", "--webpack"];
+      useShell = isWin;
     }
 
     console.log(`[build-wrapper] Running: ${cmd} ${args.join(" ")}`);
@@ -41,7 +51,7 @@ function runNextBuild() {
     const child = spawn(cmd, args, {
       cwd: root,
       stdio: "inherit",
-      shell: true, // Use shell to ensure PATH resolution works
+      shell: useShell,
     });
 
     child.on("close", (code) => {
