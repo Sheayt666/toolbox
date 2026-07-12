@@ -168,6 +168,9 @@ const WEAPONS: WeaponDef[] = [
 
 /* ================================================================== */
 /*  Component                                                          */
+/*  Canvas init: callback ref (setCanvasRef) fires synchronously      */
+/*  when <canvas> mounts, bypassing GameShell's delayed mount.         */
+/*  Render also lazy-inits ctx as a fallback.                          */
 /* ================================================================== */
 export default function ZombieDefensePage() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
