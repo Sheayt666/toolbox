@@ -156,14 +156,7 @@ export default function Game2048Page() {
   const submittedRef = useRef(false);
 
   const [score, setScore] = useState(0);
-  const [bestScore, setBestScore] = useState<number>(() => {
-    if (typeof window === "undefined") return 0;
-    try {
-      return parseInt(localStorage.getItem(BEST_SCORE_KEY) || "0", 10) || 0;
-    } catch {
-      return 0;
-    }
-  });
+  const [bestScore, setBestScore] = useState(0);
   const [bestTile, setBestTile] = useState(0);
   const [over, setOver] = useState(false);
   const [won, setWon] = useState(false);
@@ -177,6 +170,11 @@ export default function Game2048Page() {
   // 挂载后初始化游戏（mounted 模式修复水合错误 #418）
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
+    // 读取本地存储的最高分（mounted后读取避免水合不匹配）
+    try {
+      const saved = parseInt(localStorage.getItem(BEST_SCORE_KEY) || "0", 10) || 0;
+      if (saved > 0) setBestScore(saved);
+    } catch { /* ignore */ }
     const g = newGrid();
     gridRef.current = g;
     setGrid(g.map((r) => r.slice()));

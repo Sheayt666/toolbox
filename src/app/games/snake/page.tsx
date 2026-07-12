@@ -66,14 +66,7 @@ export default function SnakePage() {
   const animFrameRef = useRef<number>(0);
 
   const [score, setScore] = useState(3);
-  const [best, setBest] = useState<number>(() => {
-    if (typeof window === "undefined") return 3;
-    try {
-      return parseInt(localStorage.getItem(BEST_SCORE_KEY) || "3", 10) || 3;
-    } catch {
-      return 3;
-    }
-  });
+  const [best, setBest] = useState(3);
   const [over, setOver] = useState(false);
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
@@ -174,6 +167,14 @@ export default function SnakePage() {
         ctx.fill();
       }
     });
+  }, []);
+
+  // 读取本地存储的最佳成绩（mounted后读取避免水合不匹配）
+  useEffect(() => {
+    try {
+      const saved = parseInt(localStorage.getItem(BEST_SCORE_KEY) || "3", 10) || 3;
+      if (saved > 3) setBest(saved);
+    } catch { /* ignore */ }
   }, []);
 
   // 动画帧循环（用于食物脉动效果，独立于游戏逻辑）

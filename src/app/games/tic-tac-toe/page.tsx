@@ -135,16 +135,7 @@ export default function TicTacToePage() {
   const [winLine, setWinLine] = useState<number[] | null>(null);
   const [isAiTurn, setIsAiTurn] = useState(false);
   const [lastMove, setLastMove] = useState<number | null>(null);
-  const [stats, setStats] = useState<SavedStats>(() => {
-    if (typeof window === "undefined") return { wins: 0, losses: 0, draws: 0, bestScore: 0 };
-    try {
-      const raw = localStorage.getItem(STATS_KEY);
-      if (raw) return JSON.parse(raw);
-    } catch {
-      // ignore
-    }
-    return { wins: 0, losses: 0, draws: 0, bestScore: 0 };
-  });
+  const [stats, setStats] = useState<SavedStats>({ wins: 0, losses: 0, draws: 0, bestScore: 0 });
   const [submitted, setSubmitted] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [resultData, setResultData] = useState<Result | null>(null);
@@ -201,6 +192,14 @@ export default function TicTacToePage() {
     },
     [difficulty, submitted],
   );
+
+  // 读取本地存储的战绩（mounted后读取避免水合不匹配）
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STATS_KEY);
+      if (raw) setStats(JSON.parse(raw));
+    } catch { /* ignore */ }
+  }, []);
 
   // AI 回合
   useEffect(() => {
